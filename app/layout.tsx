@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PlausibleScript } from "@/components/plausible-script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SiteFooter, SiteHeader } from "@/components/site";
 import { siteDescription, siteName } from "@/lib/content";
 
@@ -23,6 +25,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="main-content">{children}</main>
           <SiteFooter />
         </div>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
