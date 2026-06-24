@@ -1,0 +1,310 @@
+"use server";
+
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { addWaitlistEntry, deletePostById, getResourceBySlug, saveDemand, savePost, saveResource, saveSubscriber } from "@/lib/db";
+import { signInAdmin, signOutAdmin } from "@/lib/auth";
+import { getResourceDeliveryLabel, getResourceDeliveryPath, getResourceLandingPath } from "@/lib/resource-delivery";
+import type {
+  ActionState,
+  DemandStatus,
+  EvidenceStrength,
+  PostCtaType,
+  ResourceDeliveryMode,
+  PostStatus,
+  ResourceStatus,
+  ResourceType,
+  TopicTag
+} from "@/lib/types";
+
+const emailSchema = z.string().trim().email();
+
+const subscribeSchema = z.object({
+  email: emailSchema,
+  source_page: z.string().optional(),
+  source_type: z.enum(["home", "post", "resource", "newsletter_page", "waitlist"]),
+  lead_magnet: z.string().optional(),
+  persona_tag: z.string().optional(),
+  topic_tag: z.string().optional()
+});
+
+const waitlistSchema = z.object({
+  project_name: z.string().min(1),
+  page_slug: z.string().min(1),
+  email: emailSchema,
+  source_page: z.string().optional(),
+  interest_tag: z.string().optional(),
+  note: z.string().optional()
+});
+
+function getText(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+function getOptionalDateTime(formData: FormData, key: string) {
+  const value = getText(formData, key);
+  if (!value) return undefined;
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+async function saveUploadedPostImage(file: File) {
+  if (!file || file.size === 0) {
+    return undefined;
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : undefined;
+  const safeExtension = extension && /^[a-z0-9]+$/.test(extension) ? extension : "jpg";
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "posts");
+
+  await mkdir(uploadDir, { recursive: true });
+
+  const filename = `${Date.now()}-${randomUUID()}.${safeExtension}`;
+  const outputPath = path.join(uploadDir, filename);
+  await writeFile(outputPath, buffer);
+
+  return `/uploads/posts/${filename}`;
+}
+
+async function maybeSyncMailerLite(_email: string) {
+  // Local save remains the source of truth when MailerLite is not configured.
+}
+
+export async function subscribeUser(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = subscribeSchema.safeParse({
+    email: getText(formData, "email").toLowerCase(),
+    source_page: getText(formData, "source_page") || undefined,
+    source_type: getText(formData, "source_type"),
+    lead_magnet: getText(formData, "lead_magnet") || undefined,
+    persona_tag: getText(formData, "persona_tag") || undefined,
+    topic_tag: getText(formData, "topic_tag") || undefined
+  });
+
+  if (!parsed.success) {
+    return { success: false, message: "Please enter a valid email address." };
+  }
+
+  await saveSubscriber(parsed.data);
+  await maybeSyncMailerLite(parsed.data.email);
+
+  revalidatePath("/");
+  revalidatePath("/newsletter");
+  revalidatePath("/research");
+  revalidatePath("/admin");
+  revalidatePath("/admin/subscribers");
+
+  const eventName = parsed.data.source_type === "resource" ? "resource_signup" : "newsletter_signup";
+
+  if (parsed.data.source_type === "resource" && parsed.data.lead_magnet) {
+    const resource = await getResourceBySlug(parsed.data.lead_magnet);
+    const redirectUrl = resource ? getResourceDeliveryPath(resource) : undefined;
+
+    if (resource && redirectUrl) {
+      return {
+        success: true,
+        message: "Thanks. Your report is ready.",
+        redirectUrl,
+        redirectLabel: getResourceDeliveryLabel(resource),
+        eventName
+      };
+    }
+  }
+
+  return {
+    success: true,
+    message: "Thanks. You're on the list!",
+    redirectUrl: "/research/how-consultants-get-clients-in-2024",
+    redirectLabel: "Read our latest research now ->",
+    eventName
+  };
+}
+
+export async function joinWaitlist(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = waitlistSchema.safeParse({
+    project_name: getText(formData, "project_name"),
+    page_slug: getText(formData, "page_slug"),
+    email: getText(formData, "email").toLowerCase(),
+    source_page: getText(formData, "source_page") || undefined,
+    interest_tag: getText(formData, "interest_tag") || undefined,
+    note: getText(formData, "note") || undefined
+  });
+
+  if (!parsed.success) {
+    return { success: false, message: "Please complete the waitlist form with a valid email." };
+  }
+
+  await addWaitlistEntry(parsed.data);
+  await saveSubscriber({
+    email: parsed.data.email,
+    source_page: parsed.data.source_page,
+    source_type: "waitlist",
+    topic_tag: "client_acquisition"
+  });
+
+  revalidatePath(`/waitlist/${parsed.data.page_slug}`);
+  revalidatePath("/admin");
+  revalidatePath("/admin/waitlists");
+  revalidatePath("/admin/subscribers");
+
+  return { success: true, message: "You're on the waitlist.", eventName: "waitlist_signup" };
+}
+
+export async function loginAdmin(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const email = getText(formData, "email");
+  const password = getText(formData, "password");
+  const success = await signInAdmin(email, password);
+
+  if (!success) {
+    return { success: false, message: "Incorrect Supabase email or password." };
+  }
+
+  redirect("/admin");
+}
+
+export async function logoutAdmin() {
+  await signOutAdmin();
+  redirect("/admin/login");
+}
+
+function parseScore(value: string) {
+  if (!value) return undefined;
+  const number = Number(value);
+  if (Number.isNaN(number)) return undefined;
+  return number;
+}
+
+export async function upsertDemand(formData: FormData) {
+  const scores = ["pain_score", "frequency_score", "payment_score"].map((key) => parseScore(getText(formData, key)));
+  if (scores.some((score) => score !== undefined && (score < 1 || score > 5))) {
+    throw new Error("Scores must be between 1 and 5.");
+  }
+
+  await saveDemand({
+    id: getText(formData, "id") || undefined,
+    title: getText(formData, "title"),
+    source_url: getText(formData, "source_url") || undefined,
+    source_platform: getText(formData, "source_platform") || undefined,
+    user_quote: getText(formData, "user_quote") || undefined,
+    persona: getText(formData, "persona") || undefined,
+    job_to_be_done: getText(formData, "job_to_be_done") || undefined,
+    problem_stage: getText(formData, "problem_stage") || undefined,
+    solution_attempted: getText(formData, "solution_attempted") || undefined,
+    keyword: getText(formData, "keyword") || undefined,
+    pain_score: scores[0],
+    frequency_score: scores[1],
+    payment_score: scores[2],
+    evidence_strength: (getText(formData, "evidence_strength") || undefined) as EvidenceStrength | undefined,
+    status: getText(formData, "status") as DemandStatus,
+    tags: getText(formData, "tags")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
+    next_action: getText(formData, "next_action") || undefined,
+    topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/demands");
+  redirect("/admin/demands");
+}
+
+export async function upsertPost(formData: FormData) {
+  const relatedDemandIds = formData.getAll("related_demand_ids")
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
+  const coverImage = formData.get("cover_image");
+  const existingCoverImageUrl = getText(formData, "existing_cover_image_url") || undefined;
+  const removeCoverImage = getText(formData, "remove_cover_image") === "on";
+  const uploadedCoverImageUrl = coverImage instanceof File ? await saveUploadedPostImage(coverImage) : undefined;
+
+  await savePost({
+    id: getText(formData, "id") || undefined,
+    title: getText(formData, "title"),
+    slug: getText(formData, "slug"),
+    summary: getText(formData, "summary") || undefined,
+    content: getText(formData, "content") || undefined,
+    cover_image_url: removeCoverImage ? undefined : uploadedCoverImageUrl ?? existingCoverImageUrl,
+    related_persona: getText(formData, "related_persona") || undefined,
+    related_demand_ids: relatedDemandIds,
+    topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined,
+    seo_title: getText(formData, "seo_title") || undefined,
+    seo_description: getText(formData, "seo_description") || undefined,
+    cta_type: getText(formData, "cta_type") as PostCtaType,
+    cta_target: getText(formData, "cta_target") || undefined,
+    status: getText(formData, "status") as PostStatus,
+    published_at: getOptionalDateTime(formData, "published_at"),
+    read_time: getText(formData, "read_time") || undefined,
+    hero_label: getText(formData, "hero_label") || undefined
+  });
+
+  revalidatePath("/");
+  revalidatePath("/research");
+  revalidatePath("/admin");
+  revalidatePath("/admin/posts");
+  redirect("/admin/posts");
+}
+
+export async function upsertResource(formData: FormData) {
+  const resource = {
+    id: getText(formData, "id") || undefined,
+    title: getText(formData, "title"),
+    slug: getText(formData, "slug"),
+    type: getText(formData, "type") as ResourceType,
+    audience: getText(formData, "audience") || undefined,
+    related_topic: (getText(formData, "related_topic") || undefined) as TopicTag | undefined,
+    landing_page_slug: getText(formData, "landing_page_slug") || undefined,
+    delivery_mode: (getText(formData, "delivery_mode") || undefined) as ResourceDeliveryMode | undefined,
+    delivery_url: getText(formData, "delivery_url") || undefined,
+    status: getText(formData, "status") as ResourceStatus
+  };
+
+  await saveResource(resource);
+
+  revalidatePath(getResourceLandingPath(resource));
+  revalidatePath(`${getResourceLandingPath(resource)}/delivery`);
+  if (resource.slug) {
+    revalidatePath(`/resources/${resource.slug}/download`);
+  }
+  revalidatePath("/admin/resources");
+  redirect("/admin/resources");
+}
+
+export async function removePost(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const id = getText(formData, "id");
+  if (!id) {
+    return { success: false, message: "Post id is required." };
+  }
+
+  try {
+    await deletePostById(id);
+  } catch (error) {
+    console.error("Failed to delete post:", error);
+    return { success: false, message: "Delete failed. Please try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/research");
+  revalidatePath("/admin");
+  revalidatePath("/admin/posts");
+  return { success: true, message: "Post deleted." };
+}

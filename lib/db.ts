@@ -1,0 +1,964 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { unstable_cache, revalidateTag } from "next/cache";
+import { cache } from "react";
+import { seedDatabase } from "@/lib/seed";
+import { hasDatabaseUrl } from "@/lib/env";
+import { getReadSql, getWriteSql } from "@/lib/postgres";
+import type {
+  Database,
+  Demand,
+  Post,
+  Resource,
+  Subscriber,
+  WaitlistEntry
+} from "@/lib/types";
+
+const dataDir = path.join(process.cwd(), ".data");
+const dataFile = path.join(dataDir, "db.json");
+
+type DemandRow = Omit<Demand, "tags"> & {
+  tags: string[] | null;
+};
+
+type PostRow = Omit<Post, "related_demand_ids"> & {
+  related_demand_ids: string[] | null;
+};
+
+async function ensureDbFile() {
+  await mkdir(dataDir, { recursive: true });
+
+  try {
+    await readFile(dataFile, "utf8");
+  } catch {
+    await writeFile(dataFile, JSON.stringify(seedDatabase, null, 2), "utf8");
+  }
+}
+
+async function readLocalDb(): Promise<Database> {
+  await ensureDbFile();
+  const raw = await readFile(dataFile, "utf8");
+  return JSON.parse(raw) as Database;
+}
+
+async function writeLocalDb(db: Database) {
+  await writeFile(dataFile, JSON.stringify(db, null, 2), "utf8");
+}
+
+async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(`Database read timed out after ${ms}ms`)), ms);
+    })
+  ]);
+}
+
+function toIsoString(value?: string | null) {
+  return value ? new Date(value).toISOString() : undefined;
+}
+
+function markTestValue(value?: string | null) {
+  if (!value) return value ?? undefined;
+  if (process.env.NODE_ENV === "production") return value;
+  return value.includes("[TEST]") ? value : `${value} [TEST]`;
+}
+
+function mapDemandRow(row: DemandRow): Demand {
+  return {
+    ...row,
+    tags: row.tags ?? [],
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapPostRow(row: PostRow): Post {
+  return {
+    ...row,
+    related_demand_ids: row.related_demand_ids ?? [],
+    published_at: toIsoString(row.published_at),
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapResourceRow(row: Resource): Resource {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapSubscriberRow(row: Subscriber): Subscriber {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapWaitlistRow(row: WaitlistEntry): WaitlistEntry {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString()
+  };
+}
+
+async function readPostgresDb(): Promise<Database> {
+  const sql = getReadSql();
+  const [demands, posts, resources, subscribers, waitlists] = await withTimeout(
+    Promise.all([
+      sql<DemandRow[]>`select * from demands order by created_at desc`,
+      sql<PostRow[]>`select * from posts order by created_at desc`,
+      sql<Resource[]>`select * from resources order by created_at desc`,
+      sql<Subscriber[]>`select * from subscribers order by created_at desc`,
+      sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`
+    ])
+  );
+
+  return {
+    demands: demands.map(mapDemandRow),
+    posts: posts.map(mapPostRow),
+    resources: resources.map(mapResourceRow),
+    subscribers: subscribers.map(mapSubscriberRow),
+    waitlists: waitlists.map(mapWaitlistRow)
+  };
+}
+
+export async function readDb(): Promise<Database> {
+  if (hasDatabaseUrl()) {
+    try {
+      return await readPostgresDb();
+    } catch (error) {
+      console.error("Falling back to local data store for reads:", error);
+    }
+  }
+
+  return readLocalDb();
+}
+
+export const getSnapshot = cache(async () => readDb());
+
+async function readPublicPosts(topic?: string) {
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const posts = topic && topic !== "all"
+        ? await withTimeout(sql<PostRow[]>`
+            select * from posts
+            where status = 'published' and topic_tag = ${topic}
+            order by published_at desc nulls last, created_at desc
+          `)
+        : await withTimeout(sql<PostRow[]>`
+            select * from posts
+            where status = 'published'
+            order by published_at desc nulls last, created_at desc
+          `);
+
+      return posts.map(mapPostRow);
+    } catch (error) {
+      console.error("Falling back to local posts:", error);
+    }
+  }
+
+  const db = await getSnapshot();
+  return db.posts
+    .filter((post) => post.status === "published")
+    .filter((post) => (topic && topic !== "all" ? post.topic_tag === topic : true))
+    .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+}
+
+const getCachedAllPublicPosts = unstable_cache(
+  async () => readPublicPosts(),
+  ["public-posts", "all"],
+  {
+    tags: ["public-posts"],
+    revalidate: 300
+  }
+);
+
+function getCachedTopicPublicPosts(topic: string) {
+  return unstable_cache(
+    async () => readPublicPosts(topic),
+    ["public-posts", topic],
+    {
+      tags: ["public-posts"],
+      revalidate: 300
+    }
+  )();
+}
+
+export async function saveSubscriber(
+  input: Omit<Subscriber, "id" | "created_at" | "updated_at" | "status"> & {
+    status?: Subscriber["status"];
+  }
+) {
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    const now = new Date().toISOString();
+    const email = input.email.toLowerCase();
+    const personaTag = markTestValue(input.persona_tag);
+    const topicTag = markTestValue(input.topic_tag);
+
+    await writeSql`
+      insert into subscribers (
+        id, email, source_page, source_type, lead_magnet, persona_tag,
+        topic_tag, status, created_at, updated_at
+      ) values (
+        ${randomUUID()}, ${email}, ${input.source_page ?? null}, ${input.source_type ?? null},
+        ${input.lead_magnet ?? null}, ${personaTag ?? null}, ${topicTag ?? null},
+        ${input.status ?? "active"}, ${now}, ${now}
+      )
+      on conflict (email) do update set
+        source_page = coalesce(excluded.source_page, subscribers.source_page),
+        source_type = coalesce(excluded.source_type, subscribers.source_type),
+        lead_magnet = coalesce(excluded.lead_magnet, subscribers.lead_magnet),
+        persona_tag = coalesce(excluded.persona_tag, subscribers.persona_tag),
+        topic_tag = coalesce(excluded.topic_tag, subscribers.topic_tag),
+        status = excluded.status,
+        updated_at = excluded.updated_at
+    `;
+    return;
+  }
+
+  const db = await readLocalDb();
+  const now = new Date().toISOString();
+  const email = input.email.toLowerCase();
+  const personaTag = markTestValue(input.persona_tag);
+  const topicTag = markTestValue(input.topic_tag);
+  const existing = db.subscribers.find((item) => item.email === email);
+
+  if (existing) {
+    existing.source_page = input.source_page ?? existing.source_page;
+    existing.source_type = input.source_type ?? existing.source_type;
+    existing.lead_magnet = input.lead_magnet ?? existing.lead_magnet;
+    existing.persona_tag = personaTag ?? existing.persona_tag;
+    existing.topic_tag = topicTag ?? existing.topic_tag;
+    existing.status = input.status ?? existing.status;
+    existing.updated_at = now;
+  } else {
+    db.subscribers.unshift({
+      id: randomUUID(),
+      email,
+      source_page: input.source_page,
+      source_type: input.source_type,
+      lead_magnet: input.lead_magnet,
+      persona_tag: personaTag,
+      topic_tag: topicTag,
+      status: input.status ?? "active",
+      created_at: now,
+      updated_at: now
+    });
+  }
+
+  await writeLocalDb(db);
+}
+
+export async function addWaitlistEntry(
+  input: Omit<WaitlistEntry, "id" | "created_at">
+) {
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into waitlists (
+        id, project_name, page_slug, email, source_page, interest_tag, note, created_at
+      ) values (
+        ${randomUUID()}, ${input.project_name}, ${input.page_slug}, ${input.email.toLowerCase()},
+        ${input.source_page ?? null}, ${input.interest_tag ?? null}, ${input.note ?? null},
+        ${new Date().toISOString()}
+      )
+    `;
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.waitlists.unshift({
+    id: randomUUID(),
+    created_at: new Date().toISOString(),
+    ...input,
+    email: input.email.toLowerCase()
+  });
+  await writeLocalDb(db);
+}
+
+export async function saveDemand(input: Partial<Demand> & Pick<Demand, "title" | "status">) {
+  if (hasDatabaseUrl()) {
+    const sql = getWriteSql();
+    const now = new Date().toISOString();
+
+    if (input.id) {
+      const existing = await sql<{ id: string }[]>`select id from demands where id = ${input.id} limit 1`;
+      if (!existing.length) throw new Error("Demand not found");
+
+      await sql`
+        update demands
+        set
+          title = ${input.title},
+          source_url = ${input.source_url ?? null},
+          source_platform = ${input.source_platform ?? null},
+          user_quote = ${input.user_quote ?? null},
+          persona = ${input.persona ?? null},
+          job_to_be_done = ${input.job_to_be_done ?? null},
+          problem_stage = ${input.problem_stage ?? null},
+          solution_attempted = ${input.solution_attempted ?? null},
+          keyword = ${input.keyword ?? null},
+          pain_score = ${input.pain_score ?? null},
+          frequency_score = ${input.frequency_score ?? null},
+          payment_score = ${input.payment_score ?? null},
+          evidence_strength = ${input.evidence_strength ?? null},
+          status = ${input.status},
+          tags = ${sql.json(input.tags ?? [])},
+          next_action = ${input.next_action ?? null},
+          topic_tag = ${input.topic_tag ?? null},
+          updated_at = ${now}
+        where id = ${input.id}
+      `;
+    } else {
+      await sql`
+        insert into demands (
+          id, title, source_url, source_platform, user_quote, persona, job_to_be_done,
+          problem_stage, solution_attempted, keyword, pain_score, frequency_score,
+          payment_score, evidence_strength, status, tags, next_action, topic_tag,
+          created_at, updated_at
+        ) values (
+          ${randomUUID()}, ${input.title}, ${input.source_url ?? null}, ${input.source_platform ?? null},
+          ${input.user_quote ?? null}, ${input.persona ?? null}, ${input.job_to_be_done ?? null},
+          ${input.problem_stage ?? null}, ${input.solution_attempted ?? null}, ${input.keyword ?? null},
+          ${input.pain_score ?? null}, ${input.frequency_score ?? null}, ${input.payment_score ?? null},
+          ${input.evidence_strength ?? null}, ${input.status}, ${sql.json(input.tags ?? [])},
+          ${input.next_action ?? null}, ${input.topic_tag ?? null}, ${now}, ${now}
+        )
+      `;
+    }
+
+    return;
+  }
+
+  const db = await readLocalDb();
+  const now = new Date().toISOString();
+
+  if (input.id) {
+    const existing = db.demands.find((item) => item.id === input.id);
+    if (!existing) throw new Error("Demand not found");
+    Object.assign(existing, input, { updated_at: now });
+  } else {
+    db.demands.unshift({
+      id: randomUUID(),
+      title: input.title,
+      status: input.status,
+      source_url: input.source_url,
+      source_platform: input.source_platform,
+      user_quote: input.user_quote,
+      persona: input.persona,
+      job_to_be_done: input.job_to_be_done,
+      problem_stage: input.problem_stage,
+      solution_attempted: input.solution_attempted,
+      keyword: input.keyword,
+      pain_score: input.pain_score,
+      frequency_score: input.frequency_score,
+      payment_score: input.payment_score,
+      evidence_strength: input.evidence_strength,
+      tags: input.tags ?? [],
+      next_action: input.next_action,
+      topic_tag: input.topic_tag,
+      created_at: now,
+      updated_at: now
+    });
+  }
+
+  await writeLocalDb(db);
+}
+
+export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug" | "status" | "cta_type">) {
+  if (hasDatabaseUrl()) {
+    const sql = getWriteSql();
+    const now = new Date().toISOString();
+    const localDb = await readLocalDb();
+    const duplicate = await sql<{ id: string }[]>`
+      select id from posts where slug = ${input.slug} and id <> ${input.id ?? ""} limit 1
+    `;
+    if (duplicate.length) throw new Error("Slug must be unique");
+
+    if (input.id) {
+      const existing = await sql<{ id: string; published_at: string | null; status: string }[]>`
+        select id, published_at, status from posts where id = ${input.id} limit 1
+      `;
+      if (!existing.length) throw new Error("Post not found");
+
+      const publishedAt = input.status === "published"
+        ? input.published_at ?? existing[0].published_at ?? now
+        : input.published_at ?? null;
+
+      await sql`
+        update posts
+        set
+          title = ${input.title},
+          slug = ${input.slug},
+          summary = ${input.summary ?? null},
+          content = ${input.content ?? null},
+          cover_image_url = ${input.cover_image_url ?? null},
+          related_persona = ${input.related_persona ?? null},
+          related_demand_ids = ${sql.json(input.related_demand_ids ?? [])},
+          topic_tag = ${input.topic_tag ?? null},
+          seo_title = ${input.seo_title ?? null},
+          seo_description = ${input.seo_description ?? null},
+          cta_type = ${input.cta_type},
+          cta_target = ${input.cta_target ?? null},
+          status = ${input.status},
+          published_at = ${publishedAt},
+          updated_at = ${now},
+          read_time = ${input.read_time ?? null},
+          hero_label = ${input.hero_label ?? null}
+        where id = ${input.id}
+      `;
+
+      const localExisting = localDb.posts.find((item) => item.id === input.id);
+      if (localExisting) {
+        Object.assign(localExisting, input, {
+          updated_at: now,
+          published_at: publishedAt ?? undefined
+        });
+      }
+    } else {
+      const id = randomUUID();
+      const publishedAt = input.status === "published" ? input.published_at ?? now : input.published_at;
+
+      await sql`
+        insert into posts (
+          id, title, slug, summary, content, cover_image_url, related_persona, related_demand_ids,
+          topic_tag, seo_title, seo_description, cta_type, cta_target, status,
+          published_at, created_at, updated_at, read_time, hero_label
+        ) values (
+          ${id}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null}, ${input.cover_image_url ?? null},
+          ${input.related_persona ?? null}, ${sql.json(input.related_demand_ids ?? [])}, ${input.topic_tag ?? null},
+          ${input.seo_title ?? null}, ${input.seo_description ?? null}, ${input.cta_type}, ${input.cta_target ?? null},
+          ${input.status}, ${publishedAt ?? null},
+          ${now}, ${now}, ${input.read_time ?? null}, ${input.hero_label ?? null}
+        )
+      `;
+
+      localDb.posts.unshift({
+        id,
+        title: input.title,
+        slug: input.slug,
+        summary: input.summary,
+        content: input.content,
+        cover_image_url: input.cover_image_url,
+        related_persona: input.related_persona,
+        related_demand_ids: input.related_demand_ids ?? [],
+        topic_tag: input.topic_tag,
+        seo_title: input.seo_title,
+        seo_description: input.seo_description,
+        cta_type: input.cta_type,
+        cta_target: input.cta_target,
+        status: input.status,
+        published_at: publishedAt,
+        created_at: now,
+        updated_at: now,
+        read_time: input.read_time,
+        hero_label: input.hero_label
+      });
+    }
+
+    await writeLocalDb(localDb);
+    revalidateTag("public-posts", "max");
+    return;
+  }
+
+  const db = await readLocalDb();
+  const now = new Date().toISOString();
+  const duplicate = db.posts.find((item) => item.slug === input.slug && item.id !== input.id);
+  if (duplicate) throw new Error("Slug must be unique");
+
+  if (input.id) {
+    const existing = db.posts.find((item) => item.id === input.id);
+    if (!existing) throw new Error("Post not found");
+    Object.assign(existing, input, { updated_at: now });
+    if (existing.status === "published" && !existing.published_at) {
+      existing.published_at = now;
+    }
+  } else {
+    db.posts.unshift({
+      id: randomUUID(),
+      title: input.title,
+      slug: input.slug,
+      summary: input.summary,
+      content: input.content,
+      cover_image_url: input.cover_image_url,
+      related_persona: input.related_persona,
+      related_demand_ids: input.related_demand_ids ?? [],
+      topic_tag: input.topic_tag,
+      seo_title: input.seo_title,
+      seo_description: input.seo_description,
+      cta_type: input.cta_type,
+      cta_target: input.cta_target,
+      status: input.status,
+      published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
+      created_at: now,
+      updated_at: now,
+      read_time: input.read_time,
+      hero_label: input.hero_label
+    });
+  }
+
+  await writeLocalDb(db);
+  revalidateTag("public-posts", "max");
+}
+
+export async function saveResource(
+  input: Partial<Resource> & Pick<Resource, "title" | "slug" | "type" | "status">
+) {
+  if (hasDatabaseUrl()) {
+    const sql = getWriteSql();
+    const now = new Date().toISOString();
+    const duplicate = await sql<{ id: string }[]>`
+      select id from resources where slug = ${input.slug} and id <> ${input.id ?? ""} limit 1
+    `;
+    if (duplicate.length) throw new Error("Slug must be unique");
+
+    if (input.id) {
+      const existing = await sql<{ id: string }[]>`select id from resources where id = ${input.id} limit 1`;
+      if (!existing.length) throw new Error("Resource not found");
+
+      await sql`
+        update resources
+        set
+          title = ${input.title},
+          slug = ${input.slug},
+          type = ${input.type},
+          audience = ${input.audience ?? null},
+          related_topic = ${input.related_topic ?? null},
+          landing_page_slug = ${input.landing_page_slug ?? null},
+          delivery_mode = ${input.delivery_mode ?? null},
+          delivery_url = ${input.delivery_url ?? null},
+          status = ${input.status},
+          updated_at = ${now}
+        where id = ${input.id}
+      `;
+    } else {
+      await sql`
+        insert into resources (
+          id, title, slug, type, audience, related_topic, landing_page_slug,
+          delivery_mode, delivery_url, status, created_at, updated_at
+        ) values (
+          ${randomUUID()}, ${input.title}, ${input.slug}, ${input.type}, ${input.audience ?? null},
+          ${input.related_topic ?? null}, ${input.landing_page_slug ?? null},
+          ${input.delivery_mode ?? null}, ${input.delivery_url ?? null}, ${input.status}, ${now}, ${now}
+        )
+      `;
+    }
+
+    return;
+  }
+
+  const db = await readLocalDb();
+  const now = new Date().toISOString();
+  const duplicate = db.resources.find((item) => item.slug === input.slug && item.id !== input.id);
+  if (duplicate) throw new Error("Slug must be unique");
+
+  if (input.id) {
+    const existing = db.resources.find((item) => item.id === input.id);
+    if (!existing) throw new Error("Resource not found");
+    Object.assign(existing, input, { updated_at: now });
+  } else {
+    db.resources.unshift({
+      id: randomUUID(),
+      title: input.title,
+      slug: input.slug,
+      type: input.type,
+      audience: input.audience,
+      related_topic: input.related_topic,
+      landing_page_slug: input.landing_page_slug,
+      delivery_mode: input.delivery_mode,
+      delivery_url: input.delivery_url,
+      status: input.status,
+      created_at: now,
+      updated_at: now
+    });
+  }
+
+  await writeLocalDb(db);
+}
+
+export async function getPublicPosts(topic?: string) {
+  if (topic && topic !== "all") {
+    return getCachedTopicPublicPosts(topic);
+  }
+
+  return getCachedAllPublicPosts();
+}
+
+export async function getAdminPosts() {
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const posts = await withTimeout(sql<PostRow[]>`
+        select * from posts
+        order by created_at desc
+      `);
+
+      return posts.map(mapPostRow);
+    } catch (error) {
+      console.error("Falling back to local admin posts:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  return db.posts;
+}
+
+export async function getPostBySlug(slug: string, options?: { preferLocal?: boolean; timeoutMs?: number }) {
+  const preferLocal = options?.preferLocal ?? false;
+  const timeoutMs = options?.timeoutMs ?? 4000;
+
+  if (preferLocal) {
+    const db = await readLocalDb();
+    return db.posts.find((post) => post.slug === slug && post.status === "published");
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const posts = await withTimeout(sql<PostRow[]>`
+        select * from posts
+        where slug = ${slug} and status = 'published'
+        limit 1
+      `, timeoutMs);
+
+      return posts[0] ? mapPostRow(posts[0]) : undefined;
+    } catch (error) {
+      console.error("Falling back to local post detail:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  return db.posts.find((post) => post.slug === slug && post.status === "published");
+}
+
+export async function getRelatedPosts(slug: string, limit = 3, options?: { preferLocal?: boolean; timeoutMs?: number }) {
+  const preferLocal = options?.preferLocal ?? false;
+  const timeoutMs = options?.timeoutMs ?? 4000;
+
+  if (preferLocal || process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    return db.posts
+      .filter((post) => post.status === "published" && post.slug !== slug)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(0, limit);
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const posts = await withTimeout(sql<PostRow[]>`
+        select * from posts
+        where status = 'published' and slug <> ${slug}
+        order by published_at desc nulls last, created_at desc
+        limit ${limit}
+      `, timeoutMs);
+
+      return posts.map(mapPostRow);
+    } catch (error) {
+      console.error("Falling back to local related posts:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  return db.posts
+    .filter((post) => post.status === "published" && post.slug !== slug)
+    .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+    .slice(0, limit);
+}
+
+export async function getAnyPostById(id: string, options?: { preferLocal?: boolean; timeoutMs?: number }) {
+  const preferLocal = options?.preferLocal ?? false;
+  const timeoutMs = options?.timeoutMs ?? 4000;
+
+  if (preferLocal || process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    const localPost = db.posts.find((post) => post.id === id);
+    if (localPost) {
+      return localPost;
+    }
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const posts = await withTimeout(sql<PostRow[]>`
+        select * from posts
+        where id = ${id}
+        limit 1
+      `, timeoutMs);
+
+      return posts[0] ? mapPostRow(posts[0]) : undefined;
+    } catch (error) {
+      console.error("Falling back to local admin post detail:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  return db.posts.find((post) => post.id === id);
+}
+
+export async function getDemands(options?: { preferLocal?: boolean; timeoutMs?: number }) {
+  const preferLocal = options?.preferLocal ?? false;
+  const timeoutMs = options?.timeoutMs ?? 4000;
+
+  if (preferLocal) {
+    const db = await readLocalDb();
+    return db.demands;
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const demands = await withTimeout(sql<DemandRow[]>`
+        select * from demands
+        order by created_at desc
+      `, timeoutMs);
+
+      return demands.map(mapDemandRow);
+    } catch (error) {
+      console.error("Falling back to local demands:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  return db.demands;
+}
+
+export async function getDemandsByIds(ids: string[], options?: { preferLocal?: boolean; timeoutMs?: number }) {
+  if (!ids.length) {
+    return [];
+  }
+
+  const preferLocal = options?.preferLocal ?? false;
+  const timeoutMs = options?.timeoutMs ?? 1500;
+
+  if (preferLocal || process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    const idSet = new Set(ids);
+    return db.demands.filter((demand) => idSet.has(demand.id));
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const demands = await withTimeout(sql<DemandRow[]>`
+        select * from demands
+        where id in ${sql(ids)}
+        order by created_at desc
+      `, timeoutMs);
+
+      return demands.map(mapDemandRow);
+    } catch (error) {
+      console.error("Falling back to local related demands:", error);
+    }
+  }
+
+  const db = await readLocalDb();
+  const idSet = new Set(ids);
+  return db.demands.filter((demand) => idSet.has(demand.id));
+}
+
+export async function deletePostById(id: string) {
+  if (hasDatabaseUrl()) {
+    const sql = getWriteSql();
+    await sql`
+      delete from posts
+      where id = ${id}
+    `;
+    const db = await readLocalDb();
+    db.posts = db.posts.filter((post) => post.id !== id);
+    await writeLocalDb(db);
+    revalidateTag("public-posts", "max");
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.posts = db.posts.filter((post) => post.id !== id);
+  await writeLocalDb(db);
+  revalidateTag("public-posts", "max");
+}
+
+export async function getDemandById(id: string) {
+  const db = await getSnapshot();
+  return db.demands.find((demand) => demand.id === id);
+}
+
+export async function getResourceBySlug(slug: string) {
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const resources = await withTimeout(sql<Resource[]>`
+        select * from resources
+        where slug = ${slug} and status = 'published'
+        limit 1
+      `);
+
+      return resources[0] ? mapResourceRow(resources[0]) : undefined;
+    } catch (error) {
+      console.error("Falling back to local resource:", error);
+    }
+  }
+
+  const db = await getSnapshot();
+  return db.resources.find((resource) => resource.slug === slug && resource.status === "published");
+}
+
+export async function getResourceById(id: string) {
+  const db = await getSnapshot();
+  return db.resources.find((resource) => resource.id === id);
+}
+
+export async function getDashboardMetrics() {
+  const db = await getSnapshot();
+  const activeSubscribers = db.subscribers.filter((item) => item.status === "active");
+  const resourceSubscribers = activeSubscribers.filter((item) => item.source_type === "resource");
+  const waitlistEmails = new Set(db.waitlists.map((item) => item.email.toLowerCase()));
+  const waitlistSubscribers = activeSubscribers.filter((item) => waitlistEmails.has(item.email.toLowerCase()));
+  const resourceToEmailRate = resourceSubscribers.length && activeSubscribers.length
+    ? resourceSubscribers.length / activeSubscribers.length
+    : 0;
+  const emailToWaitlistRate = activeSubscribers.length
+    ? waitlistSubscribers.length / activeSubscribers.length
+    : 0;
+
+  return {
+    totalDemands: db.demands.filter((item) => item.status !== "archived").length,
+    publishedPosts: db.posts.filter((item) => item.status === "published").length,
+    totalSubscribers: db.subscribers.length,
+    qualifiedSubscribers: activeSubscribers.filter((item) => item.persona_tag).length,
+    resourceSignups: resourceSubscribers.length,
+    waitlistCount: db.waitlists.length,
+    emailToWaitlistRate,
+    resourceToEmailRate,
+    activeSubscribers: activeSubscribers.length,
+    latestSubscribers: db.subscribers.slice(0, 5),
+    latestWaitlists: db.waitlists.slice(0, 5),
+    latestDemands: db.demands.slice(0, 5)
+  };
+}
+
+export async function resetCacheUnsafe() {
+  // Next.js cache invalidation is handled via revalidatePath in actions.
+}
+
+export async function getFilteredSubscribers(filters: {
+  source_type?: string;
+  lead_magnet?: string;
+  persona_tag?: string;
+  topic_tag?: string;
+  status?: string;
+}) {
+  const db = await getSnapshot();
+
+  return db.subscribers.filter((subscriber) => {
+    if (filters.source_type && subscriber.source_type !== filters.source_type) return false;
+    if (filters.lead_magnet && subscriber.lead_magnet !== filters.lead_magnet) return false;
+    if (filters.persona_tag && subscriber.persona_tag !== filters.persona_tag) return false;
+    if (filters.topic_tag && subscriber.topic_tag !== filters.topic_tag) return false;
+    if (filters.status && subscriber.status !== filters.status) return false;
+    return true;
+  });
+}
+
+export async function getFilteredWaitlists(filters: {
+  project_name?: string;
+  page_slug?: string;
+  interest_tag?: string;
+  source_page?: string;
+}) {
+  const db = await getSnapshot();
+
+  return db.waitlists.filter((entry) => {
+    if (filters.project_name && entry.project_name !== filters.project_name) return false;
+    if (filters.page_slug && entry.page_slug !== filters.page_slug) return false;
+    if (filters.interest_tag && entry.interest_tag !== filters.interest_tag) return false;
+    if (filters.source_page && entry.source_page !== filters.source_page) return false;
+    return true;
+  });
+}
+
+export async function getResourcePerformance() {
+  const db = await getSnapshot();
+  const activeSubscribers = db.subscribers.filter((subscriber) => subscriber.status === "active");
+
+  return db.resources.map((resource) => {
+    const subscriberCount = activeSubscribers.filter((subscriber) => subscriber.lead_magnet === resource.slug).length;
+    const conversionRate = activeSubscribers.length
+      ? subscriberCount / activeSubscribers.length
+      : 0;
+
+    return {
+      ...resource,
+      subscriberCount,
+      conversionRate
+    };
+  });
+}
+
+export async function getFilteredDemands(filters: {
+  query?: string;
+  source_platform?: string;
+  persona?: string;
+  status?: string;
+  topic_tag?: string;
+  sort?: string;
+}) {
+  const db = await getSnapshot();
+  const query = filters.query?.trim().toLowerCase();
+
+  const filtered = db.demands.filter((demand) => {
+    if (query) {
+      const haystack = [
+        demand.title,
+        demand.keyword,
+        demand.persona,
+        demand.source_platform,
+        demand.user_quote,
+        demand.next_action
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!haystack.includes(query)) return false;
+    }
+
+    if (filters.source_platform && demand.source_platform !== filters.source_platform) return false;
+    if (filters.persona && demand.persona !== filters.persona) return false;
+    if (filters.status && demand.status !== filters.status) return false;
+    if (filters.topic_tag && demand.topic_tag !== filters.topic_tag) return false;
+    return true;
+  });
+
+  const sorted = [...filtered];
+  switch (filters.sort) {
+    case "pain_desc":
+      sorted.sort((a, b) => (b.pain_score ?? 0) - (a.pain_score ?? 0));
+      break;
+    case "frequency_desc":
+      sorted.sort((a, b) => (b.frequency_score ?? 0) - (a.frequency_score ?? 0));
+      break;
+    case "payment_desc":
+      sorted.sort((a, b) => (b.payment_score ?? 0) - (a.payment_score ?? 0));
+      break;
+    case "updated_desc":
+      sorted.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+      break;
+    case "created_asc":
+      sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
+      break;
+    case "created_desc":
+    default:
+      sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      break;
+  }
+
+  return sorted;
+}
