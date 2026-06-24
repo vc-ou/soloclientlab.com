@@ -59,7 +59,7 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
           <label className="field">
             <span>Landing page slug</span>
             <input name="landing_page_slug" defaultValue={resource?.landing_page_slug ?? ""} />
-            <small className="field-help">Used by the public page and the delivery flow.</small>
+            <small className="field-help">Used by the public page and internal resource routing.</small>
           </label>
           <label className="field">
             <span>Delivery mode</span>

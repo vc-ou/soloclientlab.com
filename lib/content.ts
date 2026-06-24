@@ -175,7 +175,7 @@ export const resourceFeatureCards = [
     eyebrow: "Report",
     title: "Client Acquisition Strategies & Reports for Solo Professionals",
     body: "A practical breakdown that helps you diagnose what is slowing client acquisition, what patterns matter, and what to test next.",
-    cta: "Get Free Access to the Report →"
+    cta: "Join the list for updates →"
   },
   {
     eyebrow: "Inside",

@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { addWaitlistEntry, deletePostById, getResourceBySlug, saveDemand, savePost, saveResource, saveSubscriber } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
-import { getResourceDeliveryLabel, getResourceDeliveryPath, getResourceLandingPath } from "@/lib/resource-delivery";
+import { getResourceLandingPath } from "@/lib/resource-delivery";
 import type {
   ActionState,
   DemandStatus,
@@ -104,29 +104,10 @@ export async function subscribeUser(
   revalidatePath("/admin");
   revalidatePath("/admin/subscribers");
 
-  const eventName = parsed.data.source_type === "resource" ? "resource_signup" : "newsletter_signup";
-
-  if (parsed.data.source_type === "resource" && parsed.data.lead_magnet) {
-    const resource = await getResourceBySlug(parsed.data.lead_magnet);
-    const redirectUrl = resource ? getResourceDeliveryPath(resource) : undefined;
-
-    if (resource && redirectUrl) {
-      return {
-        success: true,
-        message: "Thanks. Your report is ready.",
-        redirectUrl,
-        redirectLabel: getResourceDeliveryLabel(resource),
-        eventName
-      };
-    }
-  }
-
   return {
     success: true,
-    message: "Thanks. You're on the list!",
-    redirectUrl: "/research/how-consultants-get-clients-in-2024",
-    redirectLabel: "Read our latest research now ->",
-    eventName
+    message: "Thanks. I will send it to you by email.",
+    eventName: parsed.data.source_type === "resource" ? "resource_signup" : "newsletter_signup"
   };
 }
 
@@ -278,10 +259,6 @@ export async function upsertResource(formData: FormData) {
   await saveResource(resource);
 
   revalidatePath(getResourceLandingPath(resource));
-  revalidatePath(`${getResourceLandingPath(resource)}/delivery`);
-  if (resource.slug) {
-    revalidatePath(`/resources/${resource.slug}/download`);
-  }
   revalidatePath("/admin/resources");
   redirect("/admin/resources");
 }

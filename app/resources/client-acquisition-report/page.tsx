@@ -19,10 +19,10 @@ export default async function ResourcePage() {
     <>
       <section className="resource-page-hero">
         <div className="container resource-hero-stack">
-          <p className="eyebrow">Free report</p>
-          <h1 className="resource-title">Client Acquisition Strategies &amp; Reports for Solo Professionals</h1>
+          <p className="eyebrow">Research updates</p>
+          <h1 className="resource-title">Client Acquisition Strategies &amp; Insights for Solo Professionals</h1>
           <p className="resource-hero-copy">
-            A research-backed breakdown to help you diagnose where client acquisition is getting stuck, what patterns are worth paying attention to, and what to do next.
+            Join the list for updates on new research, resources, and practical client acquisition ideas for solo professionals.
           </p>
           <div className="resource-tab-row">
             {resourceCategoryTabs.map((item, index) => (
@@ -54,11 +54,10 @@ export default async function ResourcePage() {
                     <NewsletterForm
                       sourceType="resource"
                       sourcePage={resourcePageHref}
-                      leadMagnet="client-acquisition-report"
                       topicTag="client_acquisition"
-                      title="Get your free report"
-                      subtitle="Enter your email to unlock a practical diagnosis and next-step guide for solo service businesses."
-                      buttonLabel="Send me the report"
+                      title="Get updates by email"
+                      subtitle="Enter your email to join the list and get updates when new research and resources go live."
+                      buttonLabel="Get Free Access →"
                     />
                   </div>
                 ) : (

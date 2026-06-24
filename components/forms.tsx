@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { trackPlausibleEvent } from "@/components/plausible-events";
 import { joinWaitlist, subscribeUser } from "@/lib/actions";
-import { personaOptions, waitlistInterestOptions } from "@/lib/content";
+import { waitlistInterestOptions } from "@/lib/content";
 import type { ActionState, SourceType } from "@/lib/types";
 
 const initialState: ActionState = {
@@ -16,9 +16,7 @@ const initialState: ActionState = {
 type NewsletterFormProps = {
   sourceType: SourceType;
   sourcePage: string;
-  leadMagnet?: string;
   topicTag?: string;
-  personaSelect?: boolean;
   buttonLabel?: string;
   compact?: boolean;
   title?: string;
@@ -28,9 +26,7 @@ type NewsletterFormProps = {
 export function NewsletterForm({
   sourceType,
   sourcePage,
-  leadMagnet,
   topicTag,
-  personaSelect = false,
   buttonLabel = "Subscribe",
   compact = false,
   title,
@@ -52,7 +48,6 @@ export function NewsletterForm({
       {subtitle ? <p className="form-intro">{subtitle}</p> : null}
       <input type="hidden" name="source_type" value={sourceType} />
       <input type="hidden" name="source_page" value={sourcePage} />
-      {leadMagnet ? <input type="hidden" name="lead_magnet" value={leadMagnet} /> : null}
       {topicTag ? <input type="hidden" name="topic_tag" value={topicTag} /> : null}
 
       <div className="form-grid">
@@ -60,20 +55,6 @@ export function NewsletterForm({
           <span>Email address</span>
           <input name="email" type="email" placeholder="you@example.com" required />
         </label>
-
-        {personaSelect ? (
-          <label className="field">
-            <span>What best describes you? (optional)</span>
-            <select name="persona_tag" defaultValue="">
-              <option value="">Select your role</option>
-              {personaOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
       </div>
 
       <button type="submit" className="button primary" disabled={pending}>
@@ -82,11 +63,6 @@ export function NewsletterForm({
       <p className={`form-feedback${state.success ? " success" : ""}`}>
         {state.message || "No spam. Unsubscribe anytime."}
       </p>
-      {state.success && state.redirectUrl ? (
-        <Link href={state.redirectUrl} className="button secondary form-followup-link" target="_blank" rel="noreferrer">
-          {state.redirectLabel ?? "Open the report"}
-        </Link>
-      ) : null}
     </form>
   );
 }
