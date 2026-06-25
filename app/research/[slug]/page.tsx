@@ -98,7 +98,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 title="Free Client Acquisition Report"
                 body="A research-backed report that helps you diagnose the bigger pattern and decide what to test next."
               >
-                <Link href="/resources/client-acquisition-report" className="button primary">
+                <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
                   Get Free Access to the Report →
                 </Link>
               </InlineCta>
@@ -126,7 +126,7 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="card">
             <h3>Free Client Acquisition Report</h3>
             <p>A 28-page guide to diagnose acquisition bottlenecks, compare repeated patterns, and choose a smarter next step.</p>
-            <Link href="/resources/client-acquisition-report" className="button secondary">
+            <Link href="/resources/client-acquisition-report#resource-form" className="button secondary">
               Get Free Access to the Report →
             </Link>
           </div>

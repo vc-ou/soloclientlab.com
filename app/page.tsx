@@ -23,7 +23,7 @@ export default async function HomePage() {
         aside={
           <div className="hero-showcase">
             <div className="hero-actions hero-primary-actions">
-              <Link href="/resources/client-acquisition-report" className="button primary">
+              <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
                 Get Free Access to the Report →
               </Link>
               <Link href="/research" className="button secondary">
@@ -91,7 +91,7 @@ export default async function HomePage() {
           </div>
           <div className="inline-report-cta">
             <p>We analyzed 320+ solo professional growth bottlenecks to decode alternative acquisition pathways.</p>
-            <Link href="/resources/client-acquisition-report" className="inline-report-link">
+            <Link href="/resources/client-acquisition-report#resource-form" className="inline-report-link">
               See how to fix these gaps in our Free Acquisition Report <span aria-hidden="true">→</span>
             </Link>
           </div>
@@ -130,7 +130,7 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-            <Link href="/resources/client-acquisition-report" className="button primary">
+            <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
               Get Free Access to the Report →
             </Link>
           </div>

@@ -516,6 +516,7 @@ span {
   line-height: 1.45;
   max-width: 48ch;
   color: var(--muted);
+  white-space: pre-line;
 }
 
 .hero-aside,
@@ -1059,6 +1060,56 @@ span {
   font-weight: 700;
 }
 
+.success-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(4px);
+}
+
+.success-modal-card {
+  width: min(420px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 24px;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(108, 43, 217, 0.12);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
+}
+
+.success-modal-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6c2bd9, #7c4dff);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.success-modal-icon.is-notice {
+  background: linear-gradient(135deg, #0f172a, #475569);
+}
+
+.success-modal-card h3 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.success-modal-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .form-followup-link {
   margin-top: 12px;
 }
@@ -1518,18 +1569,83 @@ span {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
 }
 
 .admin-table-actions form {
   margin: 0;
 }
 
+.admin-inline-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .admin-action-feedback {
   margin: 8px 0 0;
   color: #b42318;
   font-size: 0.86rem;
+}
+
+.admin-action-feedback.success {
+  color: #027a48;
+}
+
+.danger-button {
+  border-color: rgba(180, 35, 24, 0.18);
+  color: #b42318;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+.admin-modal-card {
+  width: min(640px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-modal-header h2 {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+  word-break: break-word;
+}
+
+.admin-modal-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-modal-form textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .admin-pill {
@@ -1831,6 +1947,10 @@ span {
   border: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.resource-inline-form {
+  scroll-margin-top: 140px;
 }
 
 .resource-delivery-note {

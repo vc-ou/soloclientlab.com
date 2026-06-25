@@ -40,7 +40,7 @@ export function HeaderCta() {
 
   return (
     <Link
-      href="/resources/client-acquisition-report"
+      href="/resources/client-acquisition-report#resource-form"
       className={`button primary header-cta${isVisible ? " is-visible" : ""}`}
       aria-hidden={isVisible ? undefined : "true"}
       tabIndex={isVisible ? undefined : -1}

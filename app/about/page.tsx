@@ -16,7 +16,7 @@ export default function AboutPage() {
         className="hero-copy-90"
         eyebrow="About SoloClientLab.com"
         title="We study how solo service businesses get clients."
-        description="SoloClientLab.com turns real-world research into clearer decisions on client acquisition, offer validation, and practical AI workflows."
+        description={"SoloClientLab.com turns real-world research into clearer decisions on client acquisition, offer validation, and practical AI workflows.\nContact me: vcou1222@gmail.com"}
       />
 
       <section className="container">

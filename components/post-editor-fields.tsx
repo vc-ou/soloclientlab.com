@@ -7,7 +7,7 @@ import type { Demand, Post } from "@/lib/types";
 
 const ctaTargetPresets = {
   newsletter: "",
-  lead_magnet: "/resources/client-acquisition-report",
+  lead_magnet: "/resources/client-acquisition-report#resource-form",
   waitlist: "/waitlist/client-acquisition-ai-workflow",
   none: ""
 } as const;

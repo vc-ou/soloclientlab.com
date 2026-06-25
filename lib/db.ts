@@ -2,7 +2,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { unstable_cache, revalidateTag } from "next/cache";
-import { cache } from "react";
 import { seedDatabase } from "@/lib/seed";
 import { hasDatabaseUrl } from "@/lib/env";
 import { getReadSql, getWriteSql } from "@/lib/postgres";
@@ -53,6 +52,22 @@ async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
       setTimeout(() => reject(new Error(`Database read timed out after ${ms}ms`)), ms);
     })
   ]);
+}
+
+export async function withDatabaseTimeout<T>(promise: Promise<T>, ms = 4000) {
+  return withTimeout(promise, ms);
+}
+
+let ensuredSubscriberNoteColumn = false;
+
+async function ensureSubscriberNoteColumn() {
+  if (ensuredSubscriberNoteColumn || !hasDatabaseUrl()) {
+    return;
+  }
+
+  const writeSql = getWriteSql();
+  await writeSql`alter table subscribers add column if not exists note text`;
+  ensuredSubscriberNoteColumn = true;
 }
 
 function toIsoString(value?: string | null) {
@@ -140,9 +155,19 @@ export async function readDb(): Promise<Database> {
   return readLocalDb();
 }
 
-export const getSnapshot = cache(async () => readDb());
+export async function getSnapshot() {
+  return readDb();
+}
 
 async function readPublicPosts(topic?: string) {
+  if (process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    return db.posts
+      .filter((post) => post.status === "published")
+      .filter((post) => (topic && topic !== "all" ? post.topic_tag === topic : true))
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+  }
+
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
@@ -197,6 +222,7 @@ export async function saveSubscriber(
   }
 ) {
   if (hasDatabaseUrl()) {
+    await ensureSubscriberNoteColumn();
     const writeSql = getWriteSql();
     const now = new Date().toISOString();
     const email = input.email.toLowerCase();
@@ -206,10 +232,10 @@ export async function saveSubscriber(
     await writeSql`
       insert into subscribers (
         id, email, source_page, source_type, lead_magnet, persona_tag,
-        topic_tag, status, created_at, updated_at
+        topic_tag, note, status, created_at, updated_at
       ) values (
         ${randomUUID()}, ${email}, ${input.source_page ?? null}, ${input.source_type ?? null},
-        ${input.lead_magnet ?? null}, ${personaTag ?? null}, ${topicTag ?? null},
+        ${input.lead_magnet ?? null}, ${personaTag ?? null}, ${topicTag ?? null}, ${input.note ?? null},
         ${input.status ?? "active"}, ${now}, ${now}
       )
       on conflict (email) do update set
@@ -218,6 +244,7 @@ export async function saveSubscriber(
         lead_magnet = coalesce(excluded.lead_magnet, subscribers.lead_magnet),
         persona_tag = coalesce(excluded.persona_tag, subscribers.persona_tag),
         topic_tag = coalesce(excluded.topic_tag, subscribers.topic_tag),
+        note = coalesce(excluded.note, subscribers.note),
         status = excluded.status,
         updated_at = excluded.updated_at
     `;
@@ -237,6 +264,7 @@ export async function saveSubscriber(
     existing.lead_magnet = input.lead_magnet ?? existing.lead_magnet;
     existing.persona_tag = personaTag ?? existing.persona_tag;
     existing.topic_tag = topicTag ?? existing.topic_tag;
+    existing.note = input.note ?? existing.note;
     existing.status = input.status ?? existing.status;
     existing.updated_at = now;
   } else {
@@ -248,12 +276,70 @@ export async function saveSubscriber(
       lead_magnet: input.lead_magnet,
       persona_tag: personaTag,
       topic_tag: topicTag,
+      note: input.note,
       status: input.status ?? "active",
       created_at: now,
       updated_at: now
     });
   }
 
+  await writeLocalDb(db);
+}
+
+export async function getSubscriberByEmail(email: string) {
+  const normalizedEmail = email.toLowerCase();
+
+  if (hasDatabaseUrl()) {
+    const sql = getReadSql();
+    const rows = await withTimeout(sql<Subscriber[]>`
+      select * from subscribers
+      where email = ${normalizedEmail}
+      limit 1
+    `, 1500);
+    return rows[0] ? mapSubscriberRow(rows[0]) : undefined;
+  }
+
+  const db = await readLocalDb();
+  return db.subscribers.find((item) => item.email === normalizedEmail);
+}
+
+export async function updateSubscriberNote(id: string, note: string) {
+  const normalizedNote = note.trim();
+  const now = new Date().toISOString();
+
+  if (hasDatabaseUrl()) {
+    await ensureSubscriberNoteColumn();
+    const sql = getWriteSql();
+    await sql`
+      update subscribers
+      set note = ${normalizedNote || null}, updated_at = ${now}
+      where id = ${id}
+    `;
+    return;
+  }
+
+  const db = await readLocalDb();
+  const existing = db.subscribers.find((item) => item.id === id);
+  if (!existing) throw new Error("Subscriber not found");
+  existing.note = normalizedNote || undefined;
+  existing.updated_at = now;
+  await writeLocalDb(db);
+}
+
+export async function deleteSubscriberById(id: string) {
+  if (hasDatabaseUrl()) {
+    await ensureSubscriberNoteColumn();
+    const sql = getWriteSql();
+    await sql`delete from subscribers where id = ${id}`;
+    return;
+  }
+
+  const db = await readLocalDb();
+  const nextSubscribers = db.subscribers.filter((item) => item.id !== id);
+  if (nextSubscribers.length === db.subscribers.length) {
+    throw new Error("Subscriber not found");
+  }
+  db.subscribers = nextSubscribers;
   await writeLocalDb(db);
 }
 
@@ -791,6 +877,11 @@ export async function getDemandById(id: string) {
 }
 
 export async function getResourceBySlug(slug: string) {
+  if (process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    return db.resources.find((resource) => resource.slug === slug && resource.status === "published");
+  }
+
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();

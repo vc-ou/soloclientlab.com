@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
+import { AdminShell, FilterForm } from "@/components/admin";
+import { AdminSubscriberTable } from "@/components/admin-subscriber-table";
 import { personaOptions, topicOptions } from "@/lib/content";
 import { getFilteredSubscribers, getSnapshot } from "@/lib/db";
 
@@ -91,19 +92,7 @@ export default async function AdminSubscribersPage({ searchParams }: AdminSubscr
           </select>
         </label>
       </FilterForm>
-      <SimpleTable
-        headers={["Email", "Source type", "Source page", "Lead magnet", "Persona", "Topic", "Status", "Created"]}
-        rows={subscribers.map((subscriber) => [
-          subscriber.email,
-          subscriber.source_type ?? "—",
-          subscriber.source_page ?? "—",
-          subscriber.lead_magnet ?? "—",
-          subscriber.persona_tag ?? "—",
-          subscriber.topic_tag ?? "—",
-          subscriber.status,
-          subscriber.created_at.slice(0, 10)
-        ])}
-      />
+      <AdminSubscriberTable subscribers={subscribers} />
     </AdminShell>
   );
 }

@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addWaitlistEntry, deletePostById, getResourceBySlug, saveDemand, savePost, saveResource, saveSubscriber } from "@/lib/db";
+import { addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import type {
@@ -95,8 +95,35 @@ export async function subscribeUser(
     return { success: false, message: "Please enter a valid email address." };
   }
 
-  await saveSubscriber(parsed.data);
-  await maybeSyncMailerLite(parsed.data.email);
+  let existingSubscriber;
+  try {
+    existingSubscriber = await withDatabaseTimeout(getSubscriberByEmail(parsed.data.email), 1500);
+  } catch (error) {
+    console.error("Could not check recent subscriber status:", error);
+  }
+
+  if (existingSubscriber) {
+    const lastSubmittedAt = new Date(existingSubscriber.updated_at).getTime();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+    if (!Number.isNaN(lastSubmittedAt) && Date.now() - lastSubmittedAt < thirtyDaysMs) {
+      return {
+        success: false,
+        message: "站主已有您的邮箱，请通过邮箱联系。邮箱地址：vcou1222@gmail.com"
+      };
+    }
+  }
+
+  try {
+    await withDatabaseTimeout(saveSubscriber(parsed.data), 3000);
+    await maybeSyncMailerLite(parsed.data.email);
+  } catch (error) {
+    console.error("Could not save subscriber quickly enough:", error);
+    return {
+      success: false,
+      message: "提交暂时没有完成，请通过邮箱联系。邮箱地址：vcou1222@gmail.com"
+    };
+  }
 
   revalidatePath("/");
   revalidatePath("/newsletter");
@@ -284,4 +311,49 @@ export async function removePost(
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
   return { success: true, message: "Post deleted." };
+}
+
+export async function updateSubscriberNoteAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const id = getText(formData, "id");
+  const note = getText(formData, "note");
+
+  if (!id) {
+    return { success: false, message: "Subscriber id is required." };
+  }
+
+  try {
+    await updateSubscriberNote(id, note);
+  } catch (error) {
+    console.error("Failed to save subscriber note:", error);
+    return { success: false, message: "Could not save the note. Please try again." };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/subscribers");
+  return { success: true, message: "Note saved." };
+}
+
+export async function removeSubscriberAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const id = getText(formData, "id");
+
+  if (!id) {
+    return { success: false, message: "Subscriber id is required." };
+  }
+
+  try {
+    await deleteSubscriberById(id);
+  } catch (error) {
+    console.error("Failed to delete subscriber:", error);
+    return { success: false, message: "Delete failed. Please try again." };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/subscribers");
+  return { success: true, message: "Subscriber deleted." };
 }

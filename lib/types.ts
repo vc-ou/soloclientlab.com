@@ -93,6 +93,7 @@ export type Subscriber = {
   lead_magnet?: string;
   persona_tag?: string;
   topic_tag?: string;
+  note?: string;
   status: SubscriberStatus;
   mailerlite_id?: string;
   created_at: string;

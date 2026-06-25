@@ -33,7 +33,7 @@ export default async function ResourcesPage() {
                 <p>
                   Start here if you want a practical, higher-conviction overview of what is actually blocking growth for solo service businesses.
                 </p>
-                <Link href="/resources/client-acquisition-report" className="button primary">
+                <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
                   Open the free report
                 </Link>
               </article>

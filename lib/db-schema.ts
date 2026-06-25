@@ -71,11 +71,14 @@ create table if not exists subscribers (
   lead_magnet text,
   persona_tag text,
   topic_tag text,
+  note text,
   status text not null,
   mailerlite_id text,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
+
+alter table subscribers add column if not exists note text;
 
 create table if not exists waitlists (
   id text primary key,

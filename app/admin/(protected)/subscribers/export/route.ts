@@ -27,6 +27,7 @@ export async function GET(request: Request) {
     "lead_magnet",
     "persona_tag",
     "topic_tag",
+    "note",
     "status",
     "created_at"
   ];
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
     subscriber.lead_magnet ?? "",
     subscriber.persona_tag ?? "",
     subscriber.topic_tag ?? "",
+    subscriber.note ?? "",
     subscriber.status,
     subscriber.created_at
   ]);
