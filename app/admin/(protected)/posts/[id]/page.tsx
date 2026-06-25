@@ -9,8 +9,11 @@ type PostEditorProps = {
 
 export default async function PostEditorPage({ params }: PostEditorProps) {
   const { id } = await params;
-  const post = id === "new" ? null : (await getAnyPostById(id, { preferLocal: true, timeoutMs: 1500 })) ?? null;
-  const demands = await getDemands({ preferLocal: id === "new", timeoutMs: 1500 });
+  const preferLocal = process.env.NODE_ENV !== "production";
+  const post = id === "new"
+    ? null
+    : (await getAnyPostById(id, { preferLocal, timeoutMs: 1500 })) ?? null;
+  const demands = await getDemands({ preferLocal, timeoutMs: 1500 });
 
   return (
     <AdminShell title={post ? "Edit Post" : "New Post"}>

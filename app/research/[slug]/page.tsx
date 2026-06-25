@@ -13,7 +13,8 @@ type PostPageProps = {
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug, { preferLocal: true });
+  const preferLocal = process.env.NODE_ENV !== "production";
+  const post = await getPostBySlug(slug, { preferLocal });
 
   if (!post) {
     return {};
@@ -27,14 +28,15 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug, { preferLocal: true });
+  const preferLocal = process.env.NODE_ENV !== "production";
+  const post = await getPostBySlug(slug, { preferLocal });
 
   if (!post) {
     notFound();
   }
 
-  const related = await getRelatedPosts(post.slug, 3, { preferLocal: true });
-  const relatedDemands = await getDemandsByIds(post.related_demand_ids ?? [], { preferLocal: true });
+  const related = await getRelatedPosts(post.slug, 3, { preferLocal });
+  const relatedDemands = await getDemandsByIds(post.related_demand_ids ?? [], { preferLocal });
   const topicLabel = labelForTopic(post.topic_tag);
 
   return (
