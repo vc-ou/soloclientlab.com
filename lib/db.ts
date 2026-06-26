@@ -45,6 +45,10 @@ async function writeLocalDb(db: Database) {
   await writeFile(dataFile, JSON.stringify(db, null, 2), "utf8");
 }
 
+function shouldMirrorDatabaseToLocalFile() {
+  return process.env.NODE_ENV !== "production";
+}
+
 async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
   return await Promise.race([
     promise,
@@ -462,7 +466,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
   if (hasDatabaseUrl()) {
     const sql = getWriteSql();
     const now = new Date().toISOString();
-    const localDb = await readLocalDb();
+    let savedPostId = input.id;
     const duplicate = await sql<{ id: string }[]>`
       select id from posts where slug = ${input.slug} and id <> ${input.id ?? ""} limit 1
     `;
@@ -500,16 +504,9 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           hero_label = ${input.hero_label ?? null}
         where id = ${input.id}
       `;
-
-      const localExisting = localDb.posts.find((item) => item.id === input.id);
-      if (localExisting) {
-        Object.assign(localExisting, input, {
-          updated_at: now,
-          published_at: publishedAt ?? undefined
-        });
-      }
     } else {
-      const id = randomUUID();
+      const postId = randomUUID();
+      savedPostId = postId;
       const publishedAt = input.status === "published" ? input.published_at ?? now : input.published_at;
 
       await sql`
@@ -518,38 +515,55 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           topic_tag, seo_title, seo_description, cta_type, cta_target, status,
           published_at, created_at, updated_at, read_time, hero_label
         ) values (
-          ${id}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null}, ${input.cover_image_url ?? null},
+          ${postId}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null}, ${input.cover_image_url ?? null},
           ${input.related_persona ?? null}, ${sql.json(input.related_demand_ids ?? [])}, ${input.topic_tag ?? null},
           ${input.seo_title ?? null}, ${input.seo_description ?? null}, ${input.cta_type}, ${input.cta_target ?? null},
           ${input.status}, ${publishedAt ?? null},
           ${now}, ${now}, ${input.read_time ?? null}, ${input.hero_label ?? null}
         )
       `;
-
-      localDb.posts.unshift({
-        id,
-        title: input.title,
-        slug: input.slug,
-        summary: input.summary,
-        content: input.content,
-        cover_image_url: input.cover_image_url,
-        related_persona: input.related_persona,
-        related_demand_ids: input.related_demand_ids ?? [],
-        topic_tag: input.topic_tag,
-        seo_title: input.seo_title,
-        seo_description: input.seo_description,
-        cta_type: input.cta_type,
-        cta_target: input.cta_target,
-        status: input.status,
-        published_at: publishedAt,
-        created_at: now,
-        updated_at: now,
-        read_time: input.read_time,
-        hero_label: input.hero_label
-      });
     }
 
-    await writeLocalDb(localDb);
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+
+      if (input.id) {
+        const localExisting = localDb.posts.find((item) => item.id === input.id);
+        if (localExisting) {
+          Object.assign(localExisting, input, {
+            updated_at: now,
+            published_at: input.status === "published"
+              ? input.published_at ?? localExisting.published_at ?? now
+              : input.published_at ?? undefined
+          });
+        }
+      } else {
+        localDb.posts.unshift({
+          id: savedPostId ?? randomUUID(),
+          title: input.title,
+          slug: input.slug,
+          summary: input.summary,
+          content: input.content,
+          cover_image_url: input.cover_image_url,
+          related_persona: input.related_persona,
+          related_demand_ids: input.related_demand_ids ?? [],
+          topic_tag: input.topic_tag,
+          seo_title: input.seo_title,
+          seo_description: input.seo_description,
+          cta_type: input.cta_type,
+          cta_target: input.cta_target,
+          status: input.status,
+          published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
+          created_at: now,
+          updated_at: now,
+          read_time: input.read_time,
+          hero_label: input.hero_label
+        });
+      }
+
+      await writeLocalDb(localDb);
+    }
+
     revalidateTag("public-posts", "max");
     return;
   }
@@ -858,9 +872,13 @@ export async function deletePostById(id: string) {
       delete from posts
       where id = ${id}
     `;
-    const db = await readLocalDb();
-    db.posts = db.posts.filter((post) => post.id !== id);
-    await writeLocalDb(db);
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const db = await readLocalDb();
+      db.posts = db.posts.filter((post) => post.id !== id);
+      await writeLocalDb(db);
+    }
+
     revalidateTag("public-posts", "max");
     return;
   }

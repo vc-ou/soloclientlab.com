@@ -9,6 +9,7 @@ import { z } from "zod";
 import { addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ActionState,
   DemandStatus,
@@ -54,6 +55,16 @@ function getOptionalDateTime(formData: FormData, key: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
 
+function encodeFormErrorMessage(message: string) {
+  return encodeURIComponent(message);
+}
+
+function getPostImageBucketName() {
+  return process.env.SUPABASE_POSTS_BUCKET
+    ?? process.env.NEXT_PUBLIC_SUPABASE_POSTS_BUCKET
+    ?? "posts";
+}
+
 async function saveUploadedPostImage(file: File) {
   if (!file || file.size === 0) {
     return undefined;
@@ -63,11 +74,33 @@ async function saveUploadedPostImage(file: File) {
   const buffer = Buffer.from(arrayBuffer);
   const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : undefined;
   const safeExtension = extension && /^[a-z0-9]+$/.test(extension) ? extension : "jpg";
+  const filename = `${Date.now()}-${randomUUID()}.${safeExtension}`;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    const supabase = await createSupabaseServerClient();
+    const bucket = getPostImageBucketName();
+    const objectPath = `posts/${filename}`;
+    const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, {
+      contentType: file.type || "image/jpeg",
+      upsert: false
+    });
+
+    if (error) {
+      throw new Error(`Cover image upload failed: ${error.message}`);
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+    if (!data.publicUrl) {
+      throw new Error("Cover image upload failed: no public URL was returned.");
+    }
+
+    return data.publicUrl;
+  }
+
   const uploadDir = path.join(process.cwd(), "public", "uploads", "posts");
 
   await mkdir(uploadDir, { recursive: true });
 
-  const filename = `${Date.now()}-${randomUUID()}.${safeExtension}`;
   const outputPath = path.join(uploadDir, filename);
   await writeFile(outputPath, buffer);
 
@@ -237,30 +270,39 @@ export async function upsertPost(formData: FormData) {
   const relatedDemandIds = formData.getAll("related_demand_ids")
     .map((value) => (typeof value === "string" ? value.trim() : ""))
     .filter(Boolean);
-  const coverImage = formData.get("cover_image");
-  const existingCoverImageUrl = getText(formData, "existing_cover_image_url") || undefined;
-  const removeCoverImage = getText(formData, "remove_cover_image") === "on";
-  const uploadedCoverImageUrl = coverImage instanceof File ? await saveUploadedPostImage(coverImage) : undefined;
+  const postId = getText(formData, "id") || undefined;
 
-  await savePost({
-    id: getText(formData, "id") || undefined,
-    title: getText(formData, "title"),
-    slug: getText(formData, "slug"),
-    summary: getText(formData, "summary") || undefined,
-    content: getText(formData, "content") || undefined,
-    cover_image_url: removeCoverImage ? undefined : uploadedCoverImageUrl ?? existingCoverImageUrl,
-    related_persona: getText(formData, "related_persona") || undefined,
-    related_demand_ids: relatedDemandIds,
-    topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined,
-    seo_title: getText(formData, "seo_title") || undefined,
-    seo_description: getText(formData, "seo_description") || undefined,
-    cta_type: getText(formData, "cta_type") as PostCtaType,
-    cta_target: getText(formData, "cta_target") || undefined,
-    status: getText(formData, "status") as PostStatus,
-    published_at: getOptionalDateTime(formData, "published_at"),
-    read_time: getText(formData, "read_time") || undefined,
-    hero_label: getText(formData, "hero_label") || undefined
-  });
+  try {
+    const coverImage = formData.get("cover_image");
+    const existingCoverImageUrl = getText(formData, "existing_cover_image_url") || undefined;
+    const removeCoverImage = getText(formData, "remove_cover_image") === "on";
+    const uploadedCoverImageUrl = coverImage instanceof File ? await saveUploadedPostImage(coverImage) : undefined;
+
+    await savePost({
+      id: postId,
+      title: getText(formData, "title"),
+      slug: getText(formData, "slug"),
+      summary: getText(formData, "summary") || undefined,
+      content: getText(formData, "content") || undefined,
+      cover_image_url: removeCoverImage ? undefined : uploadedCoverImageUrl ?? existingCoverImageUrl,
+      related_persona: getText(formData, "related_persona") || undefined,
+      related_demand_ids: relatedDemandIds,
+      topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined,
+      seo_title: getText(formData, "seo_title") || undefined,
+      seo_description: getText(formData, "seo_description") || undefined,
+      cta_type: getText(formData, "cta_type") as PostCtaType,
+      cta_target: getText(formData, "cta_target") || undefined,
+      status: getText(formData, "status") as PostStatus,
+      published_at: getOptionalDateTime(formData, "published_at"),
+      read_time: getText(formData, "read_time") || undefined,
+      hero_label: getText(formData, "hero_label") || undefined
+    });
+  } catch (error) {
+    console.error("Failed to save post:", error);
+    const fallbackMessage = "Post save failed. Please try again.";
+    const message = error instanceof Error && error.message ? error.message : fallbackMessage;
+    redirect(`/admin/posts/${postId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
+  }
 
   revalidatePath("/");
   revalidatePath("/research");

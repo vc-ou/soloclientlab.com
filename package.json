@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "db:init": "node --env-file=.env.local scripts/init-db.mjs",
-    "db:import": "node --env-file=.env.local scripts/import-json-to-db.mjs"
+    "db:import": "node --env-file=.env.local scripts/import-json-to-db.mjs",
+    "storage:init": "node --env-file=.env.local scripts/init-storage.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
