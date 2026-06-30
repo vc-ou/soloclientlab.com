@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { InlineCta, NewsletterForm } from "@/components/forms";
+import { PostCtaLink, TrackPostAnalytics } from "@/components/post-analytics";
 import { NewsletterPanel } from "@/components/site";
 import { getDemandsByIds, getPostBySlug, getRelatedPosts } from "@/lib/db";
 import { formatDate, labelForTopic } from "@/lib/format";
@@ -43,6 +44,7 @@ export default async function PostPage({ params }: PostPageProps) {
     <section className="container">
       <div className="article-layout">
         <article>
+          <TrackPostAnalytics postId={post.id} postSlug={post.slug} />
           <div className="article-meta" style={{ marginBottom: 18, marginTop: 12 }}>
             <span className="eyebrow">{labelForTopic(post.topic_tag)}</span>
             <span>{formatDate(post.published_at)}</span>
@@ -90,6 +92,7 @@ export default async function PostPage({ params }: PostPageProps) {
                   sourceType="post"
                   sourcePage={`/research/${post.slug}`}
                   topicTag={post.topic_tag}
+                  postSlug={post.slug}
                   buttonLabel="Subscribe"
                 />
               </InlineCta>
@@ -100,9 +103,15 @@ export default async function PostPage({ params }: PostPageProps) {
                 title="Free Client Acquisition Report"
                 body="A research-backed report that helps you diagnose the bigger pattern and decide what to test next."
               >
-                <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
+                <PostCtaLink
+                  href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
+                  className="button primary"
+                  postId={post.id}
+                  postSlug={post.slug}
+                  ctaType="lead_magnet"
+                >
                   Get Free Access to the Report →
-                </Link>
+                </PostCtaLink>
               </InlineCta>
             ) : null}
 
@@ -111,9 +120,15 @@ export default async function PostPage({ params }: PostPageProps) {
                 title="Join the workflow waitlist"
                 body="Be first to hear when the AI Client Acquisition Workflow launches."
               >
-                <Link href={post.cta_target ?? "/waitlist/client-acquisition-ai-workflow"} className="button primary">
+                <PostCtaLink
+                  href={`${post.cta_target ?? "/waitlist/client-acquisition-ai-workflow"}?fromPost=${post.slug}`}
+                  className="button primary"
+                  postId={post.id}
+                  postSlug={post.slug}
+                  ctaType="waitlist"
+                >
                   Join the waitlist
-                </Link>
+                </PostCtaLink>
               </InlineCta>
             ) : null}
           </div>
@@ -128,9 +143,15 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="card">
             <h3>Free Client Acquisition Report</h3>
             <p>A 28-page guide to diagnose acquisition bottlenecks, compare repeated patterns, and choose a smarter next step.</p>
-            <Link href="/resources/client-acquisition-report#resource-form" className="button secondary">
+            <PostCtaLink
+              href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
+              className="button secondary"
+              postId={post.id}
+              postSlug={post.slug}
+              ctaType="lead_magnet"
+            >
               Get Free Access to the Report →
-            </Link>
+            </PostCtaLink>
           </div>
           <div className="card">
             <h3>Related research</h3>

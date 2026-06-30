@@ -11,9 +11,18 @@ export const metadata: Metadata = {
     "Discover data-backed client acquisition strategies for solo professionals, independent consultants, and freelancers. Diagnose your marketing bottlenecks today."
 };
 
-export default async function ResourcePage() {
+type ResourcePageProps = {
+  searchParams?: Promise<{
+    fromPost?: string;
+  }>;
+};
+
+export default async function ResourcePage({ searchParams }: ResourcePageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const resource = await getResourceBySlug("client-acquisition-report");
   const resourcePageHref = resource ? getResourceLandingPath(resource) : "/resources/client-acquisition-report";
+  const fromPost = typeof resolvedSearchParams?.fromPost === "string" ? resolvedSearchParams.fromPost : undefined;
+  const sourcePage = fromPost ? `/research/${fromPost}` : resourcePageHref;
 
   return (
     <>
@@ -53,8 +62,9 @@ export default async function ResourcePage() {
                   <div id="resource-form" className="resource-inline-form">
                     <NewsletterForm
                       sourceType="resource"
-                      sourcePage={resourcePageHref}
+                      sourcePage={sourcePage}
                       topicTag="client_acquisition"
+                      postSlug={fromPost}
                       title="Get updates by email"
                       subtitle="Enter your email to join the list and get updates when new research and resources go live."
                       buttonLabel="Get Free Access →"

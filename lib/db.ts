@@ -9,6 +9,8 @@ import type {
   Database,
   Demand,
   Post,
+  PostEvent,
+  PostPerformance,
   Resource,
   Subscriber,
   WaitlistEntry
@@ -25,6 +27,8 @@ type PostRow = Omit<Post, "related_demand_ids"> & {
   related_demand_ids: string[] | null;
 };
 
+type PostEventRow = PostEvent;
+
 async function ensureDbFile() {
   await mkdir(dataDir, { recursive: true });
 
@@ -38,7 +42,15 @@ async function ensureDbFile() {
 async function readLocalDb(): Promise<Database> {
   await ensureDbFile();
   const raw = await readFile(dataFile, "utf8");
-  return JSON.parse(raw) as Database;
+  const parsed = JSON.parse(raw) as Partial<Database>;
+  return {
+    demands: parsed.demands ?? [],
+    posts: parsed.posts ?? [],
+    resources: parsed.resources ?? [],
+    subscribers: parsed.subscribers ?? [],
+    waitlists: parsed.waitlists ?? [],
+    post_events: parsed.post_events ?? []
+  };
 }
 
 async function writeLocalDb(db: Database) {
@@ -126,15 +138,23 @@ function mapWaitlistRow(row: WaitlistEntry): WaitlistEntry {
   };
 }
 
+function mapPostEventRow(row: PostEventRow): PostEvent {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString()
+  };
+}
+
 async function readPostgresDb(): Promise<Database> {
   const sql = getReadSql();
-  const [demands, posts, resources, subscribers, waitlists] = await withTimeout(
+  const [demands, posts, resources, subscribers, waitlists, postEvents] = await withTimeout(
     Promise.all([
       sql<DemandRow[]>`select * from demands order by created_at desc`,
       sql<PostRow[]>`select * from posts order by created_at desc`,
       sql<Resource[]>`select * from resources order by created_at desc`,
       sql<Subscriber[]>`select * from subscribers order by created_at desc`,
-      sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`
+      sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`,
+      sql<PostEventRow[]>`select * from post_events order by created_at desc`
     ])
   );
 
@@ -143,7 +163,8 @@ async function readPostgresDb(): Promise<Database> {
     posts: posts.map(mapPostRow),
     resources: resources.map(mapResourceRow),
     subscribers: subscribers.map(mapSubscriberRow),
-    waitlists: waitlists.map(mapWaitlistRow)
+    waitlists: waitlists.map(mapWaitlistRow),
+    post_events: postEvents.map(mapPostEventRow)
   };
 }
 
@@ -290,6 +311,63 @@ export async function saveSubscriber(
   await writeLocalDb(db);
 }
 
+type TrackPostEventInput = {
+  postId?: string;
+  postSlug: string;
+  eventType: PostEvent["event_type"];
+  ctaType?: PostEvent["cta_type"];
+  path?: string;
+  referrer?: string;
+  createdAt?: string;
+};
+
+export async function trackPostEvent(input: TrackPostEventInput) {
+  const createdAt = input.createdAt ?? new Date().toISOString();
+  const safePath = input.path?.slice(0, 300);
+  const safeReferrer = input.referrer?.slice(0, 500);
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into post_events (
+        id, post_id, post_slug, event_type, cta_type, path, referrer, created_at
+      ) values (
+        ${randomUUID()}, ${input.postId ?? null}, ${input.postSlug}, ${input.eventType},
+        ${input.ctaType ?? null}, ${safePath ?? null}, ${safeReferrer ?? null}, ${createdAt}
+      )
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.post_events.unshift({
+        id: randomUUID(),
+        post_id: input.postId,
+        post_slug: input.postSlug,
+        event_type: input.eventType,
+        cta_type: input.ctaType,
+        path: safePath,
+        referrer: safeReferrer,
+        created_at: createdAt
+      });
+      await writeLocalDb(localDb);
+    }
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.post_events.unshift({
+    id: randomUUID(),
+    post_id: input.postId,
+    post_slug: input.postSlug,
+    event_type: input.eventType,
+    cta_type: input.ctaType,
+    path: safePath,
+    referrer: safeReferrer,
+    created_at: createdAt
+  });
+  await writeLocalDb(db);
+}
+
 export async function getSubscriberByEmail(email: string) {
   const normalizedEmail = email.toLowerCase();
 
@@ -372,6 +450,13 @@ export async function addWaitlistEntry(
     email: input.email.toLowerCase()
   });
   await writeLocalDb(db);
+}
+
+function extractSourcePostSlug(sourcePage?: string) {
+  if (!sourcePage) return undefined;
+
+  const match = sourcePage.match(/\/research\/([^/?#]+)/);
+  return match?.[1];
 }
 
 export async function saveDemand(input: Partial<Demand> & Pick<Demand, "title" | "status">) {
@@ -951,6 +1036,71 @@ export async function getDashboardMetrics() {
     latestWaitlists: db.waitlists.slice(0, 5),
     latestDemands: db.demands.slice(0, 5)
   };
+}
+
+export async function getPostPerformance() {
+  const db = await getSnapshot();
+  const publishedOrDraftPosts = [...db.posts]
+    .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
+
+  const counters = new Map<string, {
+    views: number;
+    ctaClicks: number;
+    subscriptions: number;
+    lastEventAt?: string;
+  }>();
+
+  const ensureCounter = (slug: string) => {
+    const existing = counters.get(slug);
+    if (existing) return existing;
+    const created = { views: 0, ctaClicks: 0, subscriptions: 0, lastEventAt: undefined as string | undefined };
+    counters.set(slug, created);
+    return created;
+  };
+
+  for (const event of db.post_events) {
+    const counter = ensureCounter(event.post_slug);
+    if (event.event_type === "view") counter.views += 1;
+    if (event.event_type === "cta_click") counter.ctaClicks += 1;
+    if (event.event_type === "subscription") counter.subscriptions += 1;
+    if (!counter.lastEventAt || event.created_at > counter.lastEventAt) {
+      counter.lastEventAt = event.created_at;
+    }
+  }
+
+  for (const subscriber of db.subscribers) {
+    const slug = extractSourcePostSlug(subscriber.source_page);
+    if (!slug) continue;
+    const counter = ensureCounter(slug);
+    counter.subscriptions += 1;
+    if (!counter.lastEventAt || subscriber.created_at > counter.lastEventAt) {
+      counter.lastEventAt = subscriber.created_at;
+    }
+  }
+
+  return publishedOrDraftPosts.map<PostPerformance>((post) => {
+    const counter = counters.get(post.slug) ?? {
+      views: 0,
+      ctaClicks: 0,
+      subscriptions: 0,
+      lastEventAt: undefined
+    };
+
+    return {
+      postId: post.id,
+      title: post.title,
+      slug: post.slug,
+      status: post.status,
+      publishedAt: post.published_at,
+      ctaType: post.cta_type,
+      views: counter.views,
+      ctaClicks: counter.ctaClicks,
+      subscriptions: counter.subscriptions,
+      ctaClickRate: counter.views ? counter.ctaClicks / counter.views : 0,
+      subscriptionRate: counter.views ? counter.subscriptions / counter.views : 0,
+      lastEventAt: counter.lastEventAt
+    };
+  });
 }
 
 export async function resetCacheUnsafe() {

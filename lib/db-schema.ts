@@ -91,6 +91,17 @@ create table if not exists waitlists (
   created_at timestamptz not null
 );
 
+create table if not exists post_events (
+  id text primary key,
+  post_id text references posts(id) on delete set null,
+  post_slug text not null,
+  event_type text not null,
+  cta_type text,
+  path text,
+  referrer text,
+  created_at timestamptz not null
+);
+
 create index if not exists idx_demands_status on demands (status);
 create index if not exists idx_demands_topic_tag on demands (topic_tag);
 create index if not exists idx_posts_status on posts (status);
@@ -99,4 +110,6 @@ create index if not exists idx_resources_status on resources (status);
 create index if not exists idx_subscribers_source_type on subscribers (source_type);
 create index if not exists idx_subscribers_lead_magnet on subscribers (lead_magnet);
 create index if not exists idx_waitlists_page_slug on waitlists (page_slug);
+create index if not exists idx_post_events_post_slug on post_events (post_slug);
+create index if not exists idx_post_events_event_type on post_events (event_type);
 `;

@@ -38,6 +38,7 @@ const waitlistSchema = z.object({
   page_slug: z.string().min(1),
   email: emailSchema,
   source_page: z.string().optional(),
+  post_slug: z.string().optional(),
   interest_tag: z.string().optional(),
   note: z.string().optional()
 });
@@ -180,6 +181,7 @@ export async function joinWaitlist(
     page_slug: getText(formData, "page_slug"),
     email: getText(formData, "email").toLowerCase(),
     source_page: getText(formData, "source_page") || undefined,
+    post_slug: getText(formData, "post_slug") || undefined,
     interest_tag: getText(formData, "interest_tag") || undefined,
     note: getText(formData, "note") || undefined
   });
@@ -188,7 +190,14 @@ export async function joinWaitlist(
     return { success: false, message: "Please complete the waitlist form with a valid email." };
   }
 
-  await addWaitlistEntry(parsed.data);
+  await addWaitlistEntry({
+    project_name: parsed.data.project_name,
+    page_slug: parsed.data.page_slug,
+    email: parsed.data.email,
+    source_page: parsed.data.source_page,
+    interest_tag: parsed.data.interest_tag,
+    note: parsed.data.note
+  });
   await saveSubscriber({
     email: parsed.data.email,
     source_page: parsed.data.source_page,

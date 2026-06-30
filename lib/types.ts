@@ -7,6 +7,7 @@ export type TopicTag =
 
 export type PostStatus = "draft" | "published" | "archived";
 export type PostCtaType = "newsletter" | "lead_magnet" | "waitlist" | "none";
+export type PostEventType = "view" | "cta_click" | "subscription";
 export type DemandStatus =
   | "raw"
   | "reviewed"
@@ -111,12 +112,39 @@ export type WaitlistEntry = {
   created_at: string;
 };
 
+export type PostEvent = {
+  id: string;
+  post_id?: string;
+  post_slug: string;
+  event_type: PostEventType;
+  cta_type?: PostCtaType;
+  path?: string;
+  referrer?: string;
+  created_at: string;
+};
+
+export type PostPerformance = {
+  postId: string;
+  title: string;
+  slug: string;
+  status: PostStatus;
+  publishedAt?: string;
+  ctaType: PostCtaType;
+  views: number;
+  ctaClicks: number;
+  subscriptions: number;
+  ctaClickRate: number;
+  subscriptionRate: number;
+  lastEventAt?: string;
+};
+
 export type Database = {
   demands: Demand[];
   posts: Post[];
   resources: Resource[];
   subscribers: Subscriber[];
   waitlists: WaitlistEntry[];
+  post_events: PostEvent[];
 };
 
 export type ActionState = {

@@ -242,5 +242,6 @@ Validation reduces the risk of spending months building something nobody wants.
     }
   ],
   subscribers: [],
-  waitlists: []
+  waitlists: [],
+  post_events: []
 };

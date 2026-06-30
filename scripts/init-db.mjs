@@ -22,14 +22,8 @@ try {
     throw new Error("Could not locate schema SQL in lib/db-schema.ts");
   }
 
-  const statements = match[1]
-    .split(/;\s*\n/g)
-    .map((statement) => statement.trim())
-    .filter(Boolean);
-
-  for (const statement of statements) {
-    await sql.unsafe(`${statement};`);
-  }
+  const schemaSql = match[1].trim();
+  await sql.unsafe(schemaSql);
 
   console.log("Database schema initialized.");
 } finally {

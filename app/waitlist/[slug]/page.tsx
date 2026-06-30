@@ -6,6 +6,7 @@ import { publicSocialProof, waitlistFitItems, waitlistProjects, workflowOutcomeI
 
 type WaitlistPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ fromPost?: string }>;
 };
 
 export async function generateMetadata({ params }: WaitlistPageProps): Promise<Metadata> {
@@ -20,9 +21,11 @@ export async function generateMetadata({ params }: WaitlistPageProps): Promise<M
     : {};
 }
 
-export default async function WaitlistPage({ params }: WaitlistPageProps) {
+export default async function WaitlistPage({ params, searchParams }: WaitlistPageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const project = waitlistProjects[slug as keyof typeof waitlistProjects];
+  const fromPost = typeof resolvedSearchParams?.fromPost === "string" ? resolvedSearchParams.fromPost : undefined;
 
   if (!project) {
     notFound();
@@ -34,7 +37,14 @@ export default async function WaitlistPage({ params }: WaitlistPageProps) {
         eyebrow="Join the waitlist"
         title={project.headline}
         description={project.subtitle}
-        aside={<WaitlistForm projectName={project.name} pageSlug={project.slug} />}
+        aside={
+          <WaitlistForm
+            projectName={project.name}
+            pageSlug={project.slug}
+            sourcePage={fromPost ? `/research/${fromPost}` : `/waitlist/${project.slug}`}
+            postSlug={fromPost}
+          />
+        }
       />
 
       <section className="container">

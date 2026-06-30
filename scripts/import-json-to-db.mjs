@@ -129,10 +129,11 @@ try {
     await sql`
       insert into subscribers (
         id, email, source_page, source_type, lead_magnet, persona_tag,
-        topic_tag, status, mailerlite_id, created_at, updated_at
+        topic_tag, note, status, mailerlite_id, created_at, updated_at
       ) values (
         ${row.id}, ${row.email}, ${row.source_page ?? null}, ${row.source_type ?? null},
         ${row.lead_magnet ?? null}, ${row.persona_tag ?? null}, ${row.topic_tag ?? null},
+        ${row.note ?? null},
         ${row.status}, ${row.mailerlite_id ?? null}, ${row.created_at}, ${row.updated_at}
       )
       on conflict (id) do update set
@@ -142,6 +143,7 @@ try {
         lead_magnet = excluded.lead_magnet,
         persona_tag = excluded.persona_tag,
         topic_tag = excluded.topic_tag,
+        note = excluded.note,
         status = excluded.status,
         mailerlite_id = excluded.mailerlite_id,
         created_at = excluded.created_at,
@@ -164,6 +166,25 @@ try {
         source_page = excluded.source_page,
         interest_tag = excluded.interest_tag,
         note = excluded.note,
+        created_at = excluded.created_at
+    `;
+  });
+
+  await importTable("post_events", db.post_events ?? [], async (row) => {
+    await sql`
+      insert into post_events (
+        id, post_id, post_slug, event_type, cta_type, path, referrer, created_at
+      ) values (
+        ${row.id}, ${row.post_id ?? null}, ${row.post_slug}, ${row.event_type},
+        ${row.cta_type ?? null}, ${row.path ?? null}, ${row.referrer ?? null}, ${row.created_at}
+      )
+      on conflict (id) do update set
+        post_id = excluded.post_id,
+        post_slug = excluded.post_slug,
+        event_type = excluded.event_type,
+        cta_type = excluded.cta_type,
+        path = excluded.path,
+        referrer = excluded.referrer,
         created_at = excluded.created_at
     `;
   });

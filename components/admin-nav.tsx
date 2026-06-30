@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const adminNavItems = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/metrics", label: "Metrics" },
+  { href: "/admin/post-analytics", label: "Post Analytics" },
   { href: "/admin/demands", label: "Demands" },
   { href: "/admin/posts", label: "Posts" },
   { href: "/admin/resources", label: "Resources" },

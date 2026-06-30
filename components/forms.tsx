@@ -15,6 +15,27 @@ const initialState: ActionState = {
 const SUBMISSION_TIMEOUT_MESSAGE = "提交暂时没有完成，请通过邮箱联系。邮箱地址：vcou1222@gmail.com";
 const SUBMISSION_TIMEOUT_MS = 6000;
 
+async function trackPostCtaClick(postSlug: string) {
+  try {
+    await fetch("/api/post-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        postSlug,
+        eventType: "cta_click",
+        ctaType: "newsletter",
+        path: window.location.pathname,
+        referrer: document.referrer || undefined
+      }),
+      keepalive: true
+    });
+  } catch {
+    // Form submission should not depend on analytics.
+  }
+}
+
 function FeedbackModal({
   open,
   title,
@@ -58,6 +79,7 @@ type NewsletterFormProps = {
   sourceType: SourceType;
   sourcePage: string;
   topicTag?: string;
+  postSlug?: string;
   buttonLabel?: string;
   compact?: boolean;
   title?: string;
@@ -68,6 +90,7 @@ export function NewsletterForm({
   sourceType,
   sourcePage,
   topicTag,
+  postSlug,
   buttonLabel = "Subscribe",
   compact = false,
   title,
@@ -111,6 +134,9 @@ export function NewsletterForm({
         action={action}
         className={`form-card${compact ? " compact-form" : ""}`}
         onSubmit={() => {
+          if (sourceType === "post" && postSlug) {
+            void trackPostCtaClick(postSlug);
+          }
           setTimedOut(false);
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -126,6 +152,7 @@ export function NewsletterForm({
         <input type="hidden" name="source_type" value={sourceType} />
         <input type="hidden" name="source_page" value={sourcePage} />
         {topicTag ? <input type="hidden" name="topic_tag" value={topicTag} /> : null}
+        {postSlug ? <input type="hidden" name="post_slug" value={postSlug} /> : null}
 
         <div className="form-grid">
           <label className="field">
@@ -158,9 +185,11 @@ export function NewsletterForm({
 type WaitlistFormProps = {
   projectName: string;
   pageSlug: string;
+  sourcePage?: string;
+  postSlug?: string;
 };
 
-export function WaitlistForm({ projectName, pageSlug }: WaitlistFormProps) {
+export function WaitlistForm({ projectName, pageSlug, sourcePage, postSlug }: WaitlistFormProps) {
   const [state, action, pending] = useActionState(joinWaitlist, initialState);
   const lastTrackedEvent = useRef<string | undefined>(undefined);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -213,7 +242,8 @@ export function WaitlistForm({ projectName, pageSlug }: WaitlistFormProps) {
         <p className="form-intro">Tell us where your acquisition process feels stuck, and we will notify you when the workflow is ready.</p>
         <input type="hidden" name="project_name" value={projectName} />
         <input type="hidden" name="page_slug" value={pageSlug} />
-        <input type="hidden" name="source_page" value={`/waitlist/${pageSlug}`} />
+        <input type="hidden" name="source_page" value={sourcePage ?? `/waitlist/${pageSlug}`} />
+        {postSlug ? <input type="hidden" name="post_slug" value={postSlug} /> : null}
 
         <label className="field">
           <span>Email address</span>
