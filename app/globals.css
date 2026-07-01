@@ -1049,6 +1049,80 @@ span {
   color: var(--text);
 }
 
+.markdown-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.markdown-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.markdown-editor-header span {
+  display: block;
+  font-weight: 700;
+  font-size: 0.94rem;
+  margin-bottom: 4px;
+}
+
+.markdown-editor-tabs {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.markdown-editor-tabs button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 13px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.markdown-editor-tabs button.is-active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.markdown-editor-surface,
+.markdown-editor-source {
+  width: 100%;
+  min-height: 680px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text);
+  outline: none;
+  overflow: auto;
+}
+
+.markdown-editor-surface:focus,
+.markdown-editor-source:focus {
+  border-color: rgba(91, 47, 224, 0.38);
+  box-shadow: 0 0 0 4px rgba(91, 47, 224, 0.08);
+}
+
+.markdown-editor-surface:empty::before {
+  content: "Paste formatted article content here...";
+  color: var(--muted);
+}
+
+.markdown-editor-source {
+  resize: vertical;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
 .form-feedback {
   margin: 14px 0 0;
   color: var(--muted);

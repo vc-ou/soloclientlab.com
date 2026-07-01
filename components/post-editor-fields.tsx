@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MarkdownEditor } from "@/components/markdown-editor";
 import { topicOptions } from "@/lib/content";
 import { labelForTopic, slugify, toDateTimeLocalValue } from "@/lib/format";
 import type { Demand, Post } from "@/lib/types";
@@ -196,10 +197,7 @@ export function PostEditorFields({
           ))}
         </div>
       </section>
-      <label className="field">
-        <span>Markdown content</span>
-        <textarea name="content" rows={18} defaultValue={post?.content ?? ""} />
-      </label>
+      <MarkdownEditor name="content" initialValue={post?.content ?? ""} />
     </>
   );
 }
