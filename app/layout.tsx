@@ -7,7 +7,7 @@ import { SiteFooter, SiteHeader } from "@/components/site";
 import { siteDescription, siteName } from "@/lib/content";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com"),
   title: {
     default: siteName,
     template: `%s | ${siteName}`

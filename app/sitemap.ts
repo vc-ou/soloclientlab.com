@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPublicPosts } from "@/lib/db";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPublicPosts();
