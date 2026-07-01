@@ -5,8 +5,8 @@ import { getPublicPosts } from "@/lib/db";
 import { newsletterBenefits, publicSocialProof } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Client Acquisition Research & AI Workflows",
-  description: "Weekly research for solo professionals who want stable client acquisition, validated offers, and practical AI workflows without relying on social media."
+  title: "Weekly Client Acquisition Research for Solo Professionals",
+  description: "Weekly client acquisition research for solo professionals, with validated growth ideas, offer insights, and automated workflows that do not rely on social media."
 };
 
 export default async function NewsletterPage() {

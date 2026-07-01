@@ -20,7 +20,7 @@ export default async function ResourcesPage() {
         className="hero-copy-90"
         eyebrow="Resources"
         title="Resources, Reports & Research Posts"
-        description="Browse the core resources library, then move into long-form research posts designed to capture high-intent search traffic and turn insights into action."
+        description="Browse free client acquisition templates, B2B lead generation toolkits, and long-form research posts designed to turn search traffic into practical next steps."
       />
 
       <section className="container">
