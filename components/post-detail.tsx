@@ -1,0 +1,152 @@
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import { InlineCta, NewsletterForm } from "@/components/forms";
+import { PostCtaLink, TrackPostAnalytics } from "@/components/post-analytics";
+import { NewsletterPanel } from "@/components/site";
+import { formatDate, labelForTopic } from "@/lib/format";
+import type { Demand, Post } from "@/lib/types";
+
+export function PostDetail({
+  post,
+  related,
+  relatedDemands,
+  trackAnalytics = true
+}: {
+  post: Post;
+  related: Post[];
+  relatedDemands: Demand[];
+  trackAnalytics?: boolean;
+}) {
+  const topicLabel = labelForTopic(post.topic_tag);
+
+  return (
+    <section className="container">
+      <div className="article-layout">
+        <article>
+          {trackAnalytics ? <TrackPostAnalytics postId={post.id} postSlug={post.slug} /> : null}
+          <div className="article-meta" style={{ marginBottom: 18, marginTop: 12 }}>
+            <span className="eyebrow">{topicLabel}</span>
+            <span>{formatDate(post.published_at)}</span>
+            <span>{post.read_time ?? "6 min read"}</span>
+          </div>
+          <h1 className="article-title">{post.title}</h1>
+          <p className="lede">{post.summary}</p>
+          <div
+            className={`article-hero-image${post.cover_image_url ? " has-image" : ""}`}
+            style={post.cover_image_url ? { backgroundImage: `url(${post.cover_image_url})` } : undefined}
+          />
+
+          <div className="article-content">
+            <ReactMarkdown>{post.content ?? ""}</ReactMarkdown>
+
+            {relatedDemands.length ? (
+              <section className="quote-banner">
+                <h3>Related demand evidence</h3>
+                <ul className="list-clean">
+                  {relatedDemands.map((demand) => (
+                    <li key={demand.id}>
+                      <strong>{demand.title}</strong>
+                      {demand.user_quote ? <p>{demand.user_quote}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            <section className="quote-banner">
+              <h3>Recommended next steps</h3>
+              <ul className="list-clean">
+                <li>Use this research to name the one {topicLabel.toLowerCase()} bottleneck that matters most right now.</li>
+                <li>Choose one change you can test in the next 7 days instead of collecting more tactics.</li>
+                <li>If you need a broader diagnosis, use the free report to compare this issue with the wider pattern set.</li>
+              </ul>
+            </section>
+
+            {post.cta_type === "newsletter" ? (
+              <InlineCta
+                title="Get weekly research with clearer next steps"
+                body="Join solo professionals who want practical research, validation ideas, and AI workflows they can actually act on."
+              >
+                <NewsletterForm
+                  sourceType="post"
+                  sourcePage={`/research/${post.slug}`}
+                  topicTag={post.topic_tag}
+                  postSlug={post.slug}
+                  buttonLabel="Subscribe"
+                />
+              </InlineCta>
+            ) : null}
+
+            {post.cta_type === "lead_magnet" ? (
+              <InlineCta
+                title="Free Client Acquisition Report"
+                body="A research-backed report that helps you diagnose the bigger pattern and decide what to test next."
+              >
+                <PostCtaLink
+                  href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
+                  className="button primary"
+                  postId={post.id}
+                  postSlug={post.slug}
+                  ctaType="lead_magnet"
+                >
+                  Get Free Access to the Report →
+                </PostCtaLink>
+              </InlineCta>
+            ) : null}
+
+            {post.cta_type === "waitlist" ? (
+              <InlineCta
+                title="Join the workflow waitlist"
+                body="Be first to hear when the AI Client Acquisition Workflow launches."
+              >
+                <PostCtaLink
+                  href={`${post.cta_target ?? "/waitlist/client-acquisition-ai-workflow"}?fromPost=${post.slug}`}
+                  className="button primary"
+                  postId={post.id}
+                  postSlug={post.slug}
+                  ctaType="waitlist"
+                >
+                  Join the waitlist
+                </PostCtaLink>
+              </InlineCta>
+            ) : null}
+          </div>
+        </article>
+
+        <aside className="sidebar-stack">
+          <NewsletterPanel
+            title="Turn research into a next move"
+            body="Get weekly client acquisition research, clearer validation ideas, and practical AI workflows."
+            sourcePage={`/research/${post.slug}`}
+          />
+          <div className="card">
+            <h3>Free Client Acquisition Report</h3>
+            <p>A 28-page guide to diagnose acquisition bottlenecks, compare repeated patterns, and choose a smarter next step.</p>
+            <PostCtaLink
+              href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
+              className="button secondary"
+              postId={post.id}
+              postSlug={post.slug}
+              ctaType="lead_magnet"
+            >
+              Get Free Access to the Report →
+            </PostCtaLink>
+          </div>
+          <div className="card">
+            <h3>Related research</h3>
+            <div className="activity-list">
+              {related.map((item) => (
+                <div key={item.id}>
+                  <Link href={`/research/${item.slug}`}>
+                    <strong>{item.title}</strong>
+                  </Link>
+                  <p>{formatDate(item.published_at)} · {item.read_time ?? "6 min read"}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}

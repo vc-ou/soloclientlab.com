@@ -118,7 +118,7 @@ export function PostRowActions({ postId, postSlug, onDeleteSuccess }: PostRowAct
   return (
     <div className="admin-table-actions">
       <NavButton
-        href={`/research/${postSlug}`}
+        href={`/admin/posts/${postId}/preview`}
         idleLabel="Preview"
         pendingLabel="Opening..."
         className="button ghost button-sm"

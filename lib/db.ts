@@ -53,6 +53,15 @@ async function readLocalDb(): Promise<Database> {
   };
 }
 
+async function readLocalDbSafe(): Promise<Database> {
+  try {
+    return await readLocalDb();
+  } catch (error) {
+    console.error("Local data fallback is unavailable, using in-memory seed data:", error);
+    return createInMemoryFallbackDb();
+  }
+}
+
 async function writeLocalDb(db: Database) {
   await writeFile(dataFile, JSON.stringify(db, null, 2), "utf8");
 }
@@ -208,7 +217,7 @@ export async function readDb(): Promise<Database> {
     }
   }
 
-  return readLocalDb();
+  return readLocalDbSafe();
 }
 
 export async function getSnapshot() {
@@ -822,7 +831,7 @@ export async function getAdminPosts() {
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   return db.posts;
 }
 
@@ -850,7 +859,7 @@ export async function getPostBySlug(slug: string, options?: { preferLocal?: bool
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   return db.posts.find((post) => post.slug === slug && post.status === "published");
 }
 
@@ -882,7 +891,7 @@ export async function getRelatedPosts(slug: string, limit = 3, options?: { prefe
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   return db.posts
     .filter((post) => post.status === "published" && post.slug !== slug)
     .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
@@ -916,7 +925,7 @@ export async function getAnyPostById(id: string, options?: { preferLocal?: boole
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   return db.posts.find((post) => post.id === id);
 }
 
@@ -943,7 +952,7 @@ export async function getDemands(options?: { preferLocal?: boolean; timeoutMs?: 
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   return db.demands;
 }
 
@@ -976,7 +985,7 @@ export async function getDemandsByIds(ids: string[], options?: { preferLocal?: b
     }
   }
 
-  const db = await readLocalDb();
+  const db = await readLocalDbSafe();
   const idSet = new Set(ids);
   return db.demands.filter((demand) => idSet.has(demand.id));
 }

@@ -14,8 +14,8 @@ export default async function PostEditorPage({ params, searchParams }: PostEdito
   const preferLocal = process.env.NODE_ENV !== "production";
   const post = id === "new"
     ? null
-    : (await getAnyPostById(id, { preferLocal, timeoutMs: 1500 })) ?? null;
-  const demands = await getDemands({ preferLocal, timeoutMs: 1500 });
+    : (await getAnyPostById(id, { preferLocal, timeoutMs: 4000 })) ?? null;
+  const demands = await getDemands({ preferLocal, timeoutMs: 4000 });
 
   return (
     <AdminShell title={post ? "Edit Post" : "New Post"}>
