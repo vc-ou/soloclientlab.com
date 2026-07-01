@@ -80,7 +80,60 @@ export const waitlistProjects = {
     name: "AI Client Acquisition Workflow",
     headline: "AI Client Acquisition Workflow for Solo Service Businesses",
     subtitle:
-      "A practical system for solo professionals who already know they need a clearer way to find leads, create trust-building content, and follow up consistently."
+      "A practical system for solo professionals who already know they need a clearer way to find leads, create trust-building content, and follow up consistently.",
+    fitItems: [
+      {
+        title: "You rely too much on referrals",
+        body: "You want a steadier pipeline, but you do not want to become a full-time content creator."
+      },
+      {
+        title: "You know your work is good",
+        body: "The problem is not delivery quality. The problem is turning your expertise into a repeatable client acquisition process."
+      },
+      {
+        title: "You want a workflow, not more theory",
+        body: "You are looking for a practical operating system you can run each week with limited time."
+      }
+    ],
+    outcomeItems: [
+      "Figure out where your acquisition process is leaking",
+      "Choose outreach and content moves that match your business",
+      "Start better client conversations with clearer positioning",
+      "Follow up with a system instead of memory",
+      "Turn scattered effort into a repeatable weekly workflow"
+    ],
+    whoThisIsFor:
+      "Solo consultants, coaches, freelancers, and service providers who already know the issue is not effort alone. They need a clearer system for leads, trust, and follow-up."
+  },
+  "leadradar-for-tiktok": {
+    slug: "leadradar-for-tiktok",
+    name: "LeadRadarforTikTok",
+    headline: "LeadRadarforTikTok Early Interest List",
+    subtitle:
+      "A small Chrome sidebar experiment for B2B teams who want to turn TikTok comments into filterable, exportable demand signals.",
+    fitItems: [
+      {
+        title: "You already scan comments for leads",
+        body: "You know useful signals can appear in TikTok or short-form video comments, but the manual process is tiring and inconsistent."
+      },
+      {
+        title: "You sell a high-context B2B offer",
+        body: "Your leads are not always formal form submissions. They often start as informal questions about pricing, sourcing, customization, samples, or suppliers."
+      },
+      {
+        title: "You want a small workflow first",
+        body: "You do not need a full CRM or automated outreach system yet. You need a cleaner way to identify, save, filter, and export promising comments."
+      }
+    ],
+    outcomeItems: [
+      "Capture visible TikTok comments while preserving the original wording and source",
+      "Identify comments that look like buying, sourcing, customization, or quote intent",
+      "Filter high-intent comments before spending time on manual follow-up",
+      "Export a lightweight lead list for review, research, or sales handoff",
+      "Learn which repeated questions should become content, FAQs, or outreach angles"
+    ],
+    whoThisIsFor:
+      "B2B service businesses, custom manufacturing teams, and operators using TikTok or short-form video comments to spot overseas demand before it becomes a formal inquiry."
   }
 } as const;
 

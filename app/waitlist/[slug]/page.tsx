@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WaitlistForm } from "@/components/forms";
 import { PageHero } from "@/components/site";
-import { publicSocialProof, waitlistFitItems, waitlistProjects, workflowOutcomeItems } from "@/lib/content";
+import { publicSocialProof, waitlistProjects } from "@/lib/content";
 
 type WaitlistPageProps = {
   params: Promise<{ slug: string }>;
@@ -31,6 +31,9 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
     notFound();
   }
 
+  const fitItems = project.fitItems;
+  const outcomeItems = project.outcomeItems;
+
   return (
     <>
       <PageHero
@@ -49,7 +52,7 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
 
       <section className="container">
         <div className="feature-row">
-          {waitlistFitItems.map((item) => (
+          {fitItems.map((item) => (
             <div key={item.title} className="card">
               <h3>{item.title}</h3>
               <p>{item.body}</p>
@@ -61,10 +64,10 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
       <section className="container">
         <h2>What this workflow will help you do</h2>
         <div className="grid-5">
-          {workflowOutcomeItems.map((item) => (
+          {outcomeItems.map((item) => (
             <div key={item} className="card">
               <h3>{item}</h3>
-              <p>Practical steps designed for solo service businesses.</p>
+              <p>Practical steps designed for testing this workflow with real demand signals.</p>
             </div>
           ))}
         </div>
@@ -73,7 +76,7 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
       <section className="container">
         <div className="quote-banner">
           <h3>Who this is for</h3>
-          <p>Solo consultants, coaches, freelancers, and service providers who already know the issue is not effort alone. They need a clearer system for leads, trust, and follow-up.</p>
+          <p>{project.whoThisIsFor}</p>
           <p style={{ marginBottom: 0 }}>{publicSocialProof.newsletterJoinCopy}</p>
         </div>
       </section>
