@@ -57,6 +57,17 @@ async function writeLocalDb(db: Database) {
   await writeFile(dataFile, JSON.stringify(db, null, 2), "utf8");
 }
 
+function createInMemoryFallbackDb(): Database {
+  return {
+    demands: seedDatabase.demands.map((item) => ({ ...item, tags: [...(item.tags ?? [])] })),
+    posts: seedDatabase.posts.map((item) => ({ ...item, related_demand_ids: [...(item.related_demand_ids ?? [])] })),
+    resources: seedDatabase.resources.map((item) => ({ ...item })),
+    subscribers: [],
+    waitlists: [],
+    post_events: []
+  };
+}
+
 function shouldMirrorDatabaseToLocalFile() {
   return process.env.NODE_ENV !== "production";
 }
@@ -147,6 +158,22 @@ function mapPostEventRow(row: PostEventRow): PostEvent {
 
 async function readPostgresDb(): Promise<Database> {
   const sql = getReadSql();
+  const postEventsPromise = withTimeout(
+    sql<PostEventRow[]>`select * from post_events order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    const databaseError = error as { code?: string; message?: string } | undefined;
+    const isMissingRelation = databaseError?.code === "42P01";
+    const mentionsPostEvents = databaseError?.message?.includes("post_events");
+
+    if (isMissingRelation || mentionsPostEvents) {
+      console.warn("post_events table is not available yet, using empty analytics events.");
+      return [] as PostEventRow[];
+    }
+
+    throw error;
+  });
+
   const [demands, posts, resources, subscribers, waitlists, postEvents] = await withTimeout(
     Promise.all([
       sql<DemandRow[]>`select * from demands order by created_at desc`,
@@ -154,7 +181,7 @@ async function readPostgresDb(): Promise<Database> {
       sql<Resource[]>`select * from resources order by created_at desc`,
       sql<Subscriber[]>`select * from subscribers order by created_at desc`,
       sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`,
-      sql<PostEventRow[]>`select * from post_events order by created_at desc`
+      postEventsPromise
     ])
   );
 
@@ -174,6 +201,10 @@ export async function readDb(): Promise<Database> {
       return await readPostgresDb();
     } catch (error) {
       console.error("Falling back to local data store for reads:", error);
+
+      if (process.env.NODE_ENV === "production") {
+        return createInMemoryFallbackDb();
+      }
     }
   }
 
