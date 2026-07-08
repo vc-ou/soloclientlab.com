@@ -813,6 +813,12 @@ span {
   margin-bottom: 10px;
 }
 
+.activity-card h2 {
+  font-size: clamp(1.6rem, 2.6vw, 2.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
 .post-grid,
 .admin-grid {
   display: grid;
