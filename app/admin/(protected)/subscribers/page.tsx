@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AdminShell, FilterForm } from "@/components/admin";
 import { AdminSubscriberTable } from "@/components/admin-subscriber-table";
 import { personaOptions, topicOptions } from "@/lib/content";
-import { getFilteredSubscribers, getSnapshot } from "@/lib/db";
+import { getFilteredSubscribers, getSubscriberLeadMagnetOptions } from "@/lib/db";
 
 type AdminSubscribersPageProps = {
   searchParams: Promise<{
@@ -16,9 +16,8 @@ type AdminSubscribersPageProps = {
 
 export default async function AdminSubscribersPage({ searchParams }: AdminSubscribersPageProps) {
   const filters = await searchParams;
-  const db = await getSnapshot();
   const subscribers = await getFilteredSubscribers(filters);
-  const resourceOptions = Array.from(new Set(db.subscribers.map((subscriber) => subscriber.lead_magnet).filter(Boolean)));
+  const resourceOptions = await getSubscriberLeadMagnetOptions();
   const exportParams = new URLSearchParams(
     Object.entries(filters).filter(([, value]) => value)
       .map(([key, value]) => [key, value ?? ""])

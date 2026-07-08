@@ -1181,6 +1181,32 @@ export async function getFilteredSubscribers(filters: {
   topic_tag?: string;
   status?: string;
 }) {
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const subscribers = await readWithRetry(
+        "Filtered subscribers read",
+        () => withTimeout(sql<Subscriber[]>`
+          select * from subscribers
+          order by created_at desc
+        `)
+      );
+
+      return subscribers
+        .map(mapSubscriberRow)
+        .filter((subscriber) => {
+          if (filters.source_type && subscriber.source_type !== filters.source_type) return false;
+          if (filters.lead_magnet && subscriber.lead_magnet !== filters.lead_magnet) return false;
+          if (filters.persona_tag && subscriber.persona_tag !== filters.persona_tag) return false;
+          if (filters.topic_tag && subscriber.topic_tag !== filters.topic_tag) return false;
+          if (filters.status && subscriber.status !== filters.status) return false;
+          return true;
+        });
+    } catch (error) {
+      console.error("Falling back to local subscribers:", error);
+    }
+  }
+
   const db = await getSnapshot();
 
   return db.subscribers.filter((subscriber) => {
@@ -1191,6 +1217,30 @@ export async function getFilteredSubscribers(filters: {
     if (filters.status && subscriber.status !== filters.status) return false;
     return true;
   });
+}
+
+export async function getSubscriberLeadMagnetOptions() {
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Subscriber lead magnet options read",
+        () => withTimeout(sql<{ lead_magnet: string | null }[]>`
+          select distinct lead_magnet
+          from subscribers
+          where lead_magnet is not null and lead_magnet <> ''
+          order by lead_magnet asc
+        `)
+      );
+
+      return rows.map((row) => row.lead_magnet).filter((value): value is string => Boolean(value));
+    } catch (error) {
+      console.error("Falling back to local lead magnet options:", error);
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return Array.from(new Set(db.subscribers.map((subscriber) => subscriber.lead_magnet).filter(Boolean)));
 }
 
 export async function getFilteredWaitlists(filters: {
