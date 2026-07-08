@@ -45,7 +45,6 @@ export function SiteFooter() {
               <h3 className="footer-heading">Explore</h3>
               <div className="footer-links">
                 <Link href="/research">Research Notes</Link>
-                <Link href="/resources">Free Resources</Link>
                 <Link href="/newsletter">Newsletter</Link>
               </div>
             </div>

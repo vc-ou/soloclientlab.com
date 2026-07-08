@@ -40,12 +40,12 @@ export function HeaderCta() {
 
   return (
     <Link
-      href="/resources/client-acquisition-report#resource-form"
+      href="/research"
       className={`button primary header-cta${isVisible ? " is-visible" : ""}`}
       aria-hidden={isVisible ? undefined : "true"}
       tabIndex={isVisible ? undefined : -1}
     >
-      Get Free Access to the Report →
+      Explore Research →
     </Link>
   );
 }

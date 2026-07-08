@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewsletterPage() {
-  const posts = await getPublicPosts();
+  const posts = await getPublicPosts("client_acquisition");
 
   return (
     <>
@@ -43,7 +43,7 @@ export default async function NewsletterPage() {
       </section>
 
       <section className="container">
-        <SectionHeading title="Recent research you might like" />
+        <SectionHeading title="Recent client acquisition research" />
         <div className="post-grid">
           {posts.slice(0, 4).map((post) => (
             <PostCard key={post.id} post={post} />

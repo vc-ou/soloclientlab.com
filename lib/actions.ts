@@ -143,7 +143,7 @@ export async function subscribeUser(
     if (!Number.isNaN(lastSubmittedAt) && Date.now() - lastSubmittedAt < thirtyDaysMs) {
       return {
         success: false,
-        message: "站主已有您的邮箱，请通过邮箱联系。邮箱地址：vcou1222@gmail.com"
+        message: "站主已有您的邮箱，请通过邮箱联系。邮箱地址：soloclientlab.com@gmail.com"
       };
     }
   }
@@ -155,7 +155,7 @@ export async function subscribeUser(
     console.error("Could not save subscriber quickly enough:", error);
     return {
       success: false,
-      message: "提交暂时没有完成，请通过邮箱联系。邮箱地址：vcou1222@gmail.com"
+      message: "提交暂时没有完成，请通过邮箱联系。邮箱地址：soloclientlab.com@gmail.com"
     };
   }
 

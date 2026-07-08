@@ -12,7 +12,7 @@ const initialState: ActionState = {
   message: ""
 };
 
-const SUBMISSION_TIMEOUT_MESSAGE = "提交暂时没有完成，请通过邮箱联系。邮箱地址：vcou1222@gmail.com";
+const SUBMISSION_TIMEOUT_MESSAGE = "提交暂时没有完成，请通过邮箱联系。邮箱地址：soloclientlab.com@gmail.com";
 const SUBMISSION_TIMEOUT_MS = 6000;
 
 async function trackPostCtaClick(postSlug: string) {
