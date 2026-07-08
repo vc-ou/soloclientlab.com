@@ -17,7 +17,7 @@ export default async function ResourcesPage() {
     <>
       <PageHero
         align="center"
-        className="hero-copy-90"
+        className="hero-copy-90 resources-hero"
         eyebrow="Resources"
         title="Resources, Reports & Research Posts"
         description="Browse free client acquisition templates, B2B lead generation toolkits, and long-form research posts designed to turn search traffic into practical next steps."
@@ -49,30 +49,6 @@ export default async function ResourcesPage() {
                 </Link>
               </article>
             </div>
-
-            <div className="section-panel">
-              <SectionHeading
-                title="Latest research posts"
-                action={
-                  <Link href="/research" className="button ghost">
-                    View research library
-                  </Link>
-                }
-              />
-              {latestPosts.length > 0 ? (
-                <div className="post-grid">
-                  {latestPosts.map((post) => (
-                    <PostCard key={post.id} post={post} />
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state-card">
-                  <p className="eyebrow">Research library</p>
-                  <h2>No research posts are published yet.</h2>
-                  <p>As new SEO articles go live, they will appear here and become crawlable from the main navigation.</p>
-                </div>
-              )}
-            </div>
           </div>
 
           <NewsletterPanel
@@ -80,6 +56,32 @@ export default async function ResourcesPage() {
             title="Weekly Research Dispatch"
             body="Get new client acquisition research, SEO angles, and practical AI workflow notes as they are published."
           />
+        </div>
+      </section>
+
+      <section className="container">
+        <div className="section-panel">
+          <SectionHeading
+            title="Latest research posts"
+            action={
+              <Link href="/research" className="button ghost">
+                View research library
+              </Link>
+            }
+          />
+          {latestPosts.length > 0 ? (
+            <div className="post-grid">
+              {latestPosts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state-card">
+              <p className="eyebrow">Research library</p>
+              <h2>No research posts are published yet.</h2>
+              <p>As new SEO articles go live, they will appear here and become crawlable from the main navigation.</p>
+            </div>
+          )}
         </div>
       </section>
     </>

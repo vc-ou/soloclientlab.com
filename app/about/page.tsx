@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { NewsletterForm } from "@/components/forms";
-import { PageHero } from "@/components/site";
+import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
+import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "About",
   description: "Learn who runs SoloClientLab.com, what the site studies, and how the research process works."
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const posts = await getPublicPosts();
+  const featured = posts.slice(0, 3);
+
   return (
     <>
       <PageHero
         align="center"
         className="hero-copy-90"
         eyebrow="About SoloClientLab.com"
-        title="We study how solo service businesses get clients."
+        title="We study how solo service businesses get clients"
         description={"SoloClientLab.com turns real-world research into clearer decisions on client acquisition, offer validation, and practical AI workflows.\nContact me: vcou1222@gmail.com"}
       />
 
@@ -45,6 +50,29 @@ export default function AboutPage() {
                   <strong>{item.step}. {item.title}</strong>
                   <p>{item.body}</p>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container">
+        <div className="section-panel about-featured-research-panel">
+          <SectionHeading
+            title="Featured research"
+            action={
+              <Link href="/research" className="button ghost">
+                View all research
+              </Link>
+            }
+          />
+          <div className="about-featured-research-stack">
+            <p>
+              We don’t just study market trends—we build clear, actionable paths to acquisition. If you're facing client acquisition hurdles, our latest research breaks down the exact workflows you need:
+            </p>
+            <div className="post-grid">
+              {featured.map((post) => (
+                <PostCard key={post.id} post={post} />
               ))}
             </div>
           </div>

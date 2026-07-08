@@ -494,21 +494,15 @@ h1 {
 }
 
 h2 {
-  font-size: clamp(2.3rem, 5vw, 4rem);
+  font-size: clamp(2.3rem, 5vw, 2rem);
+  line-height: 2.02;
 }
 
 h3 {
   font-size: clamp(1.25rem, 2vw, 1.65rem);
 }
 
-p,
-li,
-label,
-th,
-td,
-span {
-  line-height: 1.55;
-}
+
 
 .hero-description,
 .lede {
@@ -598,11 +592,17 @@ span {
 }
 
 .hero-center.hero-copy-90 .hero-copy h1 {
-  max-width: min(90%, 18ch);
+  max-width: 100%;
+}
+
+.hero-center.resources-hero .hero-copy h1 {
+  max-width: 100%;
+  font-size: clamp(2.4rem, 4vw, 3.9rem);
+  white-space: nowrap;
 }
 
 .hero-center.hero-copy-90 .hero-description {
-  max-width: min(90%, 56rem);
+  max-width: min(100%, 56rem);
 }
 
 .hero-center.hero-home-wide .hero-copy {
@@ -633,7 +633,6 @@ span {
 
 .hero-title-lockup {
   display: grid;
-  gap: 0.14em;
   justify-items: center;
 }
 
@@ -717,11 +716,10 @@ span {
 
 .hero-device-card-flat strong {
   max-width: 100%;
-  font-size: clamp(3.2rem, 8vw, 6rem);
+  font-size: clamp(3.2rem, 8vw, 5rem);
 }
 
 .hero-device-card-flat p:last-child {
-  max-width: min(100%, 36rem);
   font-size: 1.12rem;
 }
 
@@ -879,7 +877,7 @@ span {
 }
 
 .resource-hub-card h2 {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-size: clamp(1.8rem, 3vw, 1.6rem);
   line-height: 1.08;
 }
 
@@ -1834,6 +1832,12 @@ span {
   background: linear-gradient(135deg, rgba(241, 235, 255, 0.52), rgba(255, 255, 255, 0.98));
 }
 
+.resource-showcase h2 {
+  font-size: clamp(2.2rem, 2vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
 .quote-banner {
   display: grid;
   gap: 18px;
@@ -2004,9 +2008,10 @@ span {
 }
 
 .resource-title {
-  font-size: clamp(2.8rem, 4vw, 4.5rem);
+  font-size: clamp(2.5rem, 3.6vw, 4.2rem);
   line-height: 1.05;
-  max-width: min(90%, 18ch);
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .resource-feature-body > p {
@@ -2094,6 +2099,19 @@ span {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 244, 255, 0.78));
   border: 1px solid var(--line);
   box-shadow: var(--shadow-soft);
+}
+
+.about-featured-research-panel .section-heading {
+  margin-bottom: 32px;
+}
+
+.about-featured-research-stack {
+  display: grid;
+  gap: 32px;
+}
+
+.about-featured-research-stack p {
+  margin: 0;
 }
 
 .hero-bottom-bar {
@@ -2200,6 +2218,10 @@ span {
     max-width: 100%;
   }
 
+  .hero-center.resources-hero .hero-copy h1 {
+    white-space: normal;
+  }
+
   .hero-device-card-flat {
     width: 100%;
   }
@@ -2230,6 +2252,7 @@ span {
 
   .resource-title {
     font-size: 2.6rem;
+    white-space: normal;
   }
 
   .hero-actions,
