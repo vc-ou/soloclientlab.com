@@ -94,6 +94,48 @@ export async function withDatabaseTimeout<T>(promise: Promise<T>, ms = 4000) {
   return withTimeout(promise, ms);
 }
 
+const retryableDatabaseErrorCodes = new Set([
+  "CONNECT_TIMEOUT",
+  "CONNECTION_CLOSED",
+  "CONNECTION_DESTROYED",
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ENETUNREACH",
+  "ETIMEDOUT",
+  "EPIPE"
+]);
+
+function isRetryableDatabaseError(error: unknown) {
+  const databaseError = error as {
+    code?: string;
+    message?: string;
+    cause?: { code?: string; message?: string };
+  } | undefined;
+  const code = databaseError?.code ?? databaseError?.cause?.code;
+  const message = `${databaseError?.message ?? ""} ${databaseError?.cause?.message ?? ""}`.toLowerCase();
+
+  return Boolean(
+    (code && retryableDatabaseErrorCodes.has(code)) ||
+    message.includes("timed out") ||
+    message.includes("timeout") ||
+    message.includes("connection closed") ||
+    message.includes("connection terminated")
+  );
+}
+
+async function readWithRetry<T>(label: string, read: () => Promise<T>, retries = 1): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    if (retries <= 0 || !isRetryableDatabaseError(error)) {
+      throw error;
+    }
+
+    console.warn(`${label} failed, retrying once:`, error);
+    return readWithRetry(label, read, retries - 1);
+  }
+}
+
 let ensuredSubscriberNoteColumn = false;
 
 async function ensureSubscriberNoteColumn() {
@@ -207,12 +249,12 @@ async function readPostgresDb(): Promise<Database> {
 export async function readDb(): Promise<Database> {
   if (hasDatabaseUrl()) {
     try {
-      return await readPostgresDb();
+      return await readWithRetry("Live database snapshot", () => readPostgresDb());
     } catch (error) {
-      console.error("Falling back to local data store for reads:", error);
+      console.error("Live database snapshot failed:", error);
 
       if (process.env.NODE_ENV === "production") {
-        return createInMemoryFallbackDb();
+        throw error;
       }
     }
   }
@@ -236,17 +278,20 @@ async function readPublicPosts(topic?: string) {
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
-      const posts = topic && topic !== "all"
-        ? await withTimeout(sql<PostRow[]>`
-            select * from posts
-            where status = 'published' and topic_tag = ${topic}
-            order by published_at desc nulls last, created_at desc
-          `)
-        : await withTimeout(sql<PostRow[]>`
-            select * from posts
-            where status = 'published'
-            order by published_at desc nulls last, created_at desc
-          `);
+      const posts = await readWithRetry(
+        "Public posts read",
+        () => topic && topic !== "all"
+          ? withTimeout(sql<PostRow[]>`
+              select * from posts
+              where status = 'published' and topic_tag = ${topic}
+              order by published_at desc nulls last, created_at desc
+            `)
+          : withTimeout(sql<PostRow[]>`
+              select * from posts
+              where status = 'published'
+              order by published_at desc nulls last, created_at desc
+            `)
+      );
 
       return posts.map(mapPostRow);
     } catch (error) {
@@ -254,7 +299,7 @@ async function readPublicPosts(topic?: string) {
     }
   }
 
-  const db = await getSnapshot();
+  const db = await readLocalDbSafe();
   return db.posts
     .filter((post) => post.status === "published")
     .filter((post) => (topic && topic !== "all" ? post.topic_tag === topic : true))
@@ -817,18 +862,9 @@ export async function getPublicPosts(topic?: string) {
 }
 
 export async function getAdminPosts() {
-  if (hasDatabaseUrl()) {
-    try {
-      const sql = getReadSql();
-      const posts = await withTimeout(sql<PostRow[]>`
-        select * from posts
-        order by created_at desc
-      `);
-
-      return posts.map(mapPostRow);
-    } catch (error) {
-      console.error("Falling back to local admin posts:", error);
-    }
+  if (process.env.NODE_ENV === "production" && hasDatabaseUrl()) {
+    const db = await readDb();
+    return [...db.posts].sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
 
   const db = await readLocalDbSafe();
@@ -847,11 +883,14 @@ export async function getPostBySlug(slug: string, options?: { preferLocal?: bool
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
-      const posts = await withTimeout(sql<PostRow[]>`
-        select * from posts
-        where slug = ${slug} and status = 'published'
-        limit 1
-      `, timeoutMs);
+      const posts = await readWithRetry(
+        "Public post detail read",
+        () => withTimeout(sql<PostRow[]>`
+          select * from posts
+          where slug = ${slug} and status = 'published'
+          limit 1
+        `, timeoutMs)
+      );
 
       return posts[0] ? mapPostRow(posts[0]) : undefined;
     } catch (error) {
@@ -878,12 +917,15 @@ export async function getRelatedPosts(slug: string, limit = 3, options?: { prefe
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
-      const posts = await withTimeout(sql<PostRow[]>`
-        select * from posts
-        where status = 'published' and slug <> ${slug}
-        order by published_at desc nulls last, created_at desc
-        limit ${limit}
-      `, timeoutMs);
+      const posts = await readWithRetry(
+        "Related posts read",
+        () => withTimeout(sql<PostRow[]>`
+          select * from posts
+          where status = 'published' and slug <> ${slug}
+          order by published_at desc nulls last, created_at desc
+          limit ${limit}
+        `, timeoutMs)
+      );
 
       return posts.map(mapPostRow);
     } catch (error) {
@@ -900,7 +942,6 @@ export async function getRelatedPosts(slug: string, limit = 3, options?: { prefe
 
 export async function getAnyPostById(id: string, options?: { preferLocal?: boolean; timeoutMs?: number }) {
   const preferLocal = options?.preferLocal ?? false;
-  const timeoutMs = options?.timeoutMs ?? 4000;
 
   if (preferLocal || process.env.NODE_ENV !== "production") {
     const db = await readLocalDb();
@@ -911,18 +952,8 @@ export async function getAnyPostById(id: string, options?: { preferLocal?: boole
   }
 
   if (hasDatabaseUrl()) {
-    try {
-      const sql = getReadSql();
-      const posts = await withTimeout(sql<PostRow[]>`
-        select * from posts
-        where id = ${id}
-        limit 1
-      `, timeoutMs);
-
-      return posts[0] ? mapPostRow(posts[0]) : undefined;
-    } catch (error) {
-      console.error("Falling back to local admin post detail:", error);
-    }
+    const db = await readDb();
+    return db.posts.find((post) => post.id === id);
   }
 
   const db = await readLocalDbSafe();
@@ -931,25 +962,15 @@ export async function getAnyPostById(id: string, options?: { preferLocal?: boole
 
 export async function getDemands(options?: { preferLocal?: boolean; timeoutMs?: number }) {
   const preferLocal = options?.preferLocal ?? false;
-  const timeoutMs = options?.timeoutMs ?? 4000;
 
   if (preferLocal) {
     const db = await readLocalDb();
     return db.demands;
   }
 
-  if (hasDatabaseUrl()) {
-    try {
-      const sql = getReadSql();
-      const demands = await withTimeout(sql<DemandRow[]>`
-        select * from demands
-        order by created_at desc
-      `, timeoutMs);
-
-      return demands.map(mapDemandRow);
-    } catch (error) {
-      console.error("Falling back to local demands:", error);
-    }
+  if (process.env.NODE_ENV === "production" && hasDatabaseUrl()) {
+    const db = await readDb();
+    return [...db.demands].sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
 
   const db = await readLocalDbSafe();
@@ -973,11 +994,14 @@ export async function getDemandsByIds(ids: string[], options?: { preferLocal?: b
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
-      const demands = await withTimeout(sql<DemandRow[]>`
-        select * from demands
-        where id in ${sql(ids)}
-        order by created_at desc
-      `, timeoutMs);
+      const demands = await readWithRetry(
+        "Related demands read",
+        () => withTimeout(sql<DemandRow[]>`
+          select * from demands
+          where id in ${sql(ids)}
+          order by created_at desc
+        `, timeoutMs)
+      );
 
       return demands.map(mapDemandRow);
     } catch (error) {
@@ -1028,11 +1052,14 @@ export async function getResourceBySlug(slug: string) {
   if (hasDatabaseUrl()) {
     try {
       const sql = getReadSql();
-      const resources = await withTimeout(sql<Resource[]>`
-        select * from resources
-        where slug = ${slug} and status = 'published'
-        limit 1
-      `);
+      const resources = await readWithRetry(
+        "Public resource read",
+        () => withTimeout(sql<Resource[]>`
+          select * from resources
+          where slug = ${slug} and status = 'published'
+          limit 1
+        `)
+      );
 
       return resources[0] ? mapResourceRow(resources[0]) : undefined;
     } catch (error) {
@@ -1040,7 +1067,7 @@ export async function getResourceBySlug(slug: string) {
     }
   }
 
-  const db = await getSnapshot();
+  const db = await readLocalDbSafe();
   return db.resources.find((resource) => resource.slug === slug && resource.status === "published");
 }
 

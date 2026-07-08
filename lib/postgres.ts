@@ -18,7 +18,7 @@ export function getReadSql() {
       prepare: false,
       max: 5,
       idle_timeout: 20,
-      connect_timeout: 3,
+      connect_timeout: 10,
       connection: {
         statement_timeout: 4000
       }
@@ -38,7 +38,7 @@ export function getWriteSql() {
       prepare: false,
       max: 1,
       idle_timeout: 20,
-      connect_timeout: 3,
+      connect_timeout: 10,
       connection: {
         statement_timeout: 3000
       }
