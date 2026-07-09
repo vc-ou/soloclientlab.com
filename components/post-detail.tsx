@@ -46,7 +46,7 @@ export function PostDetail({
           />
 
           <div className="article-content">
-            <ReactMarkdown>{post.content ?? ""}</ReactMarkdown>
+            <ReactMarkdown components={{ h1: "h2" }}>{post.content ?? ""}</ReactMarkdown>
 
             {relatedDemands.length ? (
               <section className="quote-banner">

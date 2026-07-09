@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/post-detail";
 import { getDemandsByIds, getPostBySlug, getRelatedPosts } from "@/lib/db";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
+
 type PostPageProps = {
   params: Promise<{ slug: string }>;
 };
@@ -17,7 +19,25 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   return {
     title: post.seo_title ?? post.title,
-    description: post.seo_description ?? post.summary
+    description: post.seo_description ?? post.summary,
+    alternates: {
+      canonical: `/research/${post.slug}`
+    },
+    openGraph: {
+      title: post.seo_title ?? post.title,
+      description: post.seo_description ?? post.summary,
+      url: `${siteUrl}/research/${post.slug}`,
+      type: "article",
+      publishedTime: post.published_at,
+      modifiedTime: post.updated_at,
+      images: post.cover_image_url ? [post.cover_image_url] : undefined
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.seo_title ?? post.title,
+      description: post.seo_description ?? post.summary,
+      images: post.cover_image_url ? [post.cover_image_url] : undefined
+    }
   };
 }
 

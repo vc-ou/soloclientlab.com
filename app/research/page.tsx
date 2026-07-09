@@ -11,7 +11,10 @@ type ResearchPageProps = {
 
 export const metadata: Metadata = {
   title: "Research",
-  description: "Research on how solo service businesses get clients, validate offers, and use AI more practically."
+  description: "Research on how solo service businesses get clients, validate offers, and use AI more practically.",
+  alternates: {
+    canonical: "/research"
+  }
 };
 
 export default async function ResearchPage({ searchParams }: ResearchPageProps) {

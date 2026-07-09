@@ -7,7 +7,10 @@ import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Learn who runs SoloClientLab.com, what the site studies, and how the research process works."
+  description: "Learn who runs SoloClientLab.com, what the site studies, and how the research process works.",
+  alternates: {
+    canonical: "/about"
+  }
 };
 
 export default async function AboutPage() {
