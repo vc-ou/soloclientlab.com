@@ -4,6 +4,7 @@ import { NewsletterForm } from "@/components/forms";
 import { HeaderCta } from "@/components/header-cta";
 import { HeaderNav } from "@/components/header-nav";
 import { labelForTopic, formatDate } from "@/lib/format";
+import { getOptimizedStorageImageUrl } from "@/lib/image-url";
 import type { Post } from "@/lib/types";
 
 export function SiteHeader() {
@@ -119,11 +120,16 @@ export function SectionHeading({
 }
 
 export function PostCard({ post, horizontal = false }: { post: Post; horizontal?: boolean }) {
+  const coverImageUrl = getOptimizedStorageImageUrl(post.cover_image_url, {
+    width: horizontal ? 520 : 900,
+    quality: 75
+  });
+
   return (
     <article className={`post-card${horizontal ? " horizontal" : ""}`}>
       <div
-        className={`post-media${post.cover_image_url ? " has-image" : ""}`}
-        style={post.cover_image_url ? { backgroundImage: `url(${post.cover_image_url})` } : undefined}
+        className={`post-media${coverImageUrl ? " has-image" : ""}`}
+        style={coverImageUrl ? { backgroundImage: `url(${coverImageUrl})` } : undefined}
       >
         <span>{labelForTopic(post.topic_tag)}</span>
       </div>

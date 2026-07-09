@@ -5,6 +5,7 @@ import { PostCtaLink, TrackPostAnalytics } from "@/components/post-analytics";
 import { NewsletterPanel } from "@/components/site";
 import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
 import { formatDate, labelForTopic } from "@/lib/format";
+import { getOptimizedStorageImageUrl } from "@/lib/image-url";
 import type { Demand, Post } from "@/lib/types";
 
 export function PostDetail({
@@ -22,6 +23,10 @@ export function PostDetail({
   const extensionHref = getLeadRadarExtensionHref();
   const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
   const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
+  const heroImageUrl = getOptimizedStorageImageUrl(post.cover_image_url, {
+    width: 1400,
+    quality: 80
+  });
 
   return (
     <section className="container">
@@ -36,8 +41,8 @@ export function PostDetail({
           <h1 className="article-title">{post.title}</h1>
           <p className="lede">{post.summary}</p>
           <div
-            className={`article-hero-image${post.cover_image_url ? " has-image" : ""}`}
-            style={post.cover_image_url ? { backgroundImage: `url(${post.cover_image_url})` } : undefined}
+            className={`article-hero-image${heroImageUrl ? " has-image" : ""}`}
+            style={heroImageUrl ? { backgroundImage: `url(${heroImageUrl})` } : undefined}
           />
 
           <div className="article-content">

@@ -912,6 +912,7 @@ h3 {
 
 .post-media {
   min-height: 180px;
+  background-color: #f3eeff;
   background:
     radial-gradient(circle at 50% 22%, rgba(123, 84, 255, 0.2), transparent 26%),
     linear-gradient(180deg, #ffffff, #f3eeff);
@@ -923,6 +924,7 @@ h3 {
 
 .post-media.has-image,
 .article-hero-image.has-image {
+  background-color: #f3eeff;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
