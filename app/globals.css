@@ -925,7 +925,7 @@ h3 {
 .post-media.has-image,
 .article-hero-image.has-image {
   background-color: #f3eeff;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }

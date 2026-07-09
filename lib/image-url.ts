@@ -19,7 +19,7 @@ export function getOptimizedStorageImageUrl(
     url.pathname = url.pathname.replace(SUPABASE_PUBLIC_OBJECT_SEGMENT, SUPABASE_PUBLIC_RENDER_SEGMENT);
     url.searchParams.set("width", String(width));
     url.searchParams.set("quality", String(quality));
-    url.searchParams.set("resize", "cover");
+    url.searchParams.set("resize", "contain");
     return url.toString();
   } catch {
     return imageUrl;
