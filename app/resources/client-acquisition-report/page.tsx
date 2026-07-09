@@ -6,9 +6,9 @@ import { resourceCategoryTabs, resourceFeatureCards, resourceHighlights } from "
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 
 export const metadata: Metadata = {
-  title: "Solo Client Acquisition Report | Get Clients Without Social Media",
+  title: "Client Acquisition Updates",
   description:
-    "Discover data-backed client acquisition strategies for solo professionals, independent consultants, and freelancers. Diagnose your marketing bottlenecks today."
+    "Join for research updates, future resources, and practical client acquisition workflows for solo professionals."
 };
 
 type ResourcePageProps = {
@@ -29,9 +29,9 @@ export default async function ResourcePage({ searchParams }: ResourcePageProps) 
       <section className="resource-page-hero">
         <div className="container resource-hero-stack">
           <p className="eyebrow">Research updates</p>
-          <h1 className="resource-title">Client Acquisition Strategies &amp; Insights for Solo Professionals</h1>
+          <h1 className="resource-title">Client Acquisition Updates &amp; Insights for Solo Professionals</h1>
           <p className="resource-hero-copy">
-            Join the list for updates on new research, resources, and practical client acquisition ideas for solo professionals.
+            Join the list for new research notes, future resources, and practical workflow experiments for solo professionals.
           </p>
           <div className="resource-tab-row">
             {resourceCategoryTabs.map((item, index) => (
@@ -66,8 +66,8 @@ export default async function ResourcePage({ searchParams }: ResourcePageProps) 
                       topicTag="client_acquisition"
                       postSlug={fromPost}
                       title="Get updates by email"
-                      subtitle="Enter your email to join the list and get updates when new research and resources go live."
-                      buttonLabel="Get Free Access →"
+                      subtitle="Enter your email to join the list and hear when new research, workflow experiments, and future resources go live."
+                      buttonLabel="Join the updates →"
                     />
                   </div>
                 ) : (

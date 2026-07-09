@@ -17,10 +17,12 @@ type CtaType = keyof typeof ctaTargetPresets;
 
 export function PostEditorFields({
   post,
-  demands
+  demands,
+  posts
 }: {
   post: Post | null;
   demands: Demand[];
+  posts: Post[];
 }) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [slug, setSlug] = useState(post?.slug ?? "");
@@ -29,6 +31,9 @@ export function PostEditorFields({
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(post?.slug));
   const previousPresetRef = useRef(ctaTargetPresets[ctaType]);
   const selectedDemandIds = new Set(post?.related_demand_ids ?? []);
+  const linkablePosts = posts
+    .filter((item) => item.status === "published" && item.slug !== post?.slug)
+    .map((item) => ({ title: item.title, slug: item.slug }));
 
   useEffect(() => {
     if (!slugManuallyEdited) {
@@ -102,7 +107,7 @@ export function PostEditorFields({
               </option>
             ))}
           </select>
-          <small className="field-help">Newsletter shows the inline signup form, lead magnet points to the report, and waitlist links to the validation page.</small>
+          <small className="field-help">Newsletter shows the inline signup form, lead magnet points to the secondary updates page, and waitlist links to the validation page.</small>
         </label>
         <label className="field">
           <span>CTA target</span>
@@ -197,7 +202,7 @@ export function PostEditorFields({
           ))}
         </div>
       </section>
-      <MarkdownEditor name="content" initialValue={post?.content ?? ""} />
+      <MarkdownEditor name="content" initialValue={post?.content ?? ""} linkablePosts={linkablePosts} />
     </>
   );
 }

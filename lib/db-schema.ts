@@ -102,6 +102,17 @@ create table if not exists post_events (
   created_at timestamptz not null
 );
 
+create table if not exists feedback (
+  id text primary key,
+  tool_slug text not null,
+  source_page text,
+  is_useful boolean not null,
+  problem_context text not null,
+  attachment_url text,
+  attachment_name text,
+  created_at timestamptz not null
+);
+
 create index if not exists idx_demands_status on demands (status);
 create index if not exists idx_demands_topic_tag on demands (topic_tag);
 create index if not exists idx_posts_status on posts (status);
@@ -112,4 +123,6 @@ create index if not exists idx_subscribers_lead_magnet on subscribers (lead_magn
 create index if not exists idx_waitlists_page_slug on waitlists (page_slug);
 create index if not exists idx_post_events_post_slug on post_events (post_slug);
 create index if not exists idx_post_events_event_type on post_events (event_type);
+create index if not exists idx_feedback_tool_slug on feedback (tool_slug);
+create index if not exists idx_feedback_created_at on feedback (created_at desc);
 `;

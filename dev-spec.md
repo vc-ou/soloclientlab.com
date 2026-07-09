@@ -4,7 +4,7 @@
 
 本项目是一个面向英文用户的独立站，首版目标是验证：
 
-`Research 内容 -> 邮箱订阅 -> Lead Magnet -> Waitlist -> 后续付费验证`
+`Research 内容 / 外部分发 -> 直接使用工具 -> 反馈 / 邮箱承接 -> Waitlist -> 后续付费验证`
 
 V1 聚焦主题：
 
@@ -30,11 +30,12 @@ V1 不开发支付、会员、社区、自动邮件营销、AI 自动抓取、Pr
 
 | Route | Page | Purpose |
 | --- | --- | --- |
-| `/` | Home | 主入口，推动邮箱订阅 |
-| `/research` | Research index | 展示研究文章列表 |
-| `/research/[slug]` | Research detail | 承接 SEO 流量并推动订阅 |
-| `/resources/client-acquisition-report` | Lead magnet page | 用免费报告换邮箱 |
-| `/newsletter` | Newsletter landing | 解释订阅价值并收邮箱 |
+| `/` | Home | 主入口，优先推动工具开始使用，并并列承接邮箱 |
+| `/research` | Research index | 展示研究文章列表，并把流量导向工具或后续承接 |
+| `/research/[slug]` | Research detail | 承接 SEO 流量，并导向工具、资源或订阅 |
+| `/resources` | Resources hub | 隐藏的次级承接页，用于研究集合与订阅承接 |
+| `/resources/client-acquisition-report` | Resource page | 现有次级资源页，偏向更新与订阅承接，不作为主入口 |
+| `/newsletter` | Newsletter landing | 解释订阅价值并承接高意向用户 |
 | `/waitlist/[slug]` | Waitlist page | 收集高意向用户 |
 | `/about` | About | 介绍作者和研究方法 |
 
@@ -55,36 +56,45 @@ Admin routes require Supabase Auth.
 
 ### 4.1 Home `/`
 
-Primary goal: email subscription.
+Primary goal: tool engagement.
 
 Required sections:
 
 - Hero
+- Tool entry module
 - Value proposition
+- Lightweight feedback prompt
+- Install extension CTA for tool flows that require browser extension usage
 - Featured research
-- Lead magnet CTA
-- Newsletter CTA
+- Tool + email coexistence block
 - Research method or simple proof section
 
 Hero copy:
 
-- H1: `Research-backed growth ideas for solo service businesses`
-- Subtitle: `Weekly research on how independent professionals find clients, validate offers, and use AI without relying on heavy social selling.`
-- Primary CTA: `Get the free report`
+- H1: `A practical tool for solo service businesses that need clients`
+- Subtitle: `Use the tool first, see immediate value, then decide whether you want deeper research, updates, or to continue in the full extension workflow.`
+- Primary CTA: `Start using the tool`
 - Secondary CTA: `Read the research`
 
 Behavior:
 
-- Primary CTA links to `/resources/client-acquisition-report`
+- Primary CTA jumps to the homepage tool entry section
 - Secondary CTA links to `/research`
-- Newsletter form accepts email and optional hidden source value `home`
+- Homepage includes an interactive tool entry area above the fold or immediately below the hero
+- Tool can be started without login and without mandatory email capture
+- Newsletter form remains available on homepage as a parallel path, not as the blocking first step
+- Tool section includes a lightweight feedback question such as `Was this useful?` or `What were you trying to solve?`
+- For tools that require browser extension for real-world usage, homepage includes a post-result CTA linking to the Chrome Web Store `Unlisted` listing
 - On successful subscription, show a success state without redirecting
 
 Acceptance criteria:
 
-- User can subscribe from homepage
+- User can start the tool from homepage without registration
+- User can still subscribe from homepage
 - Submission creates a row in `subscribers`
 - Source fields identify homepage signup
+- Homepage clearly presents both tool entry and email capture without forcing order
+- If extension continuation is enabled, the page includes a clear install CTA that points to the Chrome Web Store `Unlisted` listing
 - Page has SEO title and meta description
 
 ### 4.2 Research Index `/research`
@@ -97,7 +107,7 @@ Required elements:
 - Short description
 - Topic filter
 - Article list
-- Newsletter CTA
+- CTA that routes users toward the tool or newsletter
 
 Article card fields:
 
@@ -112,6 +122,7 @@ Behavior:
 - Only posts with `status = published` are visible
 - Sort by `published_at desc`
 - Topic filter uses `topic_tag`
+- Primary page CTA can point back to the homepage tool section until a dedicated tool route exists
 
 Acceptance criteria:
 
@@ -121,7 +132,7 @@ Acceptance criteria:
 
 ### 4.3 Research Detail `/research/[slug]`
 
-Purpose: SEO content page and email conversion page.
+Purpose: SEO content page and tool / conversion bridge.
 
 Required elements:
 
@@ -135,6 +146,8 @@ Required elements:
 
 CTA types:
 
+- `tool`
+- `extension_install`
 - `newsletter`
 - `lead_magnet`
 - `waitlist`
@@ -143,6 +156,8 @@ Behavior:
 
 - Render content from Markdown
 - Use `seo_title` and `seo_description` for metadata
+- If `cta_type = tool`, CTA links to `/#tool-entry` or the current homepage tool anchor
+- If `cta_type = extension_install`, CTA links to configured Chrome Web Store `Unlisted` URL
 - If `cta_type = lead_magnet`, CTA links to `/resources/client-acquisition-report`
 - If `cta_type = newsletter`, CTA shows inline email form
 - If `cta_type = waitlist`, CTA links to configured waitlist page
@@ -151,59 +166,51 @@ Acceptance criteria:
 
 - Article renders Markdown content
 - Email signup from article creates subscriber with `source_type = post`
+- Research detail can route readers directly into the tool experience
 - Metadata is generated per post
 
-### 4.4 Lead Magnet Page `/resources/client-acquisition-report`
+### 4.4 Resources Hub `/resources`
 
-Purpose: exchange free report for email.
-
-Offer:
-
-`Client Acquisition Report for Solo Professionals`
+Purpose: hidden secondary hub for research-adjacent subscription paths.
 
 Required sections:
 
-- Offer headline
+- Headline
+- Short description
+- Link to research archive
+- Newsletter capture
+- Optional featured resource card if resource metadata exists
+
+Behavior:
+
+- Page is not linked from primary header navigation
+- Page can surface resource-style content, but should not be treated as the homepage primary conversion path
+- Newsletter capture remains the main conversion action on this page
+
+Acceptance criteria:
+
+- Page renders without being part of primary navigation
+- Newsletter capture works from this page
+
+### 4.5 Resource Detail `/resources/client-acquisition-report`
+
+Purpose: support an existing secondary resource/update page without treating it as the site's main offer.
+
+Required sections:
+
+- Resource headline
 - Short value description
-- What is inside
 - Email form
-- Trust or research method note
-
-Suggested copy:
-
-- H1: `Client Acquisition Report for Solo Professionals`
-- Subtitle: `A research-backed breakdown of where solo service businesses struggle to get clients, and what patterns are worth validating next.`
-
-Report contents:
-
-- 25-50 real client acquisition pain points
-- 3-5 repeated problem themes
-- Common bad advice patterns
-- Low-social client acquisition paths
-- AI-assisted research and content workflows
-- Validation checklist
-
-Form fields:
-
-- email, required
-- persona_tag, optional select
-- topic_tag, hidden default `client_acquisition`
-
-Persona options:
-
-- `solo_consultant`
-- `freelancer`
-- `fractional_operator`
-- `small_studio_owner`
-- `other`
+- Research/update framing
 
 Behavior:
 
 - On submit, create row in `subscribers`
-- Link subscriber to resource through `lead_magnet`
+- Link subscriber to resource through `lead_magnet` if configured
 - Show success message
 - If MailerLite API is configured, sync subscriber
 - If MailerLite is not configured, local save must still work
+- Copy should reflect “join for updates and future resources” rather than “download the main report”
 
 Acceptance criteria:
 
@@ -211,7 +218,7 @@ Acceptance criteria:
 - Duplicate email does not create duplicate active subscriber rows
 - Conversion source is stored as `resource`
 
-### 4.5 Newsletter Page `/newsletter`
+### 4.6 Newsletter Page `/newsletter`
 
 Purpose: standalone subscription landing page.
 
@@ -230,13 +237,14 @@ Behavior:
 
 - Email form creates subscriber with `source_type = newsletter_page`
 - User sees success state after submit
+- Copy should frame the newsletter as follow-up insight after using the tool or reading research
 
 Acceptance criteria:
 
 - Page can collect email
 - Subscriber source is stored correctly
 
-### 4.6 Waitlist Page `/waitlist/[slug]`
+### 4.7 Waitlist Page `/waitlist/[slug]`
 
 Purpose: collect high-intent users for a specific validation topic.
 
@@ -273,7 +281,28 @@ Acceptance criteria:
 - Waitlist form stores email and interest
 - Existing subscriber can join waitlist without error
 
-### 4.7 About `/about`
+### 4.8 Extension Install Flow
+
+Purpose: move qualified users from web trial into the full browser-extension workflow.
+
+Distribution method:
+
+- Chrome Web Store `Unlisted`
+
+Requirements:
+
+- Install CTA is shown only after the user has had a chance to see trial results, or in clearly secondary placement
+- CTA opens the Chrome Web Store listing
+- Page copy must not imply GitHub download or manual unpacked installation
+- If the Chrome Web Store link is not yet available, CTA should degrade to newsletter or waitlist capture
+
+Acceptance criteria:
+
+- Install CTA can be configured from environment or content config
+- Clicks on install CTA are trackable
+- User-facing copy matches the `Unlisted` distribution path
+
+### 4.9 About `/about`
 
 Purpose: credibility and research method.
 
@@ -299,7 +328,6 @@ Display metric cards:
 - published posts
 - total subscribers
 - qualified subscribers
-- resource signups
 - waitlist count
 
 Display simple recent activity:
@@ -394,7 +422,7 @@ Create/edit fields:
 
 Enums:
 
-- cta_type: `newsletter`, `lead_magnet`, `waitlist`, `none`
+- cta_type: `tool`, `extension_install`, `newsletter`, `lead_magnet`, `waitlist`, `none`
 - status: `draft`, `published`, `archived`
 
 Acceptance criteria:
@@ -405,6 +433,11 @@ Acceptance criteria:
 - Slug must be unique
 
 ### 5.4 Resources `/admin/resources`
+
+Note:
+
+- This module can remain in admin because resource-related metadata and legacy pages still exist
+- It is no longer treated as the primary public acquisition path
 
 List columns:
 
@@ -446,6 +479,7 @@ List columns:
 - lead_magnet
 - persona_tag
 - topic_tag
+- note
 - status
 - created_at
 
@@ -524,7 +558,7 @@ Acceptance criteria:
 | topic_tag | text | no | |
 | seo_title | text | no | |
 | seo_description | text | no | |
-| cta_type | text | yes | newsletter, lead_magnet, waitlist, none |
+| cta_type | text | yes | tool, extension_install, newsletter, lead_magnet, waitlist, none |
 | cta_target | text | no | URL or slug |
 | status | text | yes | draft, published, archived |
 | published_at | timestamptz | no | |
@@ -558,6 +592,7 @@ Acceptance criteria:
 | lead_magnet | text | no | |
 | persona_tag | text | no | |
 | topic_tag | text | no | |
+| note | text | no | lightweight feedback or user context |
 | status | text | yes | active, unsubscribed, bounced |
 | mailerlite_id | text | no | |
 | created_at | timestamptz | yes | default now() |
@@ -598,6 +633,7 @@ Input:
 - lead_magnet
 - persona_tag
 - topic_tag
+- note
 
 Behavior:
 
@@ -606,6 +642,7 @@ Behavior:
 - Upsert into `subscribers`
 - Preserve `created_at` for existing subscriber
 - Update source fields only if new values are provided
+- Save optional lightweight feedback note if provided
 - Try MailerLite sync if API key exists
 - Return success even if MailerLite sync fails after local save
 
@@ -653,6 +690,10 @@ Track these events through Plausible or local metrics:
 
 | Event | Trigger |
 | --- | --- |
+| `tool_started` | user begins the homepage tool flow |
+| `tool_completed` | user reaches the core result or completion state |
+| `tool_feedback_submitted` | user submits lightweight post-result feedback |
+| `extension_install_clicked` | user clicks the Chrome Web Store install CTA |
 | `newsletter_signup` | successful subscriber creation |
 | `resource_signup` | successful resource form submission |
 | `waitlist_signup` | successful waitlist form submission |
@@ -663,7 +704,7 @@ Track these events through Plausible or local metrics:
 
 ### Resource
 
-- title: `Client Acquisition Report for Solo Professionals`
+- title: `Client Acquisition Updates for Solo Professionals`
 - slug: `client-acquisition-report`
 - type: `report`
 - audience: `solo_service_businesses`
@@ -671,10 +712,20 @@ Track these events through Plausible or local metrics:
 - landing_page_slug: `client-acquisition-report`
 - status: `published`
 
+Note:
+
+- This seed data exists to support the current secondary page structure
+- It is not the primary homepage conversion offer
+
 ### Waitlist
 
 - page_slug: `client-acquisition-ai-workflow`
 - project_name: `AI Client Acquisition Workflow`
+
+### Extension distribution
+
+- distribution: `chrome_web_store_unlisted`
+- listing_url: `TBD`
 
 ### Posts
 
@@ -686,10 +737,12 @@ Create at least 3 draft posts:
 
 ## 10. MVP Acceptance Checklist
 
-- Public homepage renders and has working email signup
+- Public homepage renders and lets users start the tool without registration
+- Public homepage still has working email signup
+- Public homepage can optionally route qualified users to Chrome Web Store `Unlisted`
 - Research index renders published posts only
 - Research detail renders Markdown and CTA
-- Lead magnet page collects email and stores source metadata
+- Secondary resource page collects email and stores source metadata
 - Newsletter page collects email
 - Waitlist page collects high-intent users
 - About page renders
@@ -701,6 +754,7 @@ Create at least 3 draft posts:
 - Metrics overview shows basic counts
 - App works without MailerLite configured
 - App has metadata for public pages
+- Tool-first path and email path can coexist on homepage without blocking each other
 - No payment system is implemented in V1
 
 ## 11. Out Of Scope

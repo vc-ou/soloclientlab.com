@@ -6,15 +6,17 @@ function formatPercent(value: number) {
 }
 
 export default async function AdminMetricsPage() {
-  const metrics = await getDashboardMetrics();
-  const resources = await getResourcePerformance();
+  const [metrics, resources] = await Promise.all([
+    getDashboardMetrics(),
+    getResourcePerformance()
+  ]);
 
   return (
     <AdminShell title="Metrics Center">
       <div className="admin-grid metrics">
         <MetricCard label="Active subscribers" value={metrics.activeSubscribers} />
         <MetricCard label="Qualified subscribers" value={metrics.qualifiedSubscribers} />
-        <MetricCard label="Resource signups" value={metrics.resourceSignups} />
+        <MetricCard label="Secondary page signups" value={metrics.resourceSignups} />
         <MetricCard label="Waitlist count" value={metrics.waitlistCount} />
         <MetricCard label="Published posts" value={metrics.publishedPosts} />
         <MetricCard label="Total demands" value={metrics.totalDemands} />
@@ -27,9 +29,9 @@ export default async function AdminMetricsPage() {
           body="How many active subscribers have moved into a higher-intent validation step."
         />
         <InsightCard
-          title="Resource share"
+          title="Secondary page share"
           value={formatPercent(metrics.resourceToEmailRate)}
-          body="How much of your current active subscriber base came through the lead magnet path."
+          body="How much of your current active subscriber base came through secondary update or resource-style pages."
         />
         <InsightCard
           title="Validation read"
@@ -40,9 +42,9 @@ export default async function AdminMetricsPage() {
 
       <div className="admin-grid" style={{ marginTop: 24 }}>
         <section className="activity-card">
-          <h2>Resource performance</h2>
+          <h2>Secondary page performance</h2>
           <SimpleTable
-            headers={["Resource", "Subscribers", "Conversion share", "Status"]}
+            headers={["Page", "Subscribers", "Conversion share", "Status"]}
             rows={resources.map((resource) => [
               resource.title,
               resource.subscriberCount.toString(),

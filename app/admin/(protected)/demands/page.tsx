@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
 import { topicOptions } from "@/lib/content";
-import { getFilteredDemands, getSnapshot } from "@/lib/db";
+import { getDemandFilterOptions, getFilteredDemands } from "@/lib/db";
 
 type AdminDemandsPageProps = {
   searchParams: Promise<{
@@ -16,10 +16,10 @@ type AdminDemandsPageProps = {
 
 export default async function AdminDemandsPage({ searchParams }: AdminDemandsPageProps) {
   const filters = await searchParams;
-  const db = await getSnapshot();
-  const demands = await getFilteredDemands(filters);
-  const platformOptions = Array.from(new Set(db.demands.map((demand) => demand.source_platform).filter(Boolean)));
-  const personaOptions = Array.from(new Set(db.demands.map((demand) => demand.persona).filter(Boolean)));
+  const [demands, filterOptions] = await Promise.all([
+    getFilteredDemands(filters),
+    getDemandFilterOptions()
+  ]);
 
   return (
     <AdminShell title="Demand Database">
@@ -38,7 +38,7 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
           <span>Source platform</span>
           <select name="source_platform" defaultValue={filters.source_platform ?? ""}>
             <option value="">All platforms</option>
-            {platformOptions.map((option) => (
+            {filterOptions.platforms.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -49,7 +49,7 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
           <span>Persona</span>
           <select name="persona" defaultValue={filters.persona ?? ""}>
             <option value="">All personas</option>
-            {personaOptions.map((option) => (
+            {filterOptions.personas.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

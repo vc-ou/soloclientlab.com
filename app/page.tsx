@@ -1,12 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { NewsletterForm } from "@/components/forms";
 import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { getPublicPosts } from "@/lib/db";
 import { homeProofItems, homepageBottlenecks, homepageNextSteps, publicSocialProof } from "@/lib/content";
+import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
+
+const leadRadarDemoHref = "/tools/leadradar";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Solo Consultant Client Acquisition Tools & Demand Workflows | SoloClientLab"
+  },
+  description:
+    "Find high-intent client demand in public threads. Research-backed acquisition workflows, lightweight tools, and repeatable systems for solo experts."
+};
 
 export default async function HomePage() {
   const posts = await getPublicPosts();
   const featured = posts.slice(0, 3);
+  const extensionHref = getLeadRadarExtensionHref();
+  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
+  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
   return (
     <>
@@ -15,26 +30,26 @@ export default async function HomePage() {
         className="hero-copy-90 hero-home-wide"
         title={
           <span className="hero-title-lockup">
-            <span className="hero-title-line">Get clients without relying</span>
-            <span className="hero-title-line hero-title-accent">on social media</span>
+            <span className="hero-title-line">Client acquisition for solo consultants</span>
+            <span className="hero-title-line hero-title-accent">Spot High-Intent Demand Signals</span>
           </span>
         }
-        description="Download our Client Acquisition Report to discover data-backed strategies extracted from 320+ solo professional conversations. No fluff, just practical validation workflows."
+        description="Research-backed client acquisition workflows for solo service businesses. Find, validate, and convert leads from public conversations without relying on noisy social media algorithms."
         aside={
           <div className="hero-showcase">
             <div className="hero-actions hero-primary-actions">
-              <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
-                Get Free Access to the Report →
+              <Link href={leadRadarDemoHref} className="button primary">
+                Try LeadRadar now
               </Link>
-              <Link href="/research" className="button secondary">
-                Explore the research
+              <Link href={extensionHref} className="button secondary">
+                {extensionCtaLabel}
               </Link>
             </div>
             <div className="hero-visual hero-device-stage">
               <div id="home-hero-cta-card" className="hero-device-card hero-device-card-flat">
                 <p className="eyebrow">SoloClientLab.com</p>
-                <strong>Client Acquisition Report</strong>
-                <p>Research-backed insights on how solo service businesses get clients without relying on social media.</p>
+                <strong>Research, tools, and demand workflows</strong>
+                <p>Use research and focused tooling to find better signals before they get buried in noisy public threads.</p>
               </div>
               <div className="hero-device-glow" />
             </div>
@@ -90,10 +105,11 @@ export default async function HomePage() {
             ))}
           </div>
           <div className="inline-report-cta">
-            <p>We analyzed 320+ solo professional growth bottlenecks to decode alternative acquisition pathways.</p>
-            <Link href="/resources/client-acquisition-report#resource-form" className="inline-report-link">
-              See how to fix these gaps in our Free Acquisition Report <span aria-hidden="true">→</span>
+            <p>Some workflows are best understood in public research. Others need a working tool and a tighter feedback loop.</p>
+            <Link href={leadRadarDemoHref} className="inline-report-link">
+              Try the LeadRadar demo <span aria-hidden="true">→</span>
             </Link>
+            <p>Use the tool first on-site, then decide whether the extension workflow is worth the next step.</p>
           </div>
         </div>
       </section>
@@ -119,9 +135,9 @@ export default async function HomePage() {
       <section className="container">
         <div className="two-column home-conversion-panel">
           <div className="resource-showcase">
-            <p className="eyebrow">Free report</p>
-            <h2>Client Acquisition Strategies &amp; Reports for Solo Professionals</h2>
-            <p>A 28-page report to help you diagnose what is slowing growth, see what patterns matter, and decide what to test next.</p>
+            <p className="eyebrow">Live workflow</p>
+            <h2>Move from research into a real demand-capture workflow</h2>
+            <p>When a repeated problem deserves a real test, we turn it into a lightweight workflow and expose it to early operators in public.</p>
             <div className="activity-list">
               {homepageNextSteps.map((item) => (
                 <div key={item.title}>
@@ -130,16 +146,17 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-            <Link href="/resources/client-acquisition-report#resource-form" className="button primary">
-              Get Free Access to the Report →
+            <Link href={leadRadarDemoHref} className="button primary">
+              Try LeadRadar now
             </Link>
+            <p style={{ marginTop: 12 }}>Start with the on-site demo. Move to extension install or private access only if the workflow feels useful.</p>
           </div>
           <NewsletterForm
             sourceType="home"
             sourcePage="/"
             topicTag="client_acquisition"
-            title="Weekly Client Acquisition Research"
-            subtitle="Weekly client acquisition research, validation ideas, and practical AI workflows."
+            title="Weekly Research & Workflow Updates"
+            subtitle="Get research notes, product experiments, and practical AI workflows as they go live."
             buttonLabel="Subscribe"
           />
         </div>

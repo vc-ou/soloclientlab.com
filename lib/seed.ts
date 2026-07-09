@@ -114,6 +114,7 @@ export const seedDatabase: Database = {
       updated_at: now
     }
   ],
+  feedback: [],
   posts: [
     {
       id: "post-1",

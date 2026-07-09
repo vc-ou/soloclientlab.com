@@ -19,6 +19,7 @@ export type ResourceType = "report" | "checklist" | "template" | "prompt_pack";
 export type ResourceStatus = "draft" | "published" | "archived";
 export type ResourceDeliveryMode = "page" | "file" | "external";
 export type SubscriberStatus = "active" | "unsubscribed" | "bounced";
+export type FeedbackSourceTool = "leadradar";
 export type SourceType =
   | "home"
   | "post"
@@ -123,6 +124,17 @@ export type PostEvent = {
   created_at: string;
 };
 
+export type FeedbackEntry = {
+  id: string;
+  tool_slug: FeedbackSourceTool;
+  source_page?: string;
+  is_useful: boolean;
+  problem_context: string;
+  attachment_url?: string;
+  attachment_name?: string;
+  created_at: string;
+};
+
 export type PostPerformance = {
   postId: string;
   title: string;
@@ -145,6 +157,7 @@ export type Database = {
   subscribers: Subscriber[];
   waitlists: WaitlistEntry[];
   post_events: PostEvent[];
+  feedback: FeedbackEntry[];
 };
 
 export type ActionState = {
@@ -152,5 +165,5 @@ export type ActionState = {
   message: string;
   redirectUrl?: string;
   redirectLabel?: string;
-  eventName?: "newsletter_signup" | "resource_signup" | "waitlist_signup";
+  eventName?: "newsletter_signup" | "resource_signup" | "waitlist_signup" | "tool_feedback_submitted";
 };

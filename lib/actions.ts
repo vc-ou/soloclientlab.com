@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { addFeedbackEntry, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -43,6 +43,13 @@ const waitlistSchema = z.object({
   note: z.string().optional()
 });
 
+const leadRadarFeedbackSchema = z.object({
+  tool_slug: z.literal("leadradar"),
+  source_page: z.string().min(1),
+  is_useful: z.enum(["useful", "not_useful"]),
+  problem_context: z.string().trim().min(1).max(4000)
+});
+
 function getText(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -64,6 +71,12 @@ function getPostImageBucketName() {
   return process.env.SUPABASE_POSTS_BUCKET
     ?? process.env.NEXT_PUBLIC_SUPABASE_POSTS_BUCKET
     ?? "posts";
+}
+
+function getFeedbackUploadBucketName() {
+  return process.env.SUPABASE_FEEDBACK_BUCKET
+    ?? process.env.NEXT_PUBLIC_SUPABASE_FEEDBACK_BUCKET
+    ?? getPostImageBucketName();
 }
 
 async function saveUploadedPostImage(file: File) {
@@ -106,6 +119,46 @@ async function saveUploadedPostImage(file: File) {
   await writeFile(outputPath, buffer);
 
   return `/uploads/posts/${filename}`;
+}
+
+async function saveUploadedFeedbackAttachment(file: File) {
+  if (!file || file.size === 0) {
+    return undefined;
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : undefined;
+  const safeExtension = extension && /^[a-z0-9]+$/.test(extension) ? extension : "bin";
+  const filename = `${Date.now()}-${randomUUID()}.${safeExtension}`;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    const supabase = await createSupabaseServerClient();
+    const bucket = getFeedbackUploadBucketName();
+    const objectPath = `feedback/${filename}`;
+    const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false
+    });
+
+    if (error) {
+      throw new Error(`Feedback attachment upload failed: ${error.message}`);
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+    if (!data.publicUrl) {
+      throw new Error("Feedback attachment upload failed: no public URL was returned.");
+    }
+
+    return data.publicUrl;
+  }
+
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "feedback");
+  await mkdir(uploadDir, { recursive: true });
+  const outputPath = path.join(uploadDir, filename);
+  await writeFile(outputPath, buffer);
+
+  return `/uploads/feedback/${filename}`;
 }
 
 async function maybeSyncMailerLite(_email: string) {
@@ -211,6 +264,54 @@ export async function joinWaitlist(
   revalidatePath("/admin/subscribers");
 
   return { success: true, message: "You're on the waitlist.", eventName: "waitlist_signup" };
+}
+
+export async function submitLeadRadarFeedback(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = leadRadarFeedbackSchema.safeParse({
+    tool_slug: getText(formData, "tool_slug"),
+    source_page: getText(formData, "source_page"),
+    is_useful: getText(formData, "is_useful"),
+    problem_context: getText(formData, "problem_context")
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Please choose whether it was useful and describe what you were trying to solve."
+    };
+  }
+
+  const attachment = formData.get("attachment");
+
+  try {
+    const attachmentUrl = attachment instanceof File ? await saveUploadedFeedbackAttachment(attachment) : undefined;
+    await addFeedbackEntry({
+      tool_slug: parsed.data.tool_slug,
+      source_page: parsed.data.source_page,
+      is_useful: parsed.data.is_useful === "useful",
+      problem_context: parsed.data.problem_context,
+      attachment_url: attachmentUrl,
+      attachment_name: attachment instanceof File && attachment.size > 0 ? attachment.name : undefined
+    });
+  } catch (error) {
+    console.error("Failed to submit LeadRadar feedback:", error);
+    return {
+      success: false,
+      message: "Feedback could not be submitted just now. Please try again."
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/feedback");
+
+  return {
+    success: true,
+    message: "Thanks. Your feedback has been recorded.",
+    eventName: "tool_feedback_submitted"
+  };
 }
 
 export async function loginAdmin(

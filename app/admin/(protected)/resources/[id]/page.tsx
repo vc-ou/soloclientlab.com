@@ -11,12 +11,14 @@ type ResourceEditorProps = {
 export default async function ResourceEditorPage({ params }: ResourceEditorProps) {
   const { id } = await params;
   const resource = id === "new" ? null : await getResourceById(id);
-  const performance = resource ? (await getResourcePerformance()).find((item) => item.id === resource.id) : null;
+  const performance = resource
+    ? (await getResourcePerformance()).find((item) => item.id === resource.id)
+    : null;
   const landingPath = resource ? getResourceLandingPath(resource) : null;
   const deliveryPath = resource ? getResourceDeliveryPath(resource) : null;
 
   return (
-    <AdminShell title={resource ? "Edit Resource" : "New Resource"}>
+    <AdminShell title={resource ? "Edit Secondary Page" : "New Secondary Page"}>
       <form action={upsertResource} className="admin-form">
         <input type="hidden" name="id" value={resource?.id ?? ""} />
         <div className="admin-fields-2">
@@ -59,7 +61,7 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
           <label className="field">
             <span>Landing page slug</span>
             <input name="landing_page_slug" defaultValue={resource?.landing_page_slug ?? ""} />
-            <small className="field-help">Used by the public page and internal resource routing.</small>
+            <small className="field-help">Used by the public secondary page and internal routing.</small>
           </label>
           <label className="field">
             <span>Delivery mode</span>
@@ -68,20 +70,20 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
               <option value="file">file</option>
               <option value="external">external</option>
             </select>
-            <small className="field-help">`page` uses the internal delivery page, `file` serves a download route, and `external` opens a hosted URL.</small>
+            <small className="field-help">`page` uses the internal page flow, `file` serves a download route, and `external` opens a hosted URL.</small>
           </label>
           <label className="field">
             <span>Delivery URL / file path</span>
             <input name="delivery_url" defaultValue={resource?.delivery_url ?? ""} />
-            <small className="field-help">For `page`, use an internal page path. For `file`, use a public file like `/downloads/report.pdf`. For `external`, use the full hosted URL.</small>
+            <small className="field-help">For `page`, use an internal page path. For `file`, use a public file path. For `external`, use the full hosted URL.</small>
           </label>
         </div>
         {resource ? (
           <section className="admin-card resource-preview-card">
             <div className="resource-preview-header">
               <div>
-                <h2>Resource preview</h2>
-                <p>Quick checks for the lead magnet flow.</p>
+                <h2>Secondary page preview</h2>
+                <p>Quick checks for the secondary subscription or delivery flow.</p>
               </div>
               <span className="admin-pill">{performance?.subscriberCount ?? 0} subscribers</span>
             </div>

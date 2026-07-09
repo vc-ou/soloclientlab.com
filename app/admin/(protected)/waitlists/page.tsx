@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
 import { waitlistInterestOptions, waitlistProjects } from "@/lib/content";
-import { getFilteredWaitlists, getSnapshot } from "@/lib/db";
+import { getFilteredWaitlists, getWaitlistFilterOptions } from "@/lib/db";
 
 type AdminWaitlistsPageProps = {
   searchParams: Promise<{
@@ -14,10 +14,10 @@ type AdminWaitlistsPageProps = {
 
 export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlistsPageProps) {
   const filters = await searchParams;
-  const db = await getSnapshot();
-  const waitlists = await getFilteredWaitlists(filters);
-  const projectOptions = Array.from(new Set(db.waitlists.map((entry) => entry.project_name)));
-  const sourcePageOptions = Array.from(new Set(db.waitlists.map((entry) => entry.source_page).filter(Boolean)));
+  const [waitlists, filterOptions] = await Promise.all([
+    getFilteredWaitlists(filters),
+    getWaitlistFilterOptions()
+  ]);
   const exportParams = new URLSearchParams(
     Object.entries(filters).filter(([, value]) => value)
       .map(([key, value]) => [key, value ?? ""])
@@ -39,7 +39,7 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
           <span>Project</span>
           <select name="project_name" defaultValue={filters.project_name ?? ""}>
             <option value="">All projects</option>
-            {projectOptions.map((option) => (
+            {filterOptions.projects.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -72,7 +72,7 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
           <span>Source page</span>
           <select name="source_page" defaultValue={filters.source_page ?? ""}>
             <option value="">All pages</option>
-            {sourcePageOptions.map((option) => (
+            {filterOptions.sourcePages.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

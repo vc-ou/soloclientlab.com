@@ -8,6 +8,7 @@ import { getReadSql, getWriteSql } from "@/lib/postgres";
 import type {
   Database,
   Demand,
+  FeedbackEntry,
   Post,
   PostEvent,
   PostPerformance,
@@ -28,6 +29,43 @@ type PostRow = Omit<Post, "related_demand_ids"> & {
 };
 
 type PostEventRow = PostEvent;
+type FeedbackRow = FeedbackEntry;
+
+type SubscriberFilters = {
+  source_type?: string;
+  lead_magnet?: string;
+  persona_tag?: string;
+  topic_tag?: string;
+  status?: string;
+};
+
+type WaitlistFilters = {
+  project_name?: string;
+  page_slug?: string;
+  interest_tag?: string;
+  source_page?: string;
+};
+
+type FeedbackFilters = {
+  tool_slug?: string;
+  is_useful?: string;
+  has_attachment?: string;
+  source_page?: string;
+};
+
+type DemandFilters = {
+  query?: string;
+  source_platform?: string;
+  persona?: string;
+  status?: string;
+  topic_tag?: string;
+  sort?: string;
+};
+
+type ResourcePerformance = Resource & {
+  subscriberCount: number;
+  conversionRate: number;
+};
 
 async function ensureDbFile() {
   await mkdir(dataDir, { recursive: true });
@@ -49,7 +87,8 @@ async function readLocalDb(): Promise<Database> {
     resources: parsed.resources ?? [],
     subscribers: parsed.subscribers ?? [],
     waitlists: parsed.waitlists ?? [],
-    post_events: parsed.post_events ?? []
+    post_events: parsed.post_events ?? [],
+    feedback: parsed.feedback ?? []
   };
 }
 
@@ -73,12 +112,19 @@ function createInMemoryFallbackDb(): Database {
     resources: seedDatabase.resources.map((item) => ({ ...item })),
     subscribers: [],
     waitlists: [],
-    post_events: []
+    post_events: [],
+    feedback: []
   };
 }
 
 function shouldMirrorDatabaseToLocalFile() {
   return process.env.NODE_ENV !== "production";
+}
+
+const ADMIN_DB_TIMEOUT_MS = 10000;
+
+function shouldReadLiveAdminDb() {
+  return process.env.NODE_ENV === "production" && hasDatabaseUrl();
 }
 
 async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
@@ -177,6 +223,25 @@ function mapPostRow(row: PostRow): Post {
   };
 }
 
+function toPostListItem(post: Post): Post {
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    summary: post.summary,
+    cover_image_url: post.cover_image_url,
+    topic_tag: post.topic_tag,
+    cta_type: post.cta_type,
+    cta_target: post.cta_target,
+    status: post.status,
+    published_at: post.published_at,
+    created_at: post.created_at,
+    updated_at: post.updated_at,
+    read_time: post.read_time,
+    hero_label: post.hero_label
+  };
+}
+
 function mapResourceRow(row: Resource): Resource {
   return {
     ...row,
@@ -207,6 +272,95 @@ function mapPostEventRow(row: PostEventRow): PostEvent {
   };
 }
 
+function mapFeedbackRow(row: FeedbackRow): FeedbackEntry {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString()
+  };
+}
+
+function isMissingOptionalTable(error: unknown, tableName: string) {
+  const databaseError = error as { code?: string; message?: string } | undefined;
+  return databaseError?.code === "42P01" || Boolean(databaseError?.message?.includes(tableName));
+}
+
+function filterSubscribers(subscribers: Subscriber[], filters: SubscriberFilters) {
+  return subscribers.filter((subscriber) => {
+    if (filters.source_type && subscriber.source_type !== filters.source_type) return false;
+    if (filters.lead_magnet && subscriber.lead_magnet !== filters.lead_magnet) return false;
+    if (filters.persona_tag && subscriber.persona_tag !== filters.persona_tag) return false;
+    if (filters.topic_tag && subscriber.topic_tag !== filters.topic_tag) return false;
+    if (filters.status && subscriber.status !== filters.status) return false;
+    return true;
+  });
+}
+
+async function readWaitlistRows() {
+  const sql = getReadSql();
+  const waitlists = await readWithRetry(
+    "Filtered waitlists read",
+    () => withTimeout(sql<WaitlistEntry[]>`
+      select * from waitlists
+      order by created_at desc
+    `, ADMIN_DB_TIMEOUT_MS)
+  );
+
+  return waitlists.map(mapWaitlistRow);
+}
+
+async function readFeedbackRows() {
+  const sql = getReadSql();
+
+  try {
+    const feedback = await readWithRetry(
+      "Feedback read",
+      () => withTimeout(sql<FeedbackRow[]>`
+        select * from feedback
+        order by created_at desc
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return feedback.map(mapFeedbackRow);
+  } catch (error) {
+    if (isMissingOptionalTable(error, "feedback")) {
+      console.warn("feedback table is not available yet, using empty feedback data.");
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+async function readAdminPostPerformanceData(): Promise<Pick<Database, "posts" | "post_events" | "subscribers">> {
+  const sql = getReadSql();
+  const postEventsPromise = withTimeout(
+    sql<PostEventRow[]>`select * from post_events order by created_at desc`,
+    ADMIN_DB_TIMEOUT_MS
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "post_events")) {
+      console.warn("post_events table is not available yet, using empty analytics events.");
+      return [] as PostEventRow[];
+    }
+
+    throw error;
+  });
+
+  const [posts, postEvents, subscribers] = await readWithRetry(
+    "Post performance read",
+    () => withTimeout(Promise.all([
+      sql<PostRow[]>`select * from posts order by published_at desc nulls last, created_at desc`,
+      postEventsPromise,
+      sql<Subscriber[]>`select * from subscribers order by created_at desc`
+    ]), ADMIN_DB_TIMEOUT_MS)
+  );
+
+  return {
+    posts: posts.map(mapPostRow),
+    post_events: postEvents.map(mapPostEventRow),
+    subscribers: subscribers.map(mapSubscriberRow)
+  };
+}
+
 async function readPostgresDb(): Promise<Database> {
   const sql = getReadSql();
   const postEventsPromise = withTimeout(
@@ -224,15 +378,31 @@ async function readPostgresDb(): Promise<Database> {
 
     throw error;
   });
+  const feedbackPromise = withTimeout(
+    sql<FeedbackRow[]>`select * from feedback order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    const databaseError = error as { code?: string; message?: string } | undefined;
+    const isMissingRelation = databaseError?.code === "42P01";
+    const mentionsFeedback = databaseError?.message?.includes("feedback");
 
-  const [demands, posts, resources, subscribers, waitlists, postEvents] = await withTimeout(
+    if (isMissingRelation || mentionsFeedback) {
+      console.warn("feedback table is not available yet, using empty feedback data.");
+      return [] as FeedbackRow[];
+    }
+
+    throw error;
+  });
+
+  const [demands, posts, resources, subscribers, waitlists, postEvents, feedback] = await withTimeout(
     Promise.all([
       sql<DemandRow[]>`select * from demands order by created_at desc`,
       sql<PostRow[]>`select * from posts order by created_at desc`,
       sql<Resource[]>`select * from resources order by created_at desc`,
       sql<Subscriber[]>`select * from subscribers order by created_at desc`,
       sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`,
-      postEventsPromise
+      postEventsPromise,
+      feedbackPromise
     ])
   );
 
@@ -242,7 +412,8 @@ async function readPostgresDb(): Promise<Database> {
     resources: resources.map(mapResourceRow),
     subscribers: subscribers.map(mapSubscriberRow),
     waitlists: waitlists.map(mapWaitlistRow),
-    post_events: postEvents.map(mapPostEventRow)
+    post_events: postEvents.map(mapPostEventRow),
+    feedback: feedback.map(mapFeedbackRow)
   };
 }
 
@@ -272,7 +443,8 @@ async function readPublicPosts(topic?: string) {
     return db.posts
       .filter((post) => post.status === "published")
       .filter((post) => (topic && topic !== "all" ? post.topic_tag === topic : true))
-      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .map(toPostListItem);
   }
 
   if (hasDatabaseUrl()) {
@@ -282,18 +454,22 @@ async function readPublicPosts(topic?: string) {
         "Public posts read",
         () => topic && topic !== "all"
           ? withTimeout(sql<PostRow[]>`
-              select * from posts
+              select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
+                status, published_at, created_at, updated_at, read_time, hero_label
+              from posts
               where status = 'published' and topic_tag = ${topic}
               order by published_at desc nulls last, created_at desc
             `)
           : withTimeout(sql<PostRow[]>`
-              select * from posts
+              select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
+                status, published_at, created_at, updated_at, read_time, hero_label
+              from posts
               where status = 'published'
               order by published_at desc nulls last, created_at desc
             `)
       );
 
-      return posts.map(mapPostRow);
+      return posts.map(mapPostRow).map(toPostListItem);
     } catch (error) {
       console.error("Falling back to local posts:", error);
     }
@@ -303,7 +479,8 @@ async function readPublicPosts(topic?: string) {
   return db.posts
     .filter((post) => post.status === "published")
     .filter((post) => (topic && topic !== "all" ? post.topic_tag === topic : true))
-    .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+    .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+    .map(toPostListItem);
 }
 
 const getCachedAllPublicPosts = unstable_cache(
@@ -533,6 +710,43 @@ export async function addWaitlistEntry(
     created_at: new Date().toISOString(),
     ...input,
     email: input.email.toLowerCase()
+  });
+  await writeLocalDb(db);
+}
+
+export async function addFeedbackEntry(
+  input: Omit<FeedbackEntry, "id" | "created_at">
+) {
+  const createdAt = new Date().toISOString();
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into feedback (
+        id, tool_slug, source_page, is_useful, problem_context, attachment_url, attachment_name, created_at
+      ) values (
+        ${randomUUID()}, ${input.tool_slug}, ${input.source_page ?? null}, ${input.is_useful},
+        ${input.problem_context}, ${input.attachment_url ?? null}, ${input.attachment_name ?? null}, ${createdAt}
+      )
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.feedback.unshift({
+        id: randomUUID(),
+        ...input,
+        created_at: createdAt
+      });
+      await writeLocalDb(localDb);
+    }
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.feedback.unshift({
+    id: randomUUID(),
+    ...input,
+    created_at: createdAt
   });
   await writeLocalDb(db);
 }
@@ -862,13 +1076,23 @@ export async function getPublicPosts(topic?: string) {
 }
 
 export async function getAdminPosts() {
-  if (process.env.NODE_ENV === "production" && hasDatabaseUrl()) {
-    const db = await readDb();
-    return [...db.posts].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const posts = await readWithRetry(
+      "Admin posts read",
+      () => withTimeout(sql<PostRow[]>`
+        select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
+          status, published_at, created_at, updated_at, read_time, hero_label
+        from posts
+        order by created_at desc
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return posts.map(mapPostRow).map(toPostListItem);
   }
 
   const db = await readLocalDbSafe();
-  return db.posts;
+  return db.posts.map(toPostListItem);
 }
 
 export async function getPostBySlug(slug: string, options?: { preferLocal?: boolean; timeoutMs?: number }) {
@@ -951,9 +1175,18 @@ export async function getAnyPostById(id: string, options?: { preferLocal?: boole
     }
   }
 
-  if (hasDatabaseUrl()) {
-    const db = await readDb();
-    return db.posts.find((post) => post.id === id);
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const posts = await readWithRetry(
+      "Admin post read",
+      () => withTimeout(sql<PostRow[]>`
+        select * from posts
+        where id = ${id}
+        limit 1
+      `, options?.timeoutMs ?? ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return posts[0] ? mapPostRow(posts[0]) : undefined;
   }
 
   const db = await readLocalDbSafe();
@@ -968,9 +1201,17 @@ export async function getDemands(options?: { preferLocal?: boolean; timeoutMs?: 
     return db.demands;
   }
 
-  if (process.env.NODE_ENV === "production" && hasDatabaseUrl()) {
-    const db = await readDb();
-    return [...db.demands].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const demands = await readWithRetry(
+      "Admin demands read",
+      () => withTimeout(sql<DemandRow[]>`
+        select * from demands
+        order by created_at desc
+      `, options?.timeoutMs ?? ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return demands.map(mapDemandRow);
   }
 
   const db = await readLocalDbSafe();
@@ -1039,7 +1280,21 @@ export async function deletePostById(id: string) {
 }
 
 export async function getDemandById(id: string) {
-  const db = await getSnapshot();
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const demands = await readWithRetry(
+      "Admin demand read",
+      () => withTimeout(sql<DemandRow[]>`
+        select * from demands
+        where id = ${id}
+        limit 1
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return demands[0] ? mapDemandRow(demands[0]) : undefined;
+  }
+
+  const db = await readLocalDbSafe();
   return db.demands.find((demand) => demand.id === id);
 }
 
@@ -1072,22 +1327,86 @@ export async function getResourceBySlug(slug: string) {
 }
 
 export async function getResourceById(id: string) {
-  const db = await getSnapshot();
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const resources = await readWithRetry(
+      "Admin resource read",
+      () => withTimeout(sql<Resource[]>`
+        select * from resources
+        where id = ${id}
+        limit 1
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return resources[0] ? mapResourceRow(resources[0]) : undefined;
+  }
+
+  const db = await readLocalDbSafe();
   return db.resources.find((resource) => resource.id === id);
 }
 
 export async function getDashboardMetrics() {
-  const db = await getSnapshot();
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const [counts, latestSubscribers, latestWaitlists, latestDemands] = await readWithRetry(
+      "Dashboard metrics read",
+      () => withTimeout(Promise.all([
+        sql<{
+          total_demands: number;
+          published_posts: number;
+          total_subscribers: number;
+          active_subscribers: number;
+          qualified_subscribers: number;
+          resource_signups: number;
+          waitlist_count: number;
+          waitlist_subscribers: number;
+        }[]>`
+          select
+            (select count(*)::int from demands where status <> 'archived') as total_demands,
+            (select count(*)::int from posts where status = 'published') as published_posts,
+            (select count(*)::int from subscribers) as total_subscribers,
+            (select count(*)::int from subscribers where status = 'active') as active_subscribers,
+            (select count(*)::int from subscribers where status = 'active' and persona_tag is not null) as qualified_subscribers,
+            (select count(*)::int from subscribers where status = 'active' and source_type = 'resource') as resource_signups,
+            (select count(*)::int from waitlists) as waitlist_count,
+            (
+              select count(*)::int
+              from subscribers
+              where status = 'active'
+                and lower(email) in (select lower(email) from waitlists)
+            ) as waitlist_subscribers
+        `,
+        sql<Subscriber[]>`select * from subscribers order by created_at desc limit 5`,
+        sql<WaitlistEntry[]>`select * from waitlists order by created_at desc limit 5`,
+        sql<DemandRow[]>`select * from demands order by created_at desc limit 5`
+      ]), ADMIN_DB_TIMEOUT_MS)
+    );
+    const metrics = counts[0];
+    const activeSubscribers = metrics.active_subscribers;
+    const resourceSignups = metrics.resource_signups;
+    const waitlistSubscribers = metrics.waitlist_subscribers;
+
+    return {
+      totalDemands: metrics.total_demands,
+      publishedPosts: metrics.published_posts,
+      totalSubscribers: metrics.total_subscribers,
+      qualifiedSubscribers: metrics.qualified_subscribers,
+      resourceSignups,
+      waitlistCount: metrics.waitlist_count,
+      emailToWaitlistRate: activeSubscribers ? waitlistSubscribers / activeSubscribers : 0,
+      resourceToEmailRate: activeSubscribers ? resourceSignups / activeSubscribers : 0,
+      activeSubscribers,
+      latestSubscribers: latestSubscribers.map(mapSubscriberRow),
+      latestWaitlists: latestWaitlists.map(mapWaitlistRow),
+      latestDemands: latestDemands.map(mapDemandRow)
+    };
+  }
+
+  const db = await readLocalDbSafe();
   const activeSubscribers = db.subscribers.filter((item) => item.status === "active");
   const resourceSubscribers = activeSubscribers.filter((item) => item.source_type === "resource");
   const waitlistEmails = new Set(db.waitlists.map((item) => item.email.toLowerCase()));
   const waitlistSubscribers = activeSubscribers.filter((item) => waitlistEmails.has(item.email.toLowerCase()));
-  const resourceToEmailRate = resourceSubscribers.length && activeSubscribers.length
-    ? resourceSubscribers.length / activeSubscribers.length
-    : 0;
-  const emailToWaitlistRate = activeSubscribers.length
-    ? waitlistSubscribers.length / activeSubscribers.length
-    : 0;
 
   return {
     totalDemands: db.demands.filter((item) => item.status !== "archived").length,
@@ -1096,8 +1415,8 @@ export async function getDashboardMetrics() {
     qualifiedSubscribers: activeSubscribers.filter((item) => item.persona_tag).length,
     resourceSignups: resourceSubscribers.length,
     waitlistCount: db.waitlists.length,
-    emailToWaitlistRate,
-    resourceToEmailRate,
+    emailToWaitlistRate: activeSubscribers.length ? waitlistSubscribers.length / activeSubscribers.length : 0,
+    resourceToEmailRate: activeSubscribers.length ? resourceSubscribers.length / activeSubscribers.length : 0,
     activeSubscribers: activeSubscribers.length,
     latestSubscribers: db.subscribers.slice(0, 5),
     latestWaitlists: db.waitlists.slice(0, 5),
@@ -1106,7 +1425,9 @@ export async function getDashboardMetrics() {
 }
 
 export async function getPostPerformance() {
-  const db = await getSnapshot();
+  const db = shouldReadLiveAdminDb()
+    ? await readAdminPostPerformanceData()
+    : await readLocalDbSafe();
   const publishedOrDraftPosts = [...db.posts]
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
 
@@ -1174,53 +1495,27 @@ export async function resetCacheUnsafe() {
   // Next.js cache invalidation is handled via revalidatePath in actions.
 }
 
-export async function getFilteredSubscribers(filters: {
-  source_type?: string;
-  lead_magnet?: string;
-  persona_tag?: string;
-  topic_tag?: string;
-  status?: string;
-}) {
-  if (hasDatabaseUrl()) {
-    try {
-      const sql = getReadSql();
-      const subscribers = await readWithRetry(
-        "Filtered subscribers read",
-        () => withTimeout(sql<Subscriber[]>`
-          select * from subscribers
-          order by created_at desc
-        `)
-      );
+export async function getFilteredSubscribers(filters: SubscriberFilters): Promise<Subscriber[]> {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const subscribers = await readWithRetry(
+      "Filtered subscribers read",
+      () => withTimeout(sql<Subscriber[]>`
+        select * from subscribers
+        order by created_at desc
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
 
-      return subscribers
-        .map(mapSubscriberRow)
-        .filter((subscriber) => {
-          if (filters.source_type && subscriber.source_type !== filters.source_type) return false;
-          if (filters.lead_magnet && subscriber.lead_magnet !== filters.lead_magnet) return false;
-          if (filters.persona_tag && subscriber.persona_tag !== filters.persona_tag) return false;
-          if (filters.topic_tag && subscriber.topic_tag !== filters.topic_tag) return false;
-          if (filters.status && subscriber.status !== filters.status) return false;
-          return true;
-        });
-    } catch (error) {
-      console.error("Falling back to local subscribers:", error);
-    }
+    return filterSubscribers(subscribers.map(mapSubscriberRow), filters);
   }
 
-  const db = await getSnapshot();
+  const db = await readLocalDbSafe();
 
-  return db.subscribers.filter((subscriber) => {
-    if (filters.source_type && subscriber.source_type !== filters.source_type) return false;
-    if (filters.lead_magnet && subscriber.lead_magnet !== filters.lead_magnet) return false;
-    if (filters.persona_tag && subscriber.persona_tag !== filters.persona_tag) return false;
-    if (filters.topic_tag && subscriber.topic_tag !== filters.topic_tag) return false;
-    if (filters.status && subscriber.status !== filters.status) return false;
-    return true;
-  });
+  return filterSubscribers(db.subscribers, filters);
 }
 
 export async function getSubscriberLeadMagnetOptions() {
-  if (hasDatabaseUrl()) {
+  if (shouldReadLiveAdminDb()) {
     try {
       const sql = getReadSql();
       const rows = await readWithRetry(
@@ -1230,7 +1525,7 @@ export async function getSubscriberLeadMagnetOptions() {
           from subscribers
           where lead_magnet is not null and lead_magnet <> ''
           order by lead_magnet asc
-        `)
+        `, ADMIN_DB_TIMEOUT_MS)
       );
 
       return rows.map((row) => row.lead_magnet).filter((value): value is string => Boolean(value));
@@ -1243,13 +1538,95 @@ export async function getSubscriberLeadMagnetOptions() {
   return Array.from(new Set(db.subscribers.map((subscriber) => subscriber.lead_magnet).filter(Boolean)));
 }
 
-export async function getFilteredWaitlists(filters: {
-  project_name?: string;
-  page_slug?: string;
-  interest_tag?: string;
-  source_page?: string;
-}) {
-  const db = await getSnapshot();
+export async function getDemandFilterOptions(): Promise<{
+  platforms: string[];
+  personas: string[];
+}> {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const [platformRows, personaRows] = await readWithRetry(
+      "Demand filter options read",
+      () => withTimeout(Promise.all([
+        sql<{ source_platform: string | null }[]>`
+          select distinct source_platform
+          from demands
+          where source_platform is not null and source_platform <> ''
+          order by source_platform asc
+        `,
+        sql<{ persona: string | null }[]>`
+          select distinct persona
+          from demands
+          where persona is not null and persona <> ''
+          order by persona asc
+        `
+      ]), ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return {
+      platforms: platformRows.map((row) => row.source_platform).filter((value): value is string => Boolean(value)),
+      personas: personaRows.map((row) => row.persona).filter((value): value is string => Boolean(value))
+    };
+  }
+
+  const db = await readLocalDbSafe();
+
+  return {
+    platforms: Array.from(new Set(db.demands.map((demand) => demand.source_platform).filter((value): value is string => Boolean(value)))),
+    personas: Array.from(new Set(db.demands.map((demand) => demand.persona).filter((value): value is string => Boolean(value))))
+  };
+}
+
+export async function getWaitlistFilterOptions(): Promise<{
+  projects: string[];
+  sourcePages: string[];
+}> {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const [projectRows, sourcePageRows] = await readWithRetry(
+      "Waitlist filter options read",
+      () => withTimeout(Promise.all([
+        sql<{ project_name: string }[]>`
+          select distinct project_name
+          from waitlists
+          order by project_name asc
+        `,
+        sql<{ source_page: string | null }[]>`
+          select distinct source_page
+          from waitlists
+          where source_page is not null and source_page <> ''
+          order by source_page asc
+        `
+      ]), ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return {
+      projects: projectRows.map((row) => row.project_name),
+      sourcePages: sourcePageRows.map((row) => row.source_page).filter((value): value is string => Boolean(value))
+    };
+  }
+
+  const db = await readLocalDbSafe();
+
+  return {
+    projects: Array.from(new Set(db.waitlists.map((entry) => entry.project_name))),
+    sourcePages: Array.from(new Set(db.waitlists.map((entry) => entry.source_page).filter((value): value is string => Boolean(value))))
+  };
+}
+
+export async function getFeedbackSourcePageOptions(): Promise<string[]> {
+  if (shouldReadLiveAdminDb()) {
+    const rows = await readFeedbackRows();
+    return Array.from(new Set(rows.map((entry) => entry.source_page).filter((value): value is string => Boolean(value))));
+  }
+
+  const db = await readLocalDbSafe();
+  return Array.from(new Set(db.feedback.map((entry) => entry.source_page).filter((value): value is string => Boolean(value))));
+}
+
+export async function getFilteredWaitlists(filters: WaitlistFilters): Promise<WaitlistEntry[]> {
+  const db = shouldReadLiveAdminDb()
+    ? { waitlists: await readWaitlistRows() }
+    : await readLocalDbSafe();
 
   return db.waitlists.filter((entry) => {
     if (filters.project_name && entry.project_name !== filters.project_name) return false;
@@ -1260,8 +1637,59 @@ export async function getFilteredWaitlists(filters: {
   });
 }
 
-export async function getResourcePerformance() {
-  const db = await getSnapshot();
+export async function getFilteredFeedback(filters: FeedbackFilters): Promise<FeedbackEntry[]> {
+  const db = shouldReadLiveAdminDb()
+    ? {
+        feedback: await readFeedbackRows()
+      }
+    : await readLocalDbSafe();
+
+  return db.feedback.filter((entry) => {
+    if (filters.tool_slug && entry.tool_slug !== filters.tool_slug) return false;
+    if (filters.is_useful) {
+      const matchesUseful = filters.is_useful === "yes" ? entry.is_useful : !entry.is_useful;
+      if (!matchesUseful) return false;
+    }
+    if (filters.has_attachment) {
+      const hasAttachment = Boolean(entry.attachment_url);
+      if (filters.has_attachment === "yes" && !hasAttachment) return false;
+      if (filters.has_attachment === "no" && hasAttachment) return false;
+    }
+    if (filters.source_page && entry.source_page !== filters.source_page) return false;
+    return true;
+  });
+}
+
+export async function getResourcePerformance(): Promise<ResourcePerformance[]> {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const rows = await readWithRetry(
+      "Resource performance read",
+      () => withTimeout(sql<(Resource & { subscriber_count: number; active_subscriber_count: number })[]>`
+        select
+          resources.*,
+          count(subscribers.id) filter (
+            where subscribers.status = 'active' and subscribers.lead_magnet = resources.slug
+          )::int as subscriber_count,
+          (select count(*)::int from subscribers where status = 'active') as active_subscriber_count
+        from resources
+        left join subscribers on subscribers.lead_magnet = resources.slug
+        group by resources.id
+        order by resources.created_at desc
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return rows.map((row) => {
+      const resource = mapResourceRow(row);
+      return {
+        ...resource,
+        subscriberCount: row.subscriber_count,
+        conversionRate: row.active_subscriber_count ? row.subscriber_count / row.active_subscriber_count : 0
+      };
+    });
+  }
+
+  const db = await readLocalDbSafe();
   const activeSubscribers = db.subscribers.filter((subscriber) => subscriber.status === "active");
 
   return db.resources.map((resource) => {
@@ -1278,15 +1706,23 @@ export async function getResourcePerformance() {
   });
 }
 
-export async function getFilteredDemands(filters: {
-  query?: string;
-  source_platform?: string;
-  persona?: string;
-  status?: string;
-  topic_tag?: string;
-  sort?: string;
-}) {
-  const db = await getSnapshot();
+export async function getFilteredDemands(filters: DemandFilters): Promise<Demand[]> {
+  const db = shouldReadLiveAdminDb()
+    ? {
+        demands: await (async () => {
+          const sql = getReadSql();
+          const demands = await readWithRetry(
+            "Filtered demands read",
+            () => withTimeout(sql<DemandRow[]>`
+            select * from demands
+            order by created_at desc
+          `, ADMIN_DB_TIMEOUT_MS)
+          );
+
+          return demands.map(mapDemandRow);
+        })()
+      }
+    : await readLocalDbSafe();
   const query = filters.query?.trim().toLowerCase();
 
   const filtered = db.demands.filter((demand) => {

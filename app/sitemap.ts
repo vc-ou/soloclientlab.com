@@ -16,8 +16,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${siteUrl}/resources`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9
+      changeFrequency: "monthly",
+      priority: 0.5
     },
     {
       url: `${siteUrl}/research`,
@@ -26,10 +26,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9
     },
     {
+      url: `${siteUrl}/tools/leadradar`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.95
+    },
+    {
       url: `${siteUrl}/resources/client-acquisition-report`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.8
+      priority: 0.4
     },
     {
       url: `${siteUrl}/newsletter`,

@@ -34,14 +34,15 @@ V1 不是先做完整 Demand OS。
 
 V1 的核心目标只有一个：
 
-**验证这条链路是否能跑通：Research 内容 -> 邮箱订阅 -> 持续培育 -> Waitlist -> 首次付费验证**
+**验证这条更短链路是否能跑通：Research 内容 / 外部分发 -> 直接使用工具 -> 行为反馈 / 邮箱承接 -> Waitlist -> 首次付费验证**
 
 ### V1 核心假设
 
 1. 面向独立专业服务者的一线需求研究内容，可以通过搜索持续获得精准流量。
-2. 与“获客和验证”直接相关的免费资源，可以把一部分搜索流量转化为邮箱订阅。
-3. 邮件订阅用户里，会有人愿意回复、加入 Waitlist，甚至接受预售验证。
-4. 只有当邮箱订阅达到最小验证阈值后，才值得接入支付系统。
+2. 当站内已经有一个可直接使用的工具时，先体验再留资会比先留邮箱再体验更符合当前阶段的需求验证目标。
+3. 工具使用行为本身就是一种更强的需求信号，比单纯邮箱订阅更接近真实需求。
+4. 用户在看到结果或感受到价值后，会更自然地留下邮箱、反馈问题背景，或进入 Waitlist。
+5. 只有当工具使用、反馈和高意向信号达到最小验证阈值后，才值得接入支付系统。
 
 ------
 
@@ -144,13 +145,13 @@ V1 第一波只聚焦一个主题：
 ↓
 Research 内容
 ↓
-免费价值领取
+外部分发 / SEO 曝光
 ↓
-邮件订阅
+直接进入工具
 ↓
-持续培育
+看到结果 / 完成一次核心流程
 ↓
-需求验证
+行为反馈 / 邮箱承接
 ↓
 Waitlist
 ↓
@@ -176,20 +177,30 @@ MVP
 
 - 获取搜索流量
 - 建立信任
-- 验证内容到订阅的转化
+- 把用户送到工具而不是先送到邮箱表单
 - 找到最值得继续下钻的职业簇
 
-### Phase 2：Newsletter
+### Phase 2：Open Tool Validation
 
-邮件订阅
+开放工具体验
 
 目标：
 
-- 沉淀用户资产
-- 建立长期触达能力
-- 观察哪些主题能引发回复、点击和加入 Waitlist
+- 降低首次验证门槛
+- 观察用户是否愿意立即开始使用
+- 观察用户是否愿意完成核心流程
+- 用真实使用行为验证需求强度
 
-### Phase 3：Paid Validation
+### Phase 3：Newsletter / Resource
+邮件订阅与辅助资源
+
+目标：
+
+- 在用户体验过工具后承接邮箱和长期触达
+- 用报告、研究和更新解释更深层的方法论
+- 观察哪些问题会引发回复、反馈和加入 Waitlist
+
+### Phase 4：Paid Validation
 
 预售、付费报告或付费验证
 
@@ -204,13 +215,9 @@ MVP
 - 达到 `10` 个有效订阅后，再接入最小支付能力
 - 最小支付能力优先采用 `Stripe Payment Link` 或 `Stripe Checkout`
 
-### Phase 4：Software
+### Phase 5：Software
 
-把验证通过的问题做成工具或产品
-
-### Phase 5：Membership
-
-只有在 Research、Newsletter、Paid Validation 都跑通后，才考虑会员体系
+把已经被验证过的问题继续产品化，而不是在无信号时硬做软件
 
 ------
 
@@ -230,7 +237,8 @@ V1 先做问题型 SEO，不先做职业百科型 SEO。
 
 - 有明确问题场景
 - 搜索意图偏强
-- 能自然承接到邮箱订阅
+- 能自然承接到工具使用
+- 能在体验后承接邮箱或反馈
 - 能延伸到 Waitlist 或产品验证
 - 和独立专业服务者的现实工作相关
 
@@ -276,12 +284,13 @@ V1 前 `10-15` 篇内容围绕同一个主题展开：
 - 痛点研究：真实用户在获客上卡在哪里
 - 方法拆解：独立专业服务者如何低社交获客
 - AI 工作流：如何用 AI 辅助研究、内容和线索跟进
-- 验证拆解：一个服务定位如何从想法走到 Waitlist
+- 验证拆解：一个服务定位如何从问题走到工具体验，再走到 Waitlist
 
 每篇文章必须绑定一个 CTA：
 
-- 订阅 Newsletter
+- 直接试用工具
 - 领取免费资源
+- 订阅 Newsletter
 - 加入某个 Waitlist
 
 ### SEO 内容类型
@@ -298,10 +307,6 @@ V1 前 `10-15` 篇内容围绕同一个主题展开：
 
 围绕某个需求是否值得做展开
 
-#### Resource-Led Pages
-
-围绕某个免费资源展开，直接服务于邮箱转化
-
 ### Programmatic SEO
 
 不进入 V1。
@@ -315,40 +320,82 @@ V1 前 `10-15` 篇内容围绕同一个主题展开：
 
 ------
 
-## 六、首个 Lead Magnet
+## 六、首个开放体验工具与次级承接页
 
-### 推荐名称
+### 首个开放体验工具
 
-Client Acquisition Report for Solo Professionals
+V1 首页不再先用邮箱拦截用户。
 
-### 中文理解
+而是直接把工具放到首页第一屏附近，让用户尽快开始使用。
 
-独立专业服务者获客问题研究报告
+### 工具目标
 
-### 目标
+- 让用户在 `10-30` 秒内理解这是什么
+- 让用户在不注册、不留邮箱的前提下开始体验
+- 尽快暴露“用户到底想解决什么问题”
+- 用真实使用行为而不是口头兴趣来验证需求
 
-用一份具体、可信、和获客直接相关的免费资源换取邮箱。
+### 工具体验原则
 
-### 内容结构
+- 不强制注册
+- 不强制留邮箱
+- 不在开始使用前设置表单门槛
+- 结果页或结果附近允许并列出现邮箱承接
+- 结果后提供轻量反馈入口
 
-- 25-50 个真实获客痛点
-- 3-5 个高频问题主题
-- 常见错误获客建议
-- 低社交获客路径
-- AI 可以辅助的环节
-- 下一步验证清单
+### 结果后的承接动作
 
-### 转化目标
+- `这个结果有用吗`
+- `你本来想解决什么问题`
+- `如果你想收到后续更新，可以留下邮箱`
+- `如果你想进入真实使用场景，可以安装 Chrome Extension`
+- `如果你想要更完整工作流，可以加入 Waitlist`
 
-- 资源页访问到邮箱订阅转化率达到 `3%-10%`
-- 订阅后至少有用户回复或点击 Waitlist
+### 工具与邮箱的关系
 
-### 暂不做的资源
+邮箱不消失，但邮箱不再是主路径入口。
 
-- 泛 AI 工具合集
-- 泛创业机会合集
-- 面向某个具体职业的深度行业报告
-- 和获客无关的效率模板
+邮箱的角色改成：
+
+- 结果后的承接
+- 更新通知的订阅
+- 高意向用户的识别
+- 后续访谈或验证的触达方式
+
+### 工具到安装的承接方式
+
+如果某个工具的真实使用形态依赖浏览器扩展，不应使用 GitHub 手动安装作为默认公开路径。
+
+V1 推荐使用：
+
+- `Chrome Web Store Unlisted`
+
+原因：
+
+- 用户不需要接触源码仓库
+- 链路比手动加载解压扩展更短
+- 链接可以直接从站内 CTA 承接
+- 仍然保留非公开分发的控制感
+
+因此这类工具的推荐路径应写成：
+
+`看到试用结果 -> 进入 Chrome Web Store Unlisted 链接 -> Add to Chrome -> 在真实页面中继续使用`
+
+### 次级承接页定位
+
+当前代码里虽然仍保留 `resources` 相关路由，但它已经不是站点主入口，也不再按“资源报告下载页”来定义。
+
+更准确的定位是：
+
+- 隐藏在主导航之外的次级承接页
+- 用于补充更新说明、研究集合和邮件订阅
+- 服务于已经读过内容或看过试用结果的人
+
+### 当前不再作为 V1 核心的内容
+
+- 不把 `Resource` 作为主导航入口
+- 不把“免费报告下载”作为首页主路径
+- 不把“做一份主资源报告”作为 V1 核心交付物
 
 ------
 
@@ -356,24 +403,35 @@ Client Acquisition Report for Solo Professionals
 
 ## Home
 
-首页的唯一主目标：
+首页的主目标：
 
-**推动邮箱订阅**
+**推动工具开始使用，并在体验后自然承接邮箱与反馈**
 
-首页主 CTA 只保留一个：
+首页主 CTA 优先级：
 
-`Subscribe` 或 `Get the Free Resource`
+`Start Using the Tool`
+
+首页次级 CTA：
+
+- `Explore the research`
+- `Subscribe for updates`
 
 ### 首页模块
 
 - Hero
+- Tool Entry
 - Value Proposition
+- Tool + Email 共存承接区
+- Install / Real Usage CTA
 - Featured Research
-- Lead Magnet
-- Newsletter CTA
 - Social Proof 或 Research Method
 
-不在首页同时承担太多角色。
+首页仍然承担多个角色，但主次必须明确：
+
+- 第一优先级：开始使用工具
+- 第二优先级：理解研究与方法
+- 第三优先级：安装进入真实使用场景
+- 第四优先级：订阅更新
 
 ### Research
 
@@ -387,21 +445,15 @@ Client Acquisition Report for Solo Professionals
 
 ### Resources
 
-免费资源中心
+隐藏的次级承接页
 
 目标：
 
-- 用最小资源换邮箱
+- 不作为主导航入口
+- 用于承接已经读过内容的人
+- 当前更接近“更新页 / 研究集合页 / 邮件承接页”，而不是报告下载页
 
-V1 先只做 `1` 个主资源页。
-
-首波资源必须直接服务于“获客问题”，而不是泛 AI 教程。
-
-推荐方向：
-
-- Client Acquisition Report for Solo Professionals
-- Solo Service Business Lead Magnet Pack
-- AI Prompt Pack for Solo Professionals Who Need Clients
+V1 不再把资源报告作为核心增长抓手。
 
 ### Newsletter
 
@@ -409,8 +461,8 @@ Newsletter 落地页
 
 目标：
 
-- 解释订阅价值
-- 承接首页和文章页流量
+- 解释为什么值得继续接收更新
+- 承接已经使用过工具、读过内容的人
 
 ### Waitlist
 
@@ -418,8 +470,19 @@ Newsletter 落地页
 
 目标：
 
-- 承接高意向用户
+- 承接已经看到价值、希望继续深入的人
 - 验证某个主题是否值得继续做
+
+### Install CTA
+
+如果某个工具需要浏览器扩展才能进入真实使用场景，首页或试用页应提供安装承接位。
+
+V1 口径：
+
+- 站内先做公开试用
+- 结果后给出 `Install Chrome Extension`
+- 实际跳转到 `Chrome Web Store Unlisted` 页面
+- 如商店链接暂未就绪，则临时降级为 `Join Waitlist` 或 `Get Updates`
 
 ### About
 
@@ -447,7 +510,6 @@ V1 后台只做“支持验证闭环”的最小系统。
 
 - 记录需求
 - 管理内容
-- 管理资源
 - 管理订阅用户
 - 管理 Waitlist
 - 追踪关键转化指标
@@ -524,30 +586,7 @@ V1 后台只做“支持验证闭环”的最小系统。
 - 内容与需求关联
 - 内容与 CTA 关联
 
-## 模块3：Lead Magnet Center
-
-免费资源管理
-
-### 字段
-
-- title
-- type
-- audience
-- related_topic
-- landing_page_slug
-- delivery_url
-- conversion_rate
-- subscriber_count
-- created_at
-
-### 功能
-
-- 管理资源
-- 追踪下载与转化
-- 关联来源内容
-- 记录该资源对应的核心问题主题
-
-## 模块4：Subscriber Center
+## 模块3：Subscriber Center
 
 邮件订阅中心
 
@@ -559,6 +598,7 @@ V1 后台只做“支持验证闭环”的最小系统。
 - lead_magnet
 - persona_tag
 - topic_tag
+- note
 - status
 - created_at
 
@@ -569,7 +609,7 @@ V1 后台只做“支持验证闭环”的最小系统。
 - 导出
 - 与 MailerLite 同步
 
-## 模块5：Waitlist Center
+## 模块4：Waitlist Center
 
 Waitlist 管理
 
@@ -589,14 +629,18 @@ Waitlist 管理
 - 区分来源
 - 记录后续验证动作
 
-## 模块6：Metrics Center
+## 模块5：Metrics Center
 
 转化指标中心
 
 ### 重点指标
 
+- home_tool_start_rate
+- home_tool_completion_rate
+- tool_to_extension_install_click_rate
+- tool_to_email_rate
+- tool_feedback_submission_rate
 - article_to_email_rate
-- resource_to_email_rate
 - email_to_reply_rate
 - email_to_waitlist_rate
 - waitlist_count
@@ -610,7 +654,6 @@ V1 核心表：
 
 - demands
 - posts
-- resources
 - subscribers
 - waitlists
 - metrics
@@ -678,10 +721,10 @@ Vercel
 - Home
 - Research 列表页
 - Research 详情页
-- Resources 主资源页
 - Newsletter 落地页
 - About
 - Waitlist 页
+- 首页工具入口与开放体验
 - Demand Database 最小后台
 - Research CMS
 - Subscriber Center
@@ -706,6 +749,7 @@ Vercel
 当下面条件满足后，再接支付系统：
 
 - 有效邮箱订阅达到 `10`
+- 工具已出现稳定使用行为
 - 至少 `1` 个主题出现明显回复或 Waitlist 意愿
 
 ------
@@ -726,15 +770,17 @@ Vercel
 - 沉淀 `80-120` 条高质量需求记录
 - 至少形成 `3` 个重复出现的问题主题
 
-#### 资源侧
+#### 工具侧
 
-- 做出 `1` 个主 Lead Magnet
-- 验证至少 `1` 个资源页能稳定转化邮箱
+- 首页工具可公开使用
+- 有用户愿意开始一次完整体验
+- 明确哪一步最容易流失
+- 明确哪些输入或问题最常出现
 
 #### 订阅侧
 
 - 获得 `10+` 个有效邮箱订阅
-- 明确哪些页面、哪些主题带来的订阅质量更高
+- 明确哪些页面、哪些主题、哪些工具结果场景带来的订阅质量更高
 
 #### 验证侧
 
@@ -744,8 +790,10 @@ Vercel
 
 ### 90 天关键验证指标
 
+- 首页访问到工具开始使用是否成立
+- 工具开始使用到完成是否成立
+- 工具完成后是否有人愿意提交反馈
 - 文章到邮箱转化是否成立
-- 资源页到邮箱转化是否成立
 - 邮箱到回复是否成立
 - 邮箱到 Waitlist 是否成立
 - 是否能识别出 `1` 个最值得继续做的问题主题
@@ -757,7 +805,7 @@ Research First
 
 SEO From Day One
 
-Email First
+Experience First
 
 Validate Before Build
 

@@ -40,12 +40,12 @@ export function HeaderCta() {
 
   return (
     <Link
-      href="/research"
+      href="/tools/leadradar"
       className={`button primary header-cta${isVisible ? " is-visible" : ""}`}
       aria-hidden={isVisible ? undefined : "true"}
       tabIndex={isVisible ? undefined : -1}
     >
-      Explore Research →
+      Try LeadRadar →
     </Link>
   );
 }

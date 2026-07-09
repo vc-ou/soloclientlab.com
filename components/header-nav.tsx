@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -17,6 +17,7 @@ function isActivePath(pathname: string, href: string) {
 
 export function HeaderNav() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <div className="header-nav">
@@ -30,6 +31,8 @@ export function HeaderNav() {
               href={item.href}
               className={`nav-link${active ? " is-active" : ""}`}
               aria-current={active ? "page" : undefined}
+              onFocus={() => router.prefetch(item.href)}
+              onMouseEnter={() => router.prefetch(item.href)}
             >
               <span>{item.label}</span>
             </Link>

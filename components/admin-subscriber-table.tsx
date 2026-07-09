@@ -11,6 +11,13 @@ const initialState: ActionState = {
   message: ""
 };
 
+type SubscriberNoteModalProps = {
+  subscriber: Subscriber | null;
+  open: boolean;
+  onClose: () => void;
+  onSaved: (subscriberId: string, note: string) => void;
+};
+
 function DeleteSubscriberButton({ id }: { id: string }) {
   const [state, action, pending] = useActionState(removeSubscriberAction, initialState);
   const router = useRouter();
@@ -44,15 +51,11 @@ function DeleteSubscriberButton({ id }: { id: string }) {
 function SubscriberNoteModal({
   subscriber,
   open,
-  onClose
-}: {
-  subscriber: Subscriber | null;
-  open: boolean;
-  onClose: () => void;
-}) {
+  onClose,
+  onSaved
+}: SubscriberNoteModalProps) {
   const [state, action, pending] = useActionState(updateSubscriberNoteAction, initialState);
   const [noteValue, setNoteValue] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     if (subscriber && open) {
@@ -61,11 +64,11 @@ function SubscriberNoteModal({
   }, [subscriber, open]);
 
   useEffect(() => {
-    if (state.success && open) {
-      router.refresh();
+    if (state.success && open && subscriber) {
+      onSaved(subscriber.id, noteValue);
       onClose();
     }
-  }, [router, state.success, open, onClose]);
+  }, [state.success, open, onClose, onSaved, subscriber, noteValue]);
 
   if (!open || !subscriber) {
     return null;
@@ -120,8 +123,21 @@ function SubscriberNoteModal({
 }
 
 export function AdminSubscriberTable({ subscribers }: { subscribers: Subscriber[] }) {
+  const [subscriberRows, setSubscriberRows] = useState(subscribers);
   const [activeSubscriber, setActiveSubscriber] = useState<Subscriber | null>(null);
   const [modalVersion, setModalVersion] = useState(0);
+
+  useEffect(() => {
+    setSubscriberRows(subscribers);
+  }, [subscribers]);
+
+  const handleNoteSaved = (subscriberId: string, nextNote: string) => {
+    setSubscriberRows((current) => current.map((subscriber) => (
+      subscriber.id === subscriberId
+        ? { ...subscriber, note: nextNote || undefined }
+        : subscriber
+    )));
+  };
 
   return (
     <>
@@ -132,7 +148,7 @@ export function AdminSubscriberTable({ subscribers }: { subscribers: Subscriber[
               <th>Email</th>
               <th>Source type</th>
               <th>Source page</th>
-              <th>Lead magnet</th>
+              <th>Secondary source</th>
               <th>Persona</th>
               <th>Topic</th>
               <th>Status</th>
@@ -141,7 +157,7 @@ export function AdminSubscriberTable({ subscribers }: { subscribers: Subscriber[
             </tr>
           </thead>
           <tbody>
-            {subscribers.map((subscriber) => (
+            {subscriberRows.map((subscriber) => (
               <tr key={subscriber.id}>
                 <td>{subscriber.email}</td>
                 <td>{subscriber.source_type ?? "—"}</td>
@@ -177,6 +193,7 @@ export function AdminSubscriberTable({ subscribers }: { subscribers: Subscriber[
         subscriber={activeSubscriber}
         open={Boolean(activeSubscriber)}
         onClose={() => setActiveSubscriber(null)}
+        onSaved={handleNoteSaved}
       />
     </>
   );

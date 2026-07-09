@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { InlineCta, NewsletterForm } from "@/components/forms";
 import { PostCtaLink, TrackPostAnalytics } from "@/components/post-analytics";
 import { NewsletterPanel } from "@/components/site";
+import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
 import { formatDate, labelForTopic } from "@/lib/format";
 import type { Demand, Post } from "@/lib/types";
 
@@ -18,6 +19,9 @@ export function PostDetail({
   trackAnalytics?: boolean;
 }) {
   const topicLabel = labelForTopic(post.topic_tag);
+  const extensionHref = getLeadRadarExtensionHref();
+  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
+  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
   return (
     <section className="container">
@@ -58,7 +62,7 @@ export function PostDetail({
               <ul className="list-clean">
                 <li>Use this research to name the one {topicLabel.toLowerCase()} bottleneck that matters most right now.</li>
                 <li>Choose one change you can test in the next 7 days instead of collecting more tactics.</li>
-                <li>If you need a broader diagnosis, use the free report to compare this issue with the wider pattern set.</li>
+                <li>If this pattern points to a real workflow gap, move into a waitlist or live tool flow instead of collecting more passive advice.</li>
               </ul>
             </section>
 
@@ -79,18 +83,16 @@ export function PostDetail({
 
             {post.cta_type === "lead_magnet" ? (
               <InlineCta
-                title="Free Client Acquisition Report"
-                body="A research-backed report that helps you diagnose the bigger pattern and decide what to test next."
+                title="Get updates when the next workflow ships"
+                body="Join the list for new research, product experiments, and practical next-step workflows."
               >
-                <PostCtaLink
-                  href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
-                  className="button primary"
-                  postId={post.id}
+                <NewsletterForm
+                  sourceType="post"
+                  sourcePage={`/research/${post.slug}`}
+                  topicTag={post.topic_tag}
                   postSlug={post.slug}
-                  ctaType="lead_magnet"
-                >
-                  Get Free Access to the Report →
-                </PostCtaLink>
+                  buttonLabel="Get updates"
+                />
               </InlineCta>
             ) : null}
 
@@ -120,17 +122,12 @@ export function PostDetail({
             sourcePage={`/research/${post.slug}`}
           />
           <div className="card">
-            <h3>Free Client Acquisition Report</h3>
-            <p>A 28-page guide to diagnose acquisition bottlenecks, compare repeated patterns, and choose a smarter next step.</p>
-            <PostCtaLink
-              href={`/resources/client-acquisition-report?fromPost=${post.slug}#resource-form`}
-              className="button secondary"
-              postId={post.id}
-              postSlug={post.slug}
-              ctaType="lead_magnet"
-            >
-              Get Free Access to the Report →
-            </PostCtaLink>
+            <h3>Want a live workflow, not just more research?</h3>
+            <p>Move from passive reading into a real demand-capture experiment when the workflow matches your use case.</p>
+            <Link href={extensionHref} className="button secondary">
+              {extensionCtaLabel}
+            </Link>
+            <p style={{ marginTop: 12, marginBottom: 0 }}>{extensionSupportCopy}</p>
           </div>
           <div className="card">
             <h3>Related research</h3>

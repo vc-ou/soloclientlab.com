@@ -20,7 +20,7 @@ export function getReadSql() {
       idle_timeout: 20,
       connect_timeout: 10,
       connection: {
-        statement_timeout: 4000
+        statement_timeout: 10000
       }
     });
   }

@@ -27,23 +27,23 @@ export function getResourceDeliveryPath(resource: Pick<Resource, "slug" | "landi
 export function getResourceDeliveryLabel(resource: Pick<Resource, "delivery_mode">) {
   switch (resource.delivery_mode) {
     case "file":
-      return "Download the report";
+      return "Download the file";
     case "external":
-      return "Open the resource";
+      return "Open the hosted page";
     case "page":
     default:
-      return "Open the report";
+      return "Open the page";
   }
 }
 
 export function getResourceDeliveryNote(resource: Pick<Resource, "delivery_mode">) {
   switch (resource.delivery_mode) {
     case "file":
-      return "After subscribing, the report will download from a managed file route.";
+      return "After subscribing, the file will download from a managed route.";
     case "external":
-      return "After subscribing, you will be sent straight to the hosted resource.";
+      return "After subscribing, you will be sent straight to the hosted page.";
     case "page":
     default:
-      return "After subscribing, you can open the report instantly on the delivery page.";
+      return "After subscribing, you can open the page instantly on the delivery route.";
   }
 }

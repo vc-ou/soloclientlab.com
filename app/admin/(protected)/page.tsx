@@ -12,7 +12,7 @@ export default async function AdminOverviewPage() {
         <MetricCard label="Published posts" value={metrics.publishedPosts} />
         <MetricCard label="Total subscribers" value={metrics.totalSubscribers} hint={`${metrics.activeSubscribers} active`} />
         <MetricCard label="Qualified subscribers" value={metrics.qualifiedSubscribers} />
-        <MetricCard label="Resource signups" value={metrics.resourceSignups} />
+        <MetricCard label="Secondary page signups" value={metrics.resourceSignups} />
         <MetricCard label="Waitlist count" value={metrics.waitlistCount} />
       </div>
       <div className="admin-grid" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginTop: 24 }}>

@@ -10,11 +10,11 @@ export default async function AdminResourcesPage() {
   const resources = await getResourcePerformance();
 
   return (
-    <AdminShell title="Resources">
+    <AdminShell title="Secondary Pages">
       <div className="admin-topbar">
-        <p>Configure lead magnets and resource metadata.</p>
+        <p>Configure secondary page metadata, delivery settings, and update-path tracking.</p>
         <Link href="/admin/resources/new" className="button primary">
-          New resource
+          New page config
         </Link>
       </div>
       <SimpleTable

@@ -13,15 +13,15 @@ export const publicSocialProof = {
 
 export const homepageBottlenecks = [
   {
-    title: "Your referrals feel random",
+    title: "Stop relying on random referrals",
     body: "You rely on word-of-mouth, but you lack a predictable, repeatable channel to generate inbound interest whenever you need it."
   },
   {
-    title: "Your message is too broad",
+    title: "Fix your messaging to attract high-value clients",
     body: "Prospects don't immediately see why your offer fits their exact situation because your market positioning hasn't been validated by real-time demand data."
   },
   {
-    title: "Your follow-up lacks a system",
+    title: "Automate your follow-up system for solo service businesses",
     body: "You have content drafts and occasional text conversations, but no practical, automated workflows to consistently turn silent interest into discovery calls."
   }
 ] as const;
@@ -33,7 +33,7 @@ export const homepageNextSteps = [
   },
   {
     title: "Pick a practical direction",
-    body: "Use the report and research to choose the next acquisition move that fits a solo business with limited time."
+    body: "Use research and lightweight workflow tests to choose the next acquisition move that fits a solo business with limited time."
   },
   {
     title: "Build a lightweight system",
@@ -218,16 +218,16 @@ export const resourceHighlights = [
 ];
 
 export const resourceCategoryTabs = [
-  "Free Report",
+  "Research Updates",
   "What You'll Learn",
   "Research Method"
 ] as const;
 
 export const resourceFeatureCards = [
   {
-    eyebrow: "Report",
-    title: "Client Acquisition Strategies & Reports for Solo Professionals",
-    body: "A practical breakdown that helps you diagnose what is slowing client acquisition, what patterns matter, and what to test next.",
+    eyebrow: "Updates",
+    title: "Client Acquisition Updates for Solo Professionals",
+    body: "A practical stream of research notes, workflow experiments, and next-step ideas for solo professionals testing better acquisition systems.",
     cta: "Join the list for updates →"
   },
   {

@@ -19,6 +19,23 @@ function renderInlineMarkdown(value: string) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 }
 
+function createArticleLinkElement(label: string, href: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.textContent = label;
+  return link;
+}
+
+function normalizeArticleHref(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("/") || trimmed.startsWith("#") || /^https?:\/\//.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `/research/${trimmed}`;
+}
+
 function markdownToHtml(markdown: string) {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const blocks: string[] = [];
@@ -172,13 +189,18 @@ function htmlToMarkdown(html: string) {
 
 export function MarkdownEditor({
   name,
-  initialValue
+  initialValue,
+  linkablePosts = []
 }: {
   name: string;
   initialValue: string;
+  linkablePosts?: { title: string; slug: string }[];
 }) {
   const [markdown, setMarkdown] = useState(initialValue);
   const [mode, setMode] = useState<"visual" | "markdown">("visual");
+  const [selectedPostSlug, setSelectedPostSlug] = useState(linkablePosts[0]?.slug ?? "");
+  const [manualArticlePath, setManualArticlePath] = useState("");
+  const [anchorText, setAnchorText] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -202,6 +224,43 @@ export function MarkdownEditor({
     event.preventDefault();
     document.execCommand("insertHTML", false, markdownToHtml(pastedMarkdown));
     syncFromEditor();
+  };
+
+  const insertArticleLink = () => {
+    const selectedPost = linkablePosts.find((post) => post.slug === selectedPostSlug);
+    const href = normalizeArticleHref(selectedPost ? `/research/${selectedPost.slug}` : manualArticlePath);
+    if (!href) return;
+
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
+    const label = anchorText.trim() || selectedText || selectedPost?.title || "related article";
+    const markdownLink = `[${label}](${href})`;
+
+    if (mode === "markdown") {
+      setMarkdown((currentMarkdown) => `${currentMarkdown}${currentMarkdown ? "\n\n" : ""}${markdownLink}`);
+      setAnchorText("");
+      return;
+    }
+
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+    const currentSelection = window.getSelection();
+    const range = currentSelection?.rangeCount ? currentSelection.getRangeAt(0) : null;
+    const editorContainsSelection = range ? editorRef.current.contains(range.commonAncestorContainer) : false;
+
+    if (range && editorContainsSelection) {
+      range.deleteContents();
+      range.insertNode(createArticleLinkElement(label, href));
+      range.collapse(false);
+      currentSelection?.removeAllRanges();
+      currentSelection?.addRange(range);
+    } else {
+      editorRef.current.append(" ");
+      editorRef.current.append(createArticleLinkElement(label, href));
+    }
+
+    syncFromEditor();
+    setAnchorText("");
   };
 
   return (
@@ -228,6 +287,38 @@ export function MarkdownEditor({
             Markdown
           </button>
         </div>
+      </div>
+
+      <div className="markdown-link-toolbar" aria-label="Article link insertion">
+        <label>
+          <span>Article link</span>
+          {linkablePosts.length ? (
+            <select value={selectedPostSlug} onChange={(event) => setSelectedPostSlug(event.target.value)}>
+              {linkablePosts.map((post) => (
+                <option key={post.slug} value={post.slug}>
+                  {post.title}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={manualArticlePath}
+              onChange={(event) => setManualArticlePath(event.target.value)}
+              placeholder="/research/article-slug"
+            />
+          )}
+        </label>
+        <label>
+          <span>Anchor text</span>
+          <input
+            value={anchorText}
+            onChange={(event) => setAnchorText(event.target.value)}
+            placeholder="Use selected text or article title"
+          />
+        </label>
+        <button type="button" className="button secondary" onClick={insertArticleLink}>
+          Insert link
+        </button>
       </div>
 
       {mode === "visual" ? (

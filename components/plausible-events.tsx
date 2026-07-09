@@ -1,6 +1,12 @@
 "use client";
 
-type PlausibleEventName = "newsletter_signup" | "resource_signup" | "waitlist_signup";
+type PlausibleEventName =
+  | "newsletter_signup"
+  | "resource_signup"
+  | "waitlist_signup"
+  | "tool_started"
+  | "tool_completed"
+  | "tool_feedback_submitted";
 
 declare global {
   interface Window {

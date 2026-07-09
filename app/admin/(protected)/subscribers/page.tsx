@@ -26,7 +26,7 @@ export default async function AdminSubscribersPage({ searchParams }: AdminSubscr
   return (
     <AdminShell title="Subscribers">
       <div className="admin-topbar">
-        <p>Filter subscribers by source, resource, persona, topic, or status.</p>
+        <p>Filter subscribers by source, secondary page, persona, topic, or status.</p>
         <Link
           href={exportParams.toString() ? `/admin/subscribers/export?${exportParams.toString()}` : "/admin/subscribers/export"}
           className="button ghost"
@@ -47,9 +47,9 @@ export default async function AdminSubscribersPage({ searchParams }: AdminSubscr
           </select>
         </label>
         <label className="field">
-          <span>Lead magnet</span>
+          <span>Secondary page</span>
           <select name="lead_magnet" defaultValue={filters.lead_magnet ?? ""}>
-            <option value="">All resources</option>
+            <option value="">All secondary pages</option>
             {resourceOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
