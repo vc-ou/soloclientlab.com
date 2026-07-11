@@ -6,7 +6,7 @@ import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About SoloClientLab Client Acquisition Research",
   description: "Learn who runs SoloClientLab.com, what the site studies, and how the research process works.",
   alternates: {
     canonical: "/about"

@@ -4,9 +4,12 @@ import { NewsletterPanel, PageHero, PostCard, SectionHeading } from "@/component
 import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Research Archive & Updates",
+  title: "Client Acquisition Resources for Solo Businesses",
   description:
-    "Browse research posts, workflow updates, and secondary subscription paths for solo professionals exploring better client acquisition systems."
+    "Browse research posts, workflow updates, and secondary subscription paths for solo professionals exploring better client acquisition systems.",
+  alternates: {
+    canonical: "/resources"
+  }
 };
 
 export default async function ResourcesPage() {

@@ -6,9 +6,12 @@ import { resourceCategoryTabs, resourceFeatureCards, resourceHighlights } from "
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 
 export const metadata: Metadata = {
-  title: "Client Acquisition Updates",
+  title: "Client Acquisition Report for Solo Professionals",
   description:
-    "Join for research updates, future resources, and practical client acquisition workflows for solo professionals."
+    "Join for research updates, future resources, and practical client acquisition workflows for solo professionals.",
+  alternates: {
+    canonical: "/resources/client-acquisition-report"
+  }
 };
 
 type ResourcePageProps = {

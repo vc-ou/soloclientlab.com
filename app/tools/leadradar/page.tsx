@@ -3,10 +3,13 @@ import { LeadRadarDemo } from "@/components/leadradar-demo";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "LeadRadar: Automate B2B Lead Qualification from Social Media | SoloClientLab"
+    absolute: "LeadRadar B2B Lead Qualification Tool | SoloClientLab.com"
   },
   description:
-    "Try LeadRadar directly in the site: scroll comment threads, review buying signals, and validate the workflow before installing anything."
+    "Try LeadRadar directly in the site: scroll comment threads, review buying signals, and validate the workflow before installing anything.",
+  alternates: {
+    canonical: "/tools/leadradar"
+  }
 };
 
 const faqSchema = {

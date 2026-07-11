@@ -10,10 +10,13 @@ const leadRadarDemoHref = "/tools/leadradar";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Solo Consultant Client Acquisition Tools & Demand Workflows | SoloClientLab"
+    absolute: "Solo Consultant Client Acquisition Tools | SoloClientLab.com"
   },
   description:
-    "Find high-intent client demand in public threads. Research-backed acquisition workflows, lightweight tools, and repeatable systems for solo experts."
+    "Find high-intent client demand in public threads with research-backed acquisition workflows, lightweight tools, and repeatable systems for solo experts.",
+  alternates: {
+    canonical: "/"
+  }
 };
 
 export default async function HomePage() {

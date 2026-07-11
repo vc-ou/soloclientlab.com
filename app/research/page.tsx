@@ -10,7 +10,7 @@ type ResearchPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Research",
+  title: "Client Acquisition Research for Solo Businesses",
   description: "Research on how solo service businesses get clients, validate offers, and use AI more practically.",
   alternates: {
     canonical: "/research"

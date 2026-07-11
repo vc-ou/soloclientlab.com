@@ -5,7 +5,7 @@ import { getPublicPosts } from "@/lib/db";
 import { newsletterBenefits, publicSocialProof } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Client Acquisition Newsletter",
+  title: "Client Acquisition Newsletter for Solo Businesses",
   description: "Weekly client acquisition research, validated growth ideas, offer insights, and practical workflows for solo service businesses.",
   alternates: {
     canonical: "/newsletter"
