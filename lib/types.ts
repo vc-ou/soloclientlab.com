@@ -7,6 +7,7 @@ export type TopicTag =
 
 export type PostStatus = "draft" | "published" | "archived";
 export type PostCtaType = "newsletter" | "lead_magnet" | "waitlist" | "none";
+export type EventCtaType = PostCtaType | "tool_demo";
 export type PostEventType = "view" | "cta_click" | "subscription";
 export type DemandStatus =
   | "raw"
@@ -118,7 +119,7 @@ export type PostEvent = {
   post_id?: string;
   post_slug: string;
   event_type: PostEventType;
-  cta_type?: PostCtaType;
+  cta_type?: EventCtaType;
   path?: string;
   referrer?: string;
   created_at: string;

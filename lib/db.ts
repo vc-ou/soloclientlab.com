@@ -67,6 +67,13 @@ type ResourcePerformance = Resource & {
   conversionRate: number;
 };
 
+type ToolTrafficMetric = {
+  path: string;
+  referrer: string;
+  clicks: number;
+  lastEventAt?: string;
+};
+
 async function ensureDbFile() {
   await mkdir(dataDir, { recursive: true });
 
@@ -1348,7 +1355,7 @@ export async function getResourceById(id: string) {
 export async function getDashboardMetrics() {
   if (shouldReadLiveAdminDb()) {
     const sql = getReadSql();
-    const [counts, latestSubscribers, latestWaitlists, latestDemands] = await readWithRetry(
+    const [counts, latestSubscribers, latestWaitlists, latestDemands, leadRadarDemoReferrers] = await readWithRetry(
       "Dashboard metrics read",
       () => withTimeout(Promise.all([
         sql<{
@@ -1360,6 +1367,7 @@ export async function getDashboardMetrics() {
           resource_signups: number;
           waitlist_count: number;
           waitlist_subscribers: number;
+          leadradar_demo_clicks: number;
         }[]>`
           select
             (select count(*)::int from demands where status <> 'archived') as total_demands,
@@ -1374,11 +1382,34 @@ export async function getDashboardMetrics() {
               from subscribers
               where status = 'active'
                 and lower(email) in (select lower(email) from waitlists)
-            ) as waitlist_subscribers
+            ) as waitlist_subscribers,
+            (
+              select count(*)::int
+              from post_events
+              where post_slug = 'tools/leadradar'
+                and event_type = 'cta_click'
+                and cta_type = 'tool_demo'
+            ) as leadradar_demo_clicks
         `,
         sql<Subscriber[]>`select * from subscribers order by created_at desc limit 5`,
         sql<WaitlistEntry[]>`select * from waitlists order by created_at desc limit 5`,
-        sql<DemandRow[]>`select * from demands order by created_at desc limit 5`
+        sql<DemandRow[]>`select * from demands order by created_at desc limit 5`,
+        sql<{ path: string | null; referrer: string | null; clicks: number; last_event_at: string }[]>`
+          select
+            coalesce(nullif(path, ''), '/tools/leadradar') as path,
+            coalesce(nullif(referrer, ''), 'Direct / unknown') as referrer,
+            count(*)::int as clicks,
+            max(created_at)::text as last_event_at
+          from post_events
+          where post_slug = 'tools/leadradar'
+            and event_type = 'cta_click'
+            and cta_type = 'tool_demo'
+          group by
+            coalesce(nullif(path, ''), '/tools/leadradar'),
+            coalesce(nullif(referrer, ''), 'Direct / unknown')
+          order by clicks desc, max(created_at) desc
+          limit 10
+        `
       ]), ADMIN_DB_TIMEOUT_MS)
     );
     const metrics = counts[0];
@@ -1393,6 +1424,13 @@ export async function getDashboardMetrics() {
       qualifiedSubscribers: metrics.qualified_subscribers,
       resourceSignups,
       waitlistCount: metrics.waitlist_count,
+      leadRadarDemoClicks: metrics.leadradar_demo_clicks,
+      leadRadarDemoTraffic: leadRadarDemoReferrers.map((item) => ({
+        path: item.path ?? "/tools/leadradar",
+        referrer: item.referrer ?? "Direct / unknown",
+        clicks: item.clicks,
+        lastEventAt: item.last_event_at
+      })),
       emailToWaitlistRate: activeSubscribers ? waitlistSubscribers / activeSubscribers : 0,
       resourceToEmailRate: activeSubscribers ? resourceSignups / activeSubscribers : 0,
       activeSubscribers,
@@ -1407,6 +1445,22 @@ export async function getDashboardMetrics() {
   const resourceSubscribers = activeSubscribers.filter((item) => item.source_type === "resource");
   const waitlistEmails = new Set(db.waitlists.map((item) => item.email.toLowerCase()));
   const waitlistSubscribers = activeSubscribers.filter((item) => waitlistEmails.has(item.email.toLowerCase()));
+  const leadRadarDemoEvents = db.post_events.filter(
+    (event) => event.post_slug === "tools/leadradar" && event.event_type === "cta_click" && event.cta_type === "tool_demo"
+  );
+  const leadRadarDemoTrafficMap = new Map<string, ToolTrafficMetric>();
+
+  for (const event of leadRadarDemoEvents) {
+    const path = event.path || "/tools/leadradar";
+    const referrer = event.referrer || "Direct / unknown";
+    const key = `${path}::${referrer}`;
+    const current = leadRadarDemoTrafficMap.get(key) ?? { path, referrer, clicks: 0, lastEventAt: undefined };
+    current.clicks += 1;
+    if (!current.lastEventAt || event.created_at > current.lastEventAt) {
+      current.lastEventAt = event.created_at;
+    }
+    leadRadarDemoTrafficMap.set(key, current);
+  }
 
   return {
     totalDemands: db.demands.filter((item) => item.status !== "archived").length,
@@ -1415,6 +1469,10 @@ export async function getDashboardMetrics() {
     qualifiedSubscribers: activeSubscribers.filter((item) => item.persona_tag).length,
     resourceSignups: resourceSubscribers.length,
     waitlistCount: db.waitlists.length,
+    leadRadarDemoClicks: leadRadarDemoEvents.length,
+    leadRadarDemoTraffic: Array.from(leadRadarDemoTrafficMap.values())
+      .sort((a, b) => b.clicks - a.clicks || (b.lastEventAt ?? "").localeCompare(a.lastEventAt ?? ""))
+      .slice(0, 10),
     emailToWaitlistRate: activeSubscribers.length ? waitlistSubscribers.length / activeSubscribers.length : 0,
     resourceToEmailRate: activeSubscribers.length ? resourceSubscribers.length / activeSubscribers.length : 0,
     activeSubscribers: activeSubscribers.length,

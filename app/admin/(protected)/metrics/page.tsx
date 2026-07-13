@@ -1,5 +1,6 @@
 import { AdminShell, InsightCard, MetricCard, SimpleTable } from "@/components/admin";
 import { getDashboardMetrics, getResourcePerformance } from "@/lib/db";
+import { formatDate } from "@/lib/format";
 
 function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
@@ -18,6 +19,7 @@ export default async function AdminMetricsPage() {
         <MetricCard label="Qualified subscribers" value={metrics.qualifiedSubscribers} />
         <MetricCard label="Secondary page signups" value={metrics.resourceSignups} />
         <MetricCard label="Waitlist count" value={metrics.waitlistCount} />
+        <MetricCard label="LeadRadar demo tries" value={metrics.leadRadarDemoClicks} />
         <MetricCard label="Published posts" value={metrics.publishedPosts} />
         <MetricCard label="Total demands" value={metrics.totalDemands} />
       </div>
@@ -50,6 +52,19 @@ export default async function AdminMetricsPage() {
               resource.subscriberCount.toString(),
               formatPercent(resource.conversionRate),
               resource.status
+            ])}
+          />
+        </section>
+
+        <section className="activity-card">
+          <h2>LeadRadar demo traffic</h2>
+          <SimpleTable
+            headers={["Landing path", "Referrer", "Try demo clicks", "Last click"]}
+            rows={metrics.leadRadarDemoTraffic.map((source) => [
+              source.path,
+              source.referrer,
+              source.clicks.toString(),
+              source.lastEventAt ? formatDate(source.lastEventAt) : "-"
             ])}
           />
         </section>

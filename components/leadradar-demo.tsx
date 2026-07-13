@@ -106,6 +106,26 @@ function arraysMatch(left: number[], right: number[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
+async function trackLeadRadarDemoClick() {
+  try {
+    await fetch("/api/tool-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        toolSlug: "tools/leadradar",
+        eventType: "cta_click",
+        path: `${window.location.pathname}${window.location.search}`,
+        referrer: document.referrer || undefined
+      }),
+      keepalive: true
+    });
+  } catch {
+    // Demo analytics should never block the interaction.
+  }
+}
+
 function ResultBadge({ intent }: { intent: DemoComment["intent"] }) {
   const labelMap = {
     high: "HIGH intent",
@@ -203,6 +223,12 @@ export function LeadRadarDemo() {
   function revealDemo() {
     setDemoVisible(true);
     setActiveStep(1);
+  }
+
+  function handleTryDemoClick() {
+    trackPlausibleEvent("tool_demo_clicked");
+    void trackLeadRadarDemoClick();
+    revealDemo();
   }
 
   useEffect(() => {
@@ -391,7 +417,7 @@ export function LeadRadarDemo() {
               </ul>
             </section>
             <div className="hero-actions">
-              <button type="button" className="button primary" onClick={revealDemo}>
+              <button type="button" className="button primary" onClick={handleTryDemoClick}>
                 Try the demo
               </button>
               <Link href={extensionHref} className="button ghost">

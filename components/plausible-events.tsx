@@ -4,6 +4,7 @@ type PlausibleEventName =
   | "newsletter_signup"
   | "resource_signup"
   | "waitlist_signup"
+  | "tool_demo_clicked"
   | "tool_started"
   | "tool_completed"
   | "tool_feedback_submitted";
