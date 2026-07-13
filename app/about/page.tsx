@@ -7,7 +7,8 @@ import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "About SoloClientLab Client Acquisition Research",
-  description: "Learn who runs SoloClientLab.com, what the site studies, and how the research process works.",
+  description:
+    "About SoloClientLab: We turn real-world research into predictable client acquisition strategies and automated AI workflows for solo service businesses and independent practitioners.",
   alternates: {
     canonical: "/about"
   }
@@ -51,7 +52,15 @@ export default async function AboutPage() {
               {aboutMethodSteps.map((item) => (
                 <div key={item.step}>
                   <strong>{item.step}. {item.title}</strong>
-                  <p>{item.body}</p>
+                  <p>
+                    {item.body}
+                    {"activeExperiment" in item && item.activeExperimentHref ? (
+                      <>
+                        {" "}
+                        <Link href={item.activeExperimentHref}>{item.activeExperiment}</Link>
+                      </>
+                    ) : null}
+                  </p>
                 </div>
               ))}
             </div>

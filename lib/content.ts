@@ -287,6 +287,8 @@ export const aboutMethodSteps = [
   {
     step: "5",
     title: "Build (Sometimes)",
-    body: "When a problem is significant and the solution is clear, we build and test open-source tools in public."
+    body: "When a problem is significant and the solution is clear, we build and test open-source tools in public.",
+    activeExperiment: "Our current active experiment: LeadRadar (TikTok B2B Lead Automation) →",
+    activeExperimentHref: "/tools/leadradar"
   }
 ];
