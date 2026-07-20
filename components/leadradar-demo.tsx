@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
-import { NewsletterForm } from "@/components/forms";
 import { trackPlausibleEvent } from "@/components/plausible-events";
 import { submitLeadRadarFeedback } from "@/lib/actions";
 import { getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
@@ -728,14 +727,6 @@ export function LeadRadarDemo() {
                 </Link>
               </div>
               <p className="form-feedback">{extensionSupportCopy}</p>
-              <NewsletterForm
-                sourceType="newsletter_page"
-                sourcePage="/tools/leadradar"
-                topicTag="client_acquisition"
-                title="Get workflow updates by email"
-                subtitle="Optional. Use the tool first, then subscribe if you want future workflow releases."
-                buttonLabel="Subscribe for updates"
-              />
               <section className="leadradar-faq" aria-labelledby="leadradar-faq-title">
                 <h3 id="leadradar-faq-title">Frequently Asked Questions</h3>
 

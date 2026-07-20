@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NewsletterPanel, PageHero, PostCard } from "@/components/site";
+import { PageHero, PostCard } from "@/components/site";
 import { labelForTopic } from "@/lib/format";
 import { getPublicPosts } from "@/lib/db";
 import { topicOptions } from "@/lib/content";
@@ -55,21 +55,20 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
                   <p className="eyebrow">Nothing here yet</p>
                   <h2>No research has been published for {selectedTopicLabel} yet.</h2>
                   <p>
-                    We&apos;re still building out this section. In the meantime, you can browse all research topics or join the newsletter to get the next release first.
+                    We&apos;re still building out this section. In the meantime, you can browse all research topics or try the live workflow demo.
                   </p>
                   <div className="empty-state-actions">
                     <Link href="/research" className="button primary">
                       Browse all topics
                     </Link>
-                    <Link href="/newsletter" className="button ghost">
-                      Join newsletter
+                    <Link href="/tools/leadradar" className="button ghost">
+                      Try LeadRadar
                     </Link>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <NewsletterPanel sourcePage="/research" />
         </div>
       </section>
     </>

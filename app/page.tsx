@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NewsletterForm } from "@/components/forms";
 import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { getPublicPosts } from "@/lib/db";
-import { homeProofItems, homepageBottlenecks, homepageNextSteps, publicSocialProof } from "@/lib/content";
+import { homeProofItems, homepageBottlenecks, homepageNextSteps } from "@/lib/content";
 import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
 
 const leadRadarDemoHref = "/tools/leadradar";
@@ -62,24 +61,14 @@ export default async function HomePage() {
 
       <section className="container">
         <div className="cta-cluster hero-bottom-bar">
-          <div className="mini-proof">
-            <span className="proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <path d="M8 10V8a4 4 0 1 1 8 0v2" />
-                <rect x="6" y="10" width="12" height="10" rx="2" />
-                <path d="M12 14v2.5" />
-              </svg>
-            </span>
-            <span>{publicSocialProof.newsletterJoinCopy}</span>
-          </div>
           <div className="stats-strip hero-stats hero-bottom-stats">
             <div>
               <strong>120+</strong>
               <span>Demand signals indexed</span>
             </div>
             <div>
-              <strong>Weekly</strong>
-              <span>Research updates</span>
+              <strong>Live</strong>
+              <span>Research hub</span>
             </div>
           </div>
         </div>
@@ -154,14 +143,6 @@ export default async function HomePage() {
             </Link>
             <p style={{ marginTop: 12 }}>Start with the on-site demo. Move to extension install or private access only if the workflow feels useful.</p>
           </div>
-          <NewsletterForm
-            sourceType="home"
-            sourcePage="/"
-            topicTag="client_acquisition"
-            title="Weekly Research & Workflow Updates"
-            subtitle="Get research notes, product experiments, and practical AI workflows as they go live."
-            buttonLabel="Subscribe"
-          />
         </div>
       </section>
     </>

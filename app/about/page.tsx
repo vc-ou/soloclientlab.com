@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NewsletterForm } from "@/components/forms";
 import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/db";
@@ -91,15 +90,6 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="container">
-        <NewsletterForm
-          sourceType="newsletter_page"
-          sourcePage="/about"
-          title="Get weekly client acquisition research"
-          subtitle="Join savvy solo consultants and independent experts getting practical insights on client acquisition, offer validation, and AI workflows."
-          buttonLabel="Subscribe"
-        />
-      </section>
     </>
   );
 }

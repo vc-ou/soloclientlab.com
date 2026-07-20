@@ -1,8 +1,7 @@
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { InlineCta, NewsletterForm } from "@/components/forms";
+import { InlineCta } from "@/components/forms";
 import { PostCtaLink, TrackPostAnalytics } from "@/components/post-analytics";
-import { NewsletterPanel } from "@/components/site";
 import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
 import { formatDate, labelForTopic } from "@/lib/format";
 import { getOptimizedStorageImageUrl } from "@/lib/image-url";
@@ -71,36 +70,6 @@ export function PostDetail({
               </ul>
             </section>
 
-            {post.cta_type === "newsletter" ? (
-              <InlineCta
-                title="Get weekly research with clearer next steps"
-                body="Join solo professionals who want practical research, validation ideas, and AI workflows they can actually act on."
-              >
-                <NewsletterForm
-                  sourceType="post"
-                  sourcePage={`/research/${post.slug}`}
-                  topicTag={post.topic_tag}
-                  postSlug={post.slug}
-                  buttonLabel="Subscribe"
-                />
-              </InlineCta>
-            ) : null}
-
-            {post.cta_type === "lead_magnet" ? (
-              <InlineCta
-                title="Get updates when the next workflow ships"
-                body="Join the list for new research, product experiments, and practical next-step workflows."
-              >
-                <NewsletterForm
-                  sourceType="post"
-                  sourcePage={`/research/${post.slug}`}
-                  topicTag={post.topic_tag}
-                  postSlug={post.slug}
-                  buttonLabel="Get updates"
-                />
-              </InlineCta>
-            ) : null}
-
             {post.cta_type === "waitlist" ? (
               <InlineCta
                 title="Join the workflow waitlist"
@@ -121,11 +90,6 @@ export function PostDetail({
         </article>
 
         <aside className="sidebar-stack">
-          <NewsletterPanel
-            title="Turn research into a next move"
-            body="Get weekly client acquisition research, clearer validation ideas, and practical AI workflows."
-            sourcePage={`/research/${post.slug}`}
-          />
           <div className="card">
             <h3>Want a live workflow, not just more research?</h3>
             <p>Move from passive reading into a real demand-capture experiment when the workflow matches your use case.</p>

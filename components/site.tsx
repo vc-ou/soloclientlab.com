@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { NewsletterForm } from "@/components/forms";
 import { HeaderCta } from "@/components/header-cta";
 import { HeaderNav } from "@/components/header-nav";
 import { labelForTopic, formatDate } from "@/lib/format";
@@ -46,7 +45,7 @@ export function SiteFooter() {
               <h3 className="footer-heading">Explore</h3>
               <div className="footer-links">
                 <Link href="/research">Research Notes</Link>
-                <Link href="/newsletter">Newsletter</Link>
+                <Link href="/about">About</Link>
               </div>
             </div>
             <div>
@@ -145,30 +144,5 @@ export function PostCard({ post, horizontal = false }: { post: Post; horizontal?
         </div>
       </div>
     </article>
-  );
-}
-
-export function NewsletterPanel({
-  title = "Weekly Client Acquisition Research",
-  body = "Weekly client acquisition research, validation ideas, and practical AI workflows.",
-  sourcePage,
-  compact = false
-}: {
-  title?: string;
-  body?: string;
-  sourcePage: string;
-  compact?: boolean;
-}) {
-  return (
-    <aside className="newsletter-panel">
-      <h3>{title}</h3>
-      <p>{body}</p>
-      <NewsletterForm
-        sourceType="newsletter_page"
-        sourcePage={sourcePage}
-        buttonLabel="Subscribe"
-        compact={compact}
-      />
-    </aside>
   );
 }
