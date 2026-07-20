@@ -48,6 +48,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6
+    },
+    {
+      url: `${siteUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.2
+    },
+    {
+      url: `${siteUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.2
+    }
+  ];
+
+  const waitlistPages: MetadataRoute.Sitemap = [
+    {
+      url: `${siteUrl}/waitlist/client-acquisition-ai-workflow`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5
+    },
+    {
+      url: `${siteUrl}/waitlist/leadradar-for-tiktok`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5
     }
   ];
 
@@ -58,5 +85,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8
   }));
 
-  return [...staticPages, ...postPages];
+  return [...staticPages, ...waitlistPages, ...postPages];
 }

@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service",
-  description: "Terms of Service for SoloAcquisition.com."
+  title: "Terms of Service for SoloClientLab Research and Tools",
+  description:
+    "Terms of Service for SoloClientLab.com research, educational resources, downloads, waitlists, and workflow tools for solo professionals.",
+  alternates: {
+    canonical: "/terms"
+  }
 };
 
 export default function TermsPage() {
@@ -12,7 +16,7 @@ export default function TermsPage() {
         <p className="eyebrow">Legal</p>
         <h1>Terms of Service</h1>
         <p>
-          SoloAcquisition.com provides research, educational resources, and workflow ideas for solo professional service businesses. Content is provided for informational purposes and does not constitute legal, financial, or business guarantees.
+          SoloClientLab.com provides research, educational resources, and workflow ideas for solo professional service businesses. Content is provided for informational purposes and does not constitute legal, financial, or business guarantees.
         </p>
         <p>
           You may browse, subscribe, and download offered resources for your own evaluation and internal use. You may not resell, misrepresent, or abuse the site, its materials, or its forms.
