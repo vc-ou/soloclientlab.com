@@ -5,9 +5,9 @@ import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "About SoloClientLab Client Acquisition Research",
+  title: "About SoloClientLab | Research Method and Focus",
   description:
-    "About SoloClientLab: We turn real-world research into predictable client acquisition strategies and automated AI workflows for solo service businesses and independent practitioners.",
+    "Learn how SoloClientLab researches client acquisition problems, validates workflow ideas, and decides what deserves a deeper experiment.",
   alternates: {
     canonical: "/about"
   }

@@ -3,7 +3,7 @@ import { LeadRadarDemo } from "@/components/leadradar-demo";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "LeadRadar B2B Lead Qualification Tool | SoloClientLab.com"
+    absolute: "LeadRadar for B2B Lead Signals | SoloClientLab.com"
   },
   description:
     "Try LeadRadar directly in the site: scroll comment threads, review buying signals, and validate the workflow before installing anything.",
