@@ -3,7 +3,7 @@ import { LeadRadarDemo } from "@/components/leadradar-demo";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "LeadRadar - AI Social Media Comment Monitoring & B2B Lead Generation"
+    absolute: "LeadRadar: B2B Lead Generation from Social Comments"
   },
   description:
     "Monitor LinkedIn, Reddit, and TikTok comments for B2B buying signals. Automatically filter noise and identify high-intent leads without manual scraping.",
