@@ -254,8 +254,8 @@ export const aboutStudyAreas = [
     body: "Analyzing underserved market angles, emerging lead generation tactics, and repeatable growth frameworks worth testing."
   },
   {
-    title: "AI tools & workflows",
-    body: "Building automated AI workflows that save time, scale content production, and help solo experts grow without needing a large team."
+    title: "Client Workflows & AI Automation",
+    body: "Building practical, automated workflows that help solo experts improve the real client workflows they already run - from finding demand signals and outreach to client conversations, onboarding, follow-up, and delivery."
   },
   {
     title: "Idea validation",
@@ -286,9 +286,9 @@ export const aboutMethodSteps = [
   },
   {
     step: "5",
-    title: "Build (Sometimes)",
-    body: "When a problem is significant and the solution is clear, we build and test open-source tools in public.",
-    activeExperiment: "Our current active experiment: LeadRadar (TikTok B2B Lead Automation) →",
+    title: "Build & Validate Workflows",
+    body: "When research uncovers a broken workflow - such as the friction in manual social comment scanning - we build and test open-source tools in public.",
+    activeExperiment: "Our current active experiment: LeadRadar (B2B Lead Generation & Comment Monitoring) →",
     activeExperimentHref: "/tools/leadradar"
   }
 ];
