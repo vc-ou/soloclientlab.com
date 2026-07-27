@@ -390,28 +390,28 @@ export function LeadRadarDemo() {
         <div className="leadradar-hero">
           <div className="leadradar-hero-copy">
             <p className="eyebrow">LeadRadar demo</p>
-            <h1>LeadRadar - AI Social Media Comment Monitoring & B2B Lead Generation Tool</h1>
+            <h1>LeadRadar for TikTok: Comment Signal Review Demo</h1>
             <p className="hero-description">
-              Scroll public comment threads, let LeadRadar auto-capture visible comments, and review only the buying
-              signals worth follow-up. No signup required to try the workflow.
+              Scroll a sample TikTok-style comment feed, let the demo capture visible comments, and review possible
+              B2B buying signals before deciding whether they deserve follow-up.
             </p>
             <div className="leadradar-hero-points" aria-label="LeadRadar quick value points">
-              <span>No manual copy-paste</span>
-              <span>No forced signup</span>
-              <span>Built for TikTok, Reddit, and LinkedIn</span>
+              <span>Sample data, no signup</span>
+              <span>Current MVP: TikTok comments</span>
+              <span>Human review stays in the loop</span>
             </div>
             <section className="leadradar-keyword-section" aria-label="LeadRadar semantic keyword summary">
               <p>
-                <strong>LeadRadar:</strong> The AI-powered tool for solo consultants to filter social media comments.
-                Stop wasting time on noise and identify high-intent B2B leads automatically. A lightweight workflow for
-                Reddit, LinkedIn, and TikTok lead generation.
+                <strong>LeadRadar for TikTok:</strong> an early Chrome extension workflow for preserving visible
+                comments, flagging possible commercial signals, and preparing a local review list. It does not automate
+                outreach or guarantee leads.
               </p>
             </section>
             <section className="how-it-works-seo" aria-labelledby="how-it-works-seo-title">
-              <h3 id="how-it-works-seo-title">How LeadRadar Identifies High-Intent B2B Leads</h3>
+              <h3 id="how-it-works-seo-title">How LeadRadar Flags Comments for Review</h3>
               <p>
-                LeadRadar scans social media conversations to filter out noise and isolate actionable buying signals.
-                Our AI-powered workflow specifically tracks the following indicators:
+                The current MVP reads visible TikTok comments and flags context that may deserve human review. Example
+                signals include:
               </p>
               <ul className="signal-list">
                 <li><strong>Pricing inquiries:</strong> Detecting requests for quotes, catalogs, or price lists.</li>
@@ -475,8 +475,9 @@ export function LeadRadarDemo() {
                     <span className="leadradar-feed-dot" />
                     <span className="leadradar-feed-dot" />
                     <span className="leadradar-feed-dot" />
-                    <p>Live comment stream</p>
+                    <p>Sample comment stream</p>
                   </div>
+                  <p className="form-feedback">These illustrative comments are demo data, not captured customer leads.</p>
                   <div className="leadradar-feed-list leadradar-feed-list-live" onScroll={handleFeedScroll} ref={feedListRef}>
                     {sampleComments.map((comment, index) => {
                       const isVisible = visibleIndexes.includes(index);

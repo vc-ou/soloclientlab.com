@@ -63,12 +63,12 @@ export default async function HomePage() {
         <div className="cta-cluster hero-bottom-bar">
           <div className="stats-strip hero-stats hero-bottom-stats">
             <div>
-              <strong>120+</strong>
-              <span>Demand signals indexed</span>
+              <strong>Early-stage</strong>
+              <span>Research project</span>
             </div>
             <div>
-              <strong>Live</strong>
-              <span>Research hub</span>
+              <strong>In progress</strong>
+              <span>Workflow experiments</span>
             </div>
           </div>
         </div>

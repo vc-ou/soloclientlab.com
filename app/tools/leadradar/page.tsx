@@ -3,10 +3,10 @@ import { LeadRadarDemo } from "@/components/leadradar-demo";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "LeadRadar: B2B Lead Generation from Social Comments"
+    absolute: "LeadRadar for TikTok: Comment Signal Review Demo"
   },
   description:
-    "Monitor LinkedIn, Reddit, and TikTok comments for B2B buying signals. Automatically filter noise and identify high-intent leads without manual scraping.",
+    "Try an early Chrome workflow for reviewing visible TikTok comments, preserving source context, and sorting potential B2B buying signals for human review.",
   alternates: {
     canonical: "/tools/leadradar"
   }
@@ -16,17 +16,17 @@ const faqItems = [
   {
     question: "How does LeadRadar identify buying intent in social media comments?",
     answer:
-      "LeadRadar uses an AI-assisted workflow to analyze social media threads for context rather than relying only on keywords. It looks for commercial intent, supply chain indicators, and project validation signals such as pricing requests, MOQ questions, sample requirements, lead times, and vendor comparisons."
+      "The current MVP uses local rules to identify visible commercial signals such as pricing, MOQ, sample, lead-time, and supplier questions. Higher-value comments can be reviewed with a DeepSeek-assisted semantic check, and uncertain cases still require human judgment."
   },
   {
-    question: "Which platforms does LeadRadar support for lead generation?",
+    question: "Which platform does the current LeadRadar experiment support?",
     answer:
-      "LeadRadar is designed for B2B conversations on LinkedIn, Reddit, and TikTok. The workflow can also be applied to other public discussion channels where potential clients discuss business problems, sourcing needs, or procurement requirements."
+      "The current Chrome extension MVP is focused on visible TikTok comments. The broader workflow may be researched on other public platforms later, but those platforms are not presented as current product support."
   },
   {
-    question: "Why use LeadRadar instead of traditional social selling?",
+    question: "What can the LeadRadar demo tell me?",
     answer:
-      "Traditional social selling often depends on noisy manual scrolling, copy-pasting, and algorithm-driven reach. LeadRadar helps you find demand that is already being expressed in public comments, so you can review warmer opportunities without manually collecting every comment."
+      "The demo shows how a comment-review workflow can preserve context and separate likely commercial signals from noise. It does not guarantee leads, automate outreach, or replace a human decision about whether to follow up."
   }
 ] as const;
 
@@ -46,19 +46,19 @@ const faqSchema = {
 const softwareSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "LeadRadar",
+  name: "LeadRadar for TikTok",
   applicationCategory: "BusinessApplication",
-  applicationSubCategory: "B2B lead generation software",
+  applicationSubCategory: "B2B comment signal review workflow",
   operatingSystem: "Chrome",
   browserRequirements: "Requires Google Chrome",
   url: "https://www.soloclientlab.com/tools/leadradar",
   description:
-    "Monitor LinkedIn, Reddit, and TikTok comments for B2B buying signals. Automatically filter noise and identify high-intent leads without manual scraping.",
+    "An early Chrome extension MVP for reviewing visible TikTok comments, preserving source context, and sorting potential B2B buying signals for human review.",
   featureList: [
-    "Monitor public social media comments",
-    "Identify B2B buying signals",
-    "Filter commercial intent from engagement noise",
-    "Review pricing, MOQ, supplier, sample, and lead-time signals"
+    "Review visible TikTok comments",
+    "Preserve comment and source context",
+    "Flag potential commercial signals for human review",
+    "Export a local review list"
   ]
 };
 
@@ -66,40 +66,39 @@ function LeadRadarSeoContent() {
   return (
     <section className="container leadradar-seo-content" aria-label="LeadRadar product information">
       <div className="leadradar-seo-intro">
-        <p className="eyebrow">B2B lead generation workflow</p>
+        <p className="eyebrow">Early TikTok workflow experiment</p>
         <p>
-          LeadRadar helps consultants, agencies, and B2B operators monitor public social media comments for buying
-          signals. It turns scattered conversations into a focused review queue, so you can spend less time copying
-          comments into spreadsheets and more time deciding which opportunities deserve a response.
+          LeadRadar is an early Chrome extension MVP for B2B operators who review TikTok comments for commercial
+          signals. It keeps visible comments and their context together, then helps a human reviewer decide what may
+          deserve a closer look.
         </p>
       </div>
 
       <section className="leadradar-seo-section" aria-labelledby="leadradar-audience-title">
         <h2 id="leadradar-audience-title">Who LeadRadar is for</h2>
         <p>
-          LeadRadar is built for teams that already look for demand in public conversations and need a repeatable way to
-          separate commercial intent from casual engagement.
+          LeadRadar is being tested with B2B teams that already review TikTok comments and want a lighter way to
+          separate possible commercial interest from casual engagement.
         </p>
         <div className="leadradar-seo-grid">
           <article>
             <h3>Solo consultants and agencies</h3>
             <p>
-              Find client conversations about pricing, implementation, suppliers, or operational problems without
-              manually reviewing every comment.
+              Review questions about pricing, suppliers, and operational fit without losing the original TikTok context.
             </p>
           </article>
           <article>
             <h3>B2B sourcing and manufacturing teams</h3>
             <p>
-              Surface requests about MOQ, samples, private label, shipping, lead times, and supplier comparisons before
-              they become formal inquiries.
+              Review requests about MOQ, samples, private label, shipping, lead times, and supplier comparisons before
+              deciding whether they warrant follow-up.
             </p>
           </article>
           <article>
             <h3>Operators building demand workflows</h3>
             <p>
-              Preserve the language people use in real conversations and turn repeated questions into outreach angles,
-              content ideas, and FAQs.
+              Preserve the language people use in real conversations and turn repeated questions into research notes,
+              content ideas, or FAQ candidates.
             </p>
           </article>
         </div>
@@ -108,9 +107,9 @@ function LeadRadarSeoContent() {
       <section className="leadradar-seo-section" aria-labelledby="leadradar-comparison-title">
         <h2 id="leadradar-comparison-title">Manual comment scanning vs LeadRadar</h2>
         <p>
-          Manual scanning is useful for early research, but it becomes slow and inconsistent when you need to repeat it
-          every day. LeadRadar focuses on the repeated part: capturing visible comments, preserving context, and sorting
-          signals for human review.
+          Manual scanning is useful for early research, but it becomes slow and inconsistent when you need to repeat it.
+          LeadRadar focuses on the repeated part: capturing visible TikTok comments, preserving context, and sorting
+          possible signals for human review.
         </p>
         <div className="leadradar-comparison-wrap">
           <table className="leadradar-comparison">
@@ -125,7 +124,7 @@ function LeadRadarSeoContent() {
               <tr>
                 <th scope="row">Finding comments</th>
                 <td>Search, open threads, and scroll one page at a time.</td>
-                <td>Monitor public conversations while you browse supported platforms.</td>
+                <td>Capture visible comments while you browse a TikTok thread.</td>
               </tr>
               <tr>
                 <th scope="row">Capturing context</th>
@@ -135,7 +134,7 @@ function LeadRadarSeoContent() {
               <tr>
                 <th scope="row">Prioritizing leads</th>
                 <td>Use personal judgment with inconsistent standards.</td>
-                <td>Group likely buying signals, review items, and low-value noise for faster inspection.</td>
+                <td>Group possible buying signals, review items, and low-value noise for faster inspection.</td>
               </tr>
               <tr>
                 <th scope="row">Next action</th>
@@ -150,8 +149,8 @@ function LeadRadarSeoContent() {
       <section className="leadradar-seo-section" aria-labelledby="leadradar-use-cases-title">
         <h2 id="leadradar-use-cases-title">Use cases</h2>
         <p>
-          The strongest use cases begin with a public comment that contains a practical business question, not just a
-          like or a general compliment.
+          The strongest use cases begin with a visible TikTok comment containing a practical business question, not just
+          a like or a general compliment.
         </p>
         <div className="leadradar-seo-grid">
           <article>
@@ -174,12 +173,12 @@ function LeadRadarSeoContent() {
       </section>
 
       <section className="leadradar-seo-section" aria-labelledby="leadradar-how-it-works-title">
-        <h2 id="leadradar-how-it-works-title">How it works</h2>
+        <h2 id="leadradar-how-it-works-title">How the current experiment works</h2>
         <div className="leadradar-steps">
           <article>
             <span>01</span>
-            <h3>Monitor public conversations</h3>
-            <p>Browse LinkedIn, Reddit, or TikTok conversations where your target buyers already discuss real needs.</p>
+            <h3>Open a relevant TikTok thread</h3>
+            <p>Browse a TikTok comment thread where prospective buyers may already be discussing a real sourcing or service need.</p>
           </article>
           <article>
             <span>02</span>
@@ -188,8 +187,8 @@ function LeadRadarSeoContent() {
           </article>
           <article>
             <span>03</span>
-            <h3>Review high-intent signals</h3>
-            <p>Filter likely leads, human-review items, and noise before choosing the right follow-up or content action.</p>
+            <h3>Review possible signals</h3>
+            <p>Sort possible leads, human-review items, and noise before choosing whether the comment informs research, content, or a follow-up.</p>
           </article>
         </div>
       </section>

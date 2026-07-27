@@ -6,9 +6,9 @@ export const siteDescription =
 
 export const publicSocialProof = {
   newsletterJoinCopy:
-    "An invite-only database for solo experts looking for alternative client acquisition pathways. Updated every Monday.",
-  demandSignalsLabel: "Demand signals tracked",
-  demandSignalsDisplay: "100+"
+    "Research notes for solo experts looking for lower-noise client acquisition workflows. Updated as new field notes and experiments are reviewed.",
+  demandSignalsLabel: "Research status",
+  demandSignalsDisplay: "Early field notes"
 } as const;
 
 export const homepageBottlenecks = [
@@ -163,11 +163,11 @@ export const workflowOutcomeItems = [
 export const homeProofItems = [
   {
     title: "Research real problems",
-    body: "We analyze hundreds of conversations across Reddit, forums, and communities to find what actually matters."
+    body: "We review public conversations, operator notes, and early tool feedback to find problems that show up in real workflows."
   },
   {
-    title: "Turn research into clients",
-    body: "We turn repeated pain patterns into practical client acquisition ideas for solo service businesses."
+    title: "Turn research into next steps",
+    body: "We turn repeated pain patterns into practical client acquisition experiments for solo service businesses."
   },
   {
     title: "Validate before you build",
@@ -239,7 +239,7 @@ export const resourceFeatureCards = [
   {
     eyebrow: "Method",
     title: "How SoloClientLab.com does the research",
-    body: "We semantic-analyze 10,000+ real freelance dry-spell complaints from Reddit, X, and Google Business Profiles quarterly.",
+    body: "We review public discussions, founder notes, article analytics, and small workflow experiments, while separating self-test data from stronger external signals.",
     cta: "Why this is trustworthy"
   }
 ] as const;
@@ -267,28 +267,28 @@ export const aboutMethodSteps = [
   {
     step: "1",
     title: "Discover",
-    body: "We monitor unfiltered conversations across Reddit, industry forums, LinkedIn, and expert interviews."
+    body: "We collect public conversations from places like Reddit, X, LinkedIn, forums, and operator interviews when they reveal a concrete workflow problem."
   },
   {
     step: "2",
     title: "Analyze",
-    body: "We extract recurring pain points, thematic demand signals, and client acquisition patterns."
+    body: "We preserve the original context, tag recurring pain points, and separate vague interest from clearer demand signals."
   },
   {
     step: "3",
     title: "Validate",
-    body: "We test these patterns against real market importance, frequency, and willingness to pay."
+    body: "We compare research notes with site analytics, CTA clicks, subscriber behavior, replies, and waitlist submissions, while marking self-test activity separately."
   },
   {
     step: "4",
     title: "Share",
-    body: "We publish research-backed resources to help you make better decisions and build a more profitable service business."
+    body: "We publish research notes only when the pattern can help a solo service business make a clearer next decision."
   },
   {
     step: "5",
     title: "Build & Validate Workflows",
-    body: "When research uncovers a broken workflow - such as the friction in manual social comment scanning - we build and test open-source tools in public.",
-    activeExperiment: "Our current active experiment: LeadRadar (B2B Lead Generation & Comment Monitoring) →",
+    body: "When research uncovers a repeatable workflow gap, we build small demos or MVPs before claiming a broader product category.",
+    activeExperiment: "Current experiment: LeadRadar for TikTok comment signal review →",
     activeExperimentHref: "/tools/leadradar"
   }
 ];

@@ -31,8 +31,8 @@ export default async function AboutPage() {
         <div className="grid-3">
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>Who runs SoloClientLab.com</h2>
-            <p>Hi, here is SoloClientLab. As an indie builder and researcher, I specialize in solo service business growth.</p>
-            <p>I&apos;ve built and sold online businesses and spent years decoding the client acquisition strategies that actually work. My work helps independent professionals move away from random lead sources to a predictable, data-backed client acquisition system.</p>
+            <p>SoloClientLab.com is run by an independent builder and researcher focused on how solo service businesses find clients, validate offers, and improve the workflows around those jobs.</p>
+            <p>It is an early-stage research project, not a consultancy ranking or a promise of business results. Contact: soloclientlab.com@gmail.com.</p>
           </div>
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>What we study</h2>
@@ -62,6 +62,26 @@ export default async function AboutPage() {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container">
+        <div className="section-panel">
+          <SectionHeading title="How we treat evidence" />
+          <div className="grid-3">
+            <div className="card">
+              <h3>Source context first</h3>
+              <p>Research notes retain the public conversation, workflow context, and uncertainty behind a pattern instead of treating a single comment as market proof.</p>
+            </div>
+            <div className="card">
+              <h3>Self-tests are not validation</h3>
+              <p>Internal page views, test clicks, and operator checks are tracked separately from stronger signals such as external visits, replies, submissions, and repeat use.</p>
+            </div>
+            <div className="card">
+              <h3>Experiments stay labeled</h3>
+              <p>Tools such as LeadRadar are described as demos or MVPs until real-world testing supports a broader claim.</p>
             </div>
           </div>
         </div>

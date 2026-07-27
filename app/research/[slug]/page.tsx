@@ -54,5 +54,33 @@ export default async function PostPage({ params }: PostPageProps) {
     getDemandsByIds(post.related_demand_ids ?? [])
   ]);
 
-  return <PostDetail post={post} related={related} relatedDemands={relatedDemands} />;
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${siteUrl}/research/${post.slug}#article`,
+    mainEntityOfPage: `${siteUrl}/research/${post.slug}`,
+    headline: post.title,
+    description: post.seo_description ?? post.summary,
+    datePublished: post.published_at,
+    dateModified: post.updated_at ?? post.published_at,
+    image: post.cover_image_url ? [post.cover_image_url] : undefined,
+    author: {
+      "@type": "Organization",
+      name: "SoloClientLab.com",
+      url: siteUrl
+    },
+    publisher: {
+      "@id": `${siteUrl}/#organization`
+    }
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <PostDetail post={post} related={related} relatedDemands={relatedDemands} />
+    </>
+  );
 }

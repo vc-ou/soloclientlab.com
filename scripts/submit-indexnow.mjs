@@ -7,10 +7,7 @@ const DEFAULT_ENDPOINT = "https://www.bing.com/indexnow";
 const STATIC_PUBLIC_PATHS = [
   "/",
   "/about",
-  "/newsletter",
   "/research",
-  "/resources",
-  "/resources/client-acquisition-report",
   "/tools/leadradar"
 ];
 const SITEWIDE_FILE_PATTERNS = [
