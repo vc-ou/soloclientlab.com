@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { trackPlausibleEvent } from "@/components/plausible-events";
 import { submitLeadRadarFeedback } from "@/lib/actions";
-import { getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
+import {
+  getLeadRadarExtensionCtaLabel,
+  getLeadRadarExtensionHref,
+  getLeadRadarExtensionSupportCopy
+} from "@/lib/extension-links";
 import type { ActionState } from "@/lib/types";
 
 type DemoComment = {
@@ -154,6 +158,7 @@ export function LeadRadarDemo() {
   const feedListRef = useRef<HTMLDivElement | null>(null);
   const commentRefs = useRef<Array<HTMLElement | null>>([]);
   const extensionHref = getLeadRadarExtensionHref();
+  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
   const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
   const capturedComments = useMemo(
@@ -385,7 +390,7 @@ export function LeadRadarDemo() {
         <div className="leadradar-hero">
           <div className="leadradar-hero-copy">
             <p className="eyebrow">LeadRadar demo</p>
-            <h1>LeadRadar: Identify B2B Buying Signals in Social Media Comments</h1>
+            <h1>LeadRadar - AI Social Media Comment Monitoring & B2B Lead Generation Tool</h1>
             <p className="hero-description">
               Scroll public comment threads, let LeadRadar auto-capture visible comments, and review only the buying
               signals worth follow-up. No signup required to try the workflow.
@@ -420,7 +425,7 @@ export function LeadRadarDemo() {
                 Try the demo
               </button>
               <Link href={extensionHref} className="button ghost">
-                Install / join next step
+                {extensionCtaLabel}
               </Link>
             </div>
           </div>
@@ -723,57 +728,10 @@ export function LeadRadarDemo() {
               </div>
               <div className="leadradar-next-actions">
                 <Link href={extensionHref} className="button primary">
-                  Install / join next step
+                  {extensionCtaLabel}
                 </Link>
               </div>
               <p className="form-feedback">{extensionSupportCopy}</p>
-              <section className="leadradar-faq" aria-labelledby="leadradar-faq-title">
-                <h3 id="leadradar-faq-title">Frequently Asked Questions</h3>
-
-                <details>
-                  <summary><strong>How does LeadRadar identify buying intent in social media comments?</strong></summary>
-                  <p>
-                    LeadRadar uses a specialized natural language processing (NLP) workflow to analyze social media threads.
-                    Instead of just looking for keywords, it detects <strong>contextual buying signals</strong> such as:
-                  </p>
-                  <ul>
-                    <li><strong>Commercial intent:</strong> Requests for pricing, catalogs, or quotes.</li>
-                    <li><strong>Supply chain indicators:</strong> Inquiries about MOQ (Minimum Order Quantity), private labeling, or shipping logistics.</li>
-                    <li><strong>Project validation:</strong> Mentions of trial runs, lead times, or vendor comparisons.</li>
-                  </ul>
-                  <p>
-                    By filtering out casual engagement and noise, LeadRadar allows solo consultants to focus only on high-value
-                    conversations that lead to billable projects.
-                  </p>
-                </details>
-
-                <details>
-                  <summary><strong>Which platforms does LeadRadar support for lead generation?</strong></summary>
-                  <p>
-                    Currently, LeadRadar is optimized to capture and filter signals from high-traffic B2B discussion platforms,
-                    including:
-                  </p>
-                  <ul>
-                    <li><strong>Reddit:</strong> Perfect for identifying niche sourcing and industry-specific problem-solving threads.</li>
-                    <li><strong>LinkedIn:</strong> Useful for filtering professional discussions and service-based inquiries.</li>
-                    <li><strong>TikTok:</strong> Highly effective for capturing direct product sourcing and wholesale-related buying signals in the comments section.</li>
-                  </ul>
-                  <p>
-                    Our workflow is designed to be platform-agnostic, meaning it can be easily applied to any social channel
-                    where potential clients discuss their business problems or procurement needs.
-                  </p>
-                </details>
-
-                <details>
-                  <summary><strong>Why use LeadRadar instead of traditional social selling?</strong></summary>
-                  <p>
-                    Traditional social selling often relies on &quot;noisy&quot; manual scrolling or expensive, algorithm-dependent ads.
-                    LeadRadar adopts a <strong>research-backed approach</strong>: we identify existing demand that is already being
-                    expressed in public comments. This ensures you are reaching out to warm leads who are already searching for a
-                    solution, rather than cold-calling or spamming social platforms.
-                  </p>
-                </details>
-              </section>
             </div>
           </div>
         </section>
