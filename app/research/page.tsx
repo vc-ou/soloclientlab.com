@@ -29,7 +29,7 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
         align="center"
         className="hero-copy-90"
         eyebrow="Research"
-        title="Research & Insights"
+        title="Client Acquisition Research for Solo Consultants"
         description="Research on how solo service businesses get clients, validate offers, and use AI more practically."
       />
 

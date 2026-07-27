@@ -19,6 +19,10 @@ export async function generateMetadata({ params }: WaitlistPageProps): Promise<M
         description: project.subtitle,
         alternates: {
           canonical: `/waitlist/${project.slug}`
+        },
+        robots: {
+          index: false,
+          follow: false
         }
       }
     : {};
