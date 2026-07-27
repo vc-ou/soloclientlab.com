@@ -443,15 +443,7 @@ button {
   padding: 34px 0 18px;
 }
 
-.hero-grid,
-.two-column,
-.content-with-sidebar,
-.stats-strip,
-.feature-row,
-.split-panel {
-  display: grid;
-  gap: 28px;
-}
+
 
 .hero-grid {
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
