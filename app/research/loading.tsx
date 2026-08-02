@@ -12,27 +12,18 @@ export default function ResearchLoading() {
       </section>
 
       <section className="container">
-        <div className="content-with-sidebar">
-          <div>
-            <div className="route-loading-topic-row" aria-hidden="true">
-              <div className="route-loading-chip" />
-              <div className="route-loading-chip" />
-              <div className="route-loading-chip" />
-              <div className="route-loading-chip" />
-            </div>
-            <div className="admin-grid">
-              <div className="route-loading-post-card" />
-              <div className="route-loading-post-card" />
-              <div className="route-loading-post-card" />
-            </div>
+        <div>
+          <div className="route-loading-topic-row" aria-hidden="true">
+            <div className="route-loading-chip" />
+            <div className="route-loading-chip" />
+            <div className="route-loading-chip" />
+            <div className="route-loading-chip" />
           </div>
-          <aside className="newsletter-panel route-loading-sidebar" aria-hidden="true">
-            <div className="route-loading-bar route-loading-bar-sm" />
-            <div className="route-loading-bar route-loading-bar-md" />
-            <div className="route-loading-bar route-loading-bar-md" />
-            <div className="route-loading-input" />
-            <div className="route-loading-button" />
-          </aside>
+          <div className="admin-grid">
+            <div className="route-loading-post-card" />
+            <div className="route-loading-post-card" />
+            <div className="route-loading-post-card" />
+          </div>
         </div>
       </section>
     </>

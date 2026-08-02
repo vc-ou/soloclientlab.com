@@ -1,65 +1,56 @@
 import { AdminShell, InsightCard, MetricCard, SimpleTable } from "@/components/admin";
-import { getDashboardMetrics, getResourcePerformance } from "@/lib/db";
+import { getDashboardMetrics } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 
-function formatPercent(value: number) {
-  return `${Math.round(value * 100)}%`;
-}
-
 export default async function AdminMetricsPage() {
-  const [metrics, resources] = await Promise.all([
-    getDashboardMetrics(),
-    getResourcePerformance()
-  ]);
+  const metrics = await getDashboardMetrics();
+  const funnelRows = [
+    ["Research", "Article views", metrics.researchViews.toString()],
+    ["Product page", "LeadRadar product-page views", metrics.productPageViews.toString()],
+    ["Trial", "Trial access requests", metrics.trialAccessClicks.toString()],
+    ["Install", "Install / product access actions", metrics.installClicks.toString()],
+    ["Configure", "Co-build configuration", "Manual review"],
+    ["Review / export", "Completed demo reviews", metrics.reviewCompletions.toString()],
+    ["Feedback", "Trial / calibration feedback", metrics.feedbackCount.toString()],
+    ["Paid pilot", "Confirmed pilots", "Manual review"]
+  ];
 
   return (
-    <AdminShell title="Metrics Center">
+    <AdminShell title="Product Validation Funnel">
       <div className="admin-grid metrics">
-        <MetricCard label="Active subscribers" value={metrics.activeSubscribers} />
-        <MetricCard label="Qualified subscribers" value={metrics.qualifiedSubscribers} />
-        <MetricCard label="Secondary page signups" value={metrics.resourceSignups} />
-        <MetricCard label="Waitlist count" value={metrics.waitlistCount} />
-        <MetricCard label="LeadRadar demo tries" value={metrics.leadRadarDemoClicks} />
-        <MetricCard label="Published posts" value={metrics.publishedPosts} />
-        <MetricCard label="Total demands" value={metrics.totalDemands} />
+        <MetricCard label="Research views" value={metrics.researchViews} />
+        <MetricCard label="Product-page views" value={metrics.productPageViews} />
+        <MetricCard label="Trial access requests" value={metrics.trialAccessClicks} />
+        <MetricCard label="Calibration feedback" value={metrics.feedbackCount} />
       </div>
 
       <div className="admin-grid insights" style={{ marginTop: 24 }}>
         <InsightCard
-          title="Email → Waitlist"
-          value={formatPercent(metrics.emailToWaitlistRate)}
-          body="How many active subscribers have moved into a higher-intent validation step."
+          title="SEO / GSC review"
+          value="External"
+          body="Use GSC as the source of truth for indexed pages, impressions, clicks, CTR, and query movement. This admin stays focused on publishing and local product signals."
         />
         <InsightCard
-          title="Secondary page share"
-          value={formatPercent(metrics.resourceToEmailRate)}
-          body="How much of your current active subscriber base came through secondary update or resource-style pages."
-        />
-        <InsightCard
-          title="Validation read"
-          value={metrics.waitlistCount >= 10 ? "Strong" : "Early"}
-          body={metrics.waitlistCount >= 10 ? "Your current waitlist signal is strong enough to justify testing paid validation." : "You still need more waitlist signal before moving into paid validation."}
+          title="Funnel read"
+          value={metrics.productPageViews > 0 ? "Product movement" : "Waiting"}
+          body={metrics.productPageViews > 0 ? "Use the stages below to locate the next drop-off. Configuration and paid pilots remain manual until there is a reliable product-side source of truth." : "Research exists, but product-page movement has not been recorded yet. Start with the product page and trial access path."}
         />
       </div>
 
       <div className="admin-grid" style={{ marginTop: 24 }}>
         <section className="activity-card">
-          <h2>Secondary page performance</h2>
+          <h2>Validation funnel</h2>
           <SimpleTable
-            headers={["Page", "Subscribers", "Conversion share", "Status"]}
-            rows={resources.map((resource) => [
-              resource.title,
-              resource.subscriberCount.toString(),
-              formatPercent(resource.conversionRate),
-              resource.status
-            ])}
+            headers={["Stage", "Signal", "Current count"]}
+            rows={funnelRows}
           />
         </section>
-
+      </div>
+      <div className="admin-grid" style={{ marginTop: 24 }}>
         <section className="activity-card">
-          <h2>LeadRadar demo traffic</h2>
+          <h2>Demo source traffic</h2>
           <SimpleTable
-            headers={["Landing path", "Referrer", "Try demo clicks", "Last click"]}
+            headers={["Landing path", "Referrer", "Demo opens", "Last activity"]}
             rows={metrics.leadRadarDemoTraffic.map((source) => [
               source.path,
               source.referrer,

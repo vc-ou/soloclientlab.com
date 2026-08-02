@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { trackPlausibleEvent } from "@/components/plausible-events";
+import { sendProductEvent } from "@/components/product-events";
 import { submitLeadRadarFeedback } from "@/lib/actions";
 import {
   getLeadRadarExtensionCtaLabel,
   getLeadRadarExtensionHref,
-  getLeadRadarExtensionSupportCopy
+  getLeadRadarExtensionSupportCopy,
+  hasLeadRadarEdgeAddonsListing
 } from "@/lib/extension-links";
 import type { ActionState } from "@/lib/types";
 
@@ -118,7 +120,7 @@ async function trackLeadRadarDemoClick() {
       },
       body: JSON.stringify({
         toolSlug: "tools/leadradar",
-        eventType: "cta_click",
+        eventType: "demo_open",
         path: `${window.location.pathname}${window.location.search}`,
         referrer: document.referrer || undefined
       }),
@@ -160,6 +162,7 @@ export function LeadRadarDemo() {
   const extensionHref = getLeadRadarExtensionHref();
   const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
   const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
+  const extensionAccessEvent = hasLeadRadarEdgeAddonsListing() ? "install_clicked" : "trial_access_requested";
 
   const capturedComments = useMemo(
     () => capturedIndexes.map((index) => sampleComments[index]),
@@ -208,9 +211,16 @@ export function LeadRadarDemo() {
   );
 
   useEffect(() => {
-    if (window.location.hash === "#leadradar-demo") {
-      setDemoVisible(true);
+    function syncDemoHash() {
+      if (window.location.hash === "#leadradar-demo") {
+        setDemoVisible(true);
+      }
     }
+
+    syncDemoHash();
+    window.addEventListener("hashchange", syncDemoHash);
+
+    return () => window.removeEventListener("hashchange", syncDemoHash);
   }, []);
 
   useEffect(() => {
@@ -333,10 +343,48 @@ export function LeadRadarDemo() {
     setReviewFilter("all");
     setActiveStep(3);
     trackPlausibleEvent("tool_completed");
+    void fetch("/api/tool-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        toolSlug: "tools/leadradar",
+        eventType: "review_completed",
+        path: `${window.location.pathname}${window.location.search}`,
+        referrer: document.referrer || undefined
+      }),
+      keepalive: true
+    }).catch(() => undefined);
   }
 
   function handleFeedback(nextFeedback: "useful" | "not_useful") {
     setFeedback(nextFeedback);
+  }
+
+  function exportReviewCsv() {
+    const rows = [
+      ["author", "intent", "reason", "text", "tags"],
+      ...reviewViewComments.map((comment) => [
+        comment.author,
+        comment.intent,
+        comment.reason,
+        comment.text,
+        comment.tags.join("; ")
+      ])
+    ];
+    const csv = rows
+      .map((row) => row.map((cell) => `"${cell.replaceAll("\"", "\"\"")}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "leadradar-review.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+    trackPlausibleEvent("csv_exported");
+    void sendProductEvent("csv_exported", { row_count: reviewViewComments.length });
   }
 
   function getReviewTone(intent: DemoComment["intent"]) {
@@ -389,20 +437,20 @@ export function LeadRadarDemo() {
       <section className="container">
         <div className="leadradar-hero">
           <div className="leadradar-hero-copy">
-            <p className="eyebrow">LeadRadar demo</p>
-            <h1>LeadRadar for TikTok: Comment Signal Review Demo</h1>
+            <p className="eyebrow">Illustrative workflow demo</p>
+            <h1>LeadRadar: Social Comment Review Demo</h1>
             <p className="hero-description">
-              Scroll a sample TikTok-style comment feed, let the demo capture visible comments, and review possible
+              Scroll a sample TikTok-style comment feed, let LeadRadar capture visible comments, and review possible
               B2B buying signals before deciding whether they deserve follow-up.
             </p>
             <div className="leadradar-hero-points" aria-label="LeadRadar quick value points">
               <span>Sample data, no signup</span>
-              <span>Current MVP: TikTok comments</span>
+              <span>Demo source: TikTok-style comments</span>
               <span>Human review stays in the loop</span>
             </div>
             <section className="leadradar-keyword-section" aria-label="LeadRadar semantic keyword summary">
               <p>
-                <strong>LeadRadar for TikTok:</strong> an early Chrome extension workflow for preserving visible
+                <strong>LeadRadar:</strong> a product workflow for preserving visible
                 comments, flagging possible commercial signals, and preparing a local review list. It does not automate
                 outreach or guarantee leads.
               </p>
@@ -410,7 +458,7 @@ export function LeadRadarDemo() {
             <section className="how-it-works-seo" aria-labelledby="how-it-works-seo-title">
               <h3 id="how-it-works-seo-title">How LeadRadar Flags Comments for Review</h3>
               <p>
-                The current MVP reads visible TikTok comments and flags context that may deserve human review. Example
+                This demo reads visible TikTok-style comments and flags context that may deserve human review. Example
                 signals include:
               </p>
               <ul className="signal-list">
@@ -422,10 +470,10 @@ export function LeadRadarDemo() {
             </section>
             <div className="hero-actions">
               <button type="button" className="button primary" onClick={handleTryDemoClick}>
-                Try the demo
+                Try the workflow
               </button>
-              <Link href={extensionHref} className="button ghost">
-                {extensionCtaLabel}
+              <Link href="/products/leadradar" className="button ghost">
+                View product page
               </Link>
             </div>
           </div>
@@ -434,7 +482,7 @@ export function LeadRadarDemo() {
 
       {demoVisible ? (
         <section className="container leadradar-flow-shell">
-          <div className="leadradar-flow-status" aria-label="LeadRadar demo flow status">
+          <div className="leadradar-flow-status" aria-label="LeadRadar workflow preview status">
             {stepStates.map((step, index) => (
               <button
                 key={step.label}
@@ -477,7 +525,7 @@ export function LeadRadarDemo() {
                     <span className="leadradar-feed-dot" />
                     <p>Sample comment stream</p>
                   </div>
-                  <p className="form-feedback">These illustrative comments are demo data, not captured customer leads.</p>
+                  <p className="form-feedback">These illustrative comments are sample data, not captured customer leads.</p>
                   <div className="leadradar-feed-list leadradar-feed-list-live" onScroll={handleFeedScroll} ref={feedListRef}>
                     {sampleComments.map((comment, index) => {
                       const isVisible = visibleIndexes.includes(index);
@@ -598,6 +646,9 @@ export function LeadRadarDemo() {
                   Review Queue
                 </button>
               </div>
+              <button type="button" className="button ghost" onClick={exportReviewCsv}>
+                Export CSV
+              </button>
               <p className="form-feedback">Cards are sorted by intent strength so the best follow-up opportunities stay visible first.</p>
             </section>
 
@@ -648,7 +699,7 @@ export function LeadRadarDemo() {
       {reviewUnlocked ? (
         <section className="container">
           <div className="two-column leadradar-feedback-grid">
-            <form action={feedbackAction} className="section-panel" encType="multipart/form-data" ref={feedbackFormRef}>
+            <form action={feedbackAction} className="section-panel" ref={feedbackFormRef}>
               <p className="eyebrow">Lightweight feedback</p>
               <h2>4. Tell us if this result was useful</h2>
               <p className="form-intro">
@@ -711,24 +762,24 @@ export function LeadRadarDemo() {
             <div className="form-card">
               <h3>Continue if you want the full workflow</h3>
               <p className="form-intro">
-                After the station-level demo, the next step is the Chrome extension flow for live capture, filtering, and export.
+                After the on-site workflow preview, the next step is the Edge extension flow for live capture, filtering, and export.
               </p>
               <div className="activity-list">
                 <div>
                   <strong>Step 1</strong>
-                  <p>Use the demo to confirm whether comment filtering is valuable in your real workflow.</p>
+                  <p>Use the workflow preview to confirm whether comment filtering is valuable in your real workflow.</p>
                 </div>
                 <div>
                   <strong>Step 2</strong>
-                  <p>Install the extension or join the private access list for the live sidebar workflow.</p>
+                  <p>Request product access while the Edge Add-ons listing is under review, then install from Edge after approval.</p>
                 </div>
                 <div>
                   <strong>Step 3</strong>
-                  <p>Subscribe only if you want updates on new workflow experiments and release timing.</p>
+                  <p>Leave contact details only if you want product access, setup support, or release timing.</p>
                 </div>
               </div>
               <div className="leadradar-next-actions">
-                <Link href={extensionHref} className="button primary">
+                <Link href={extensionHref} className="button primary" onClick={() => void sendProductEvent(extensionAccessEvent)}>
                   {extensionCtaLabel}
                 </Link>
               </div>

@@ -24,9 +24,9 @@ export default async function AdminSubscribersPage({ searchParams }: AdminSubscr
   );
 
   return (
-    <AdminShell title="Subscribers">
+    <AdminShell title="Contacts">
       <div className="admin-topbar">
-        <p>Filter subscribers by source, secondary page, persona, topic, or status.</p>
+        <p>Review contact records from legacy subscriptions, resource requests, product access, and other captured sources.</p>
         <Link
           href={exportParams.toString() ? `/admin/subscribers/export?${exportParams.toString()}` : "/admin/subscribers/export"}
           className="button ghost"
@@ -47,9 +47,9 @@ export default async function AdminSubscribersPage({ searchParams }: AdminSubscr
           </select>
         </label>
         <label className="field">
-          <span>Secondary page</span>
+          <span>Legacy secondary source</span>
           <select name="lead_magnet" defaultValue={filters.lead_magnet ?? ""}>
-            <option value="">All secondary pages</option>
+            <option value="">All legacy sources</option>
             {resourceOptions.map((option) => (
               <option key={option} value={option}>
                 {option}

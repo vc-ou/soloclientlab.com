@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addFeedbackEntry, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { addFeedbackEntry, addLeadRadarConfig, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,11 +14,12 @@ import type {
   ActionState,
   DemandStatus,
   EvidenceStrength,
-  PostCtaType,
   ResourceDeliveryMode,
   PostStatus,
   ResourceStatus,
   ResourceType,
+  ProductAccessType,
+  ProductSlug,
   TopicTag
 } from "@/lib/types";
 
@@ -50,6 +51,29 @@ const leadRadarFeedbackSchema = z.object({
   problem_context: z.string().trim().min(1).max(4000)
 });
 
+const productAccessSchema = z.object({
+  product_slug: z.enum(["leadradar", "needradar-workflow-lab"]),
+  access_type: z.enum(["product_access", "trial_access", "co_build_access", "partner_preview", "paid_pilot"]),
+  email: emailSchema,
+  company_name: z.string().trim().max(160).optional(),
+  role: z.string().trim().max(160).optional(),
+  source_page: z.string().trim().max(300).optional(),
+  use_case: z.string().trim().max(4000).optional()
+});
+
+const leadRadarConfigSchema = z.object({
+  email: emailSchema,
+  company_name: z.string().trim().max(160).optional(),
+  target_market: z.string().trim().max(500).optional(),
+  platforms: z.string().trim().max(500).optional(),
+  keywords: z.string().trim().max(1200),
+  countries: z.string().trim().max(500).optional(),
+  capabilities: z.string().trim().max(1200).optional(),
+  lead_types: z.string().trim().max(1200).optional(),
+  notes: z.string().trim().max(4000).optional(),
+  source_page: z.string().trim().max(300).optional()
+});
+
 function getText(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -77,48 +101,6 @@ function getFeedbackUploadBucketName() {
   return process.env.SUPABASE_FEEDBACK_BUCKET
     ?? process.env.NEXT_PUBLIC_SUPABASE_FEEDBACK_BUCKET
     ?? getPostImageBucketName();
-}
-
-async function saveUploadedPostImage(file: File) {
-  if (!file || file.size === 0) {
-    return undefined;
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : undefined;
-  const safeExtension = extension && /^[a-z0-9]+$/.test(extension) ? extension : "jpg";
-  const filename = `${Date.now()}-${randomUUID()}.${safeExtension}`;
-
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    const supabase = await createSupabaseServerClient();
-    const bucket = getPostImageBucketName();
-    const objectPath = `posts/${filename}`;
-    const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, {
-      contentType: file.type || "image/jpeg",
-      upsert: false
-    });
-
-    if (error) {
-      throw new Error(`Cover image upload failed: ${error.message}`);
-    }
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
-    if (!data.publicUrl) {
-      throw new Error("Cover image upload failed: no public URL was returned.");
-    }
-
-    return data.publicUrl;
-  }
-
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "posts");
-
-  await mkdir(uploadDir, { recursive: true });
-
-  const outputPath = path.join(uploadDir, filename);
-  await writeFile(outputPath, buffer);
-
-  return `/uploads/posts/${filename}`;
 }
 
 async function saveUploadedFeedbackAttachment(file: File) {
@@ -240,7 +222,7 @@ export async function joinWaitlist(
   });
 
   if (!parsed.success) {
-    return { success: false, message: "Please complete the waitlist form with a valid email." };
+    return { success: false, message: "Please complete the access request with a valid email." };
   }
 
   await addWaitlistEntry({
@@ -255,7 +237,7 @@ export async function joinWaitlist(
     email: parsed.data.email,
     source_page: parsed.data.source_page,
     source_type: "waitlist",
-    topic_tag: "client_acquisition"
+    topic_tag: "manufacturing_social_lead_discovery"
   });
 
   revalidatePath(`/waitlist/${parsed.data.page_slug}`);
@@ -263,7 +245,7 @@ export async function joinWaitlist(
   revalidatePath("/admin/waitlists");
   revalidatePath("/admin/subscribers");
 
-  return { success: true, message: "You're on the waitlist.", eventName: "waitlist_signup" };
+  return { success: true, message: "Your product access request has been received.", eventName: "waitlist_signup" };
 }
 
 export async function submitLeadRadarFeedback(
@@ -306,11 +288,171 @@ export async function submitLeadRadarFeedback(
 
   revalidatePath("/admin");
   revalidatePath("/admin/feedback");
+  await trackTrialEvent({
+    product_slug: "leadradar",
+    event_type: "calibration_feedback_submitted",
+    source_page: parsed.data.source_page
+  });
 
   return {
     success: true,
     message: "Thanks. Your feedback has been recorded.",
     eventName: "tool_feedback_submitted"
+  };
+}
+
+export async function requestProductAccess(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = productAccessSchema.safeParse({
+    product_slug: getText(formData, "product_slug"),
+    access_type: getText(formData, "access_type"),
+    email: getText(formData, "email").toLowerCase(),
+    company_name: getText(formData, "company_name") || undefined,
+    role: getText(formData, "role") || undefined,
+    source_page: getText(formData, "source_page") || undefined,
+    use_case: getText(formData, "use_case") || undefined
+  });
+
+  if (!parsed.success) {
+    return { success: false, message: "Please complete the access request with a valid email." };
+  }
+
+  const eventName = parsed.data.access_type === "paid_pilot"
+    ? "paid_pilot_requested"
+    : parsed.data.access_type === "partner_preview"
+      ? "partner_preview_requested"
+      : "trial_access_requested";
+
+  try {
+    await addProductAccessRequest({
+      product_slug: parsed.data.product_slug as ProductSlug,
+      access_type: parsed.data.access_type as ProductAccessType,
+      email: parsed.data.email,
+      company_name: parsed.data.company_name,
+      role: parsed.data.role,
+      source_page: parsed.data.source_page,
+      use_case: parsed.data.use_case
+    });
+    await saveSubscriber({
+      email: parsed.data.email,
+      source_page: parsed.data.source_page,
+      source_type: "product_access",
+      topic_tag: parsed.data.product_slug === "leadradar" ? "manufacturing_social_lead_discovery" : "workflow_signal_research",
+      note: parsed.data.use_case
+    });
+    await trackTrialEvent({
+      product_slug: parsed.data.product_slug as ProductSlug,
+      event_type: eventName,
+      email: parsed.data.email,
+      source_page: parsed.data.source_page,
+      metadata: {
+        access_type: parsed.data.access_type,
+        company_name: parsed.data.company_name,
+        role: parsed.data.role
+      }
+    });
+  } catch (error) {
+    console.error("Failed to request product access:", error);
+    return {
+      success: false,
+      message: "Access request could not be submitted just now. Please email soloclientlab.com@gmail.com."
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/product-access");
+  revalidatePath("/admin/trials");
+  revalidatePath("/admin/subscribers");
+
+  return {
+    success: true,
+    message: parsed.data.access_type === "paid_pilot"
+      ? "Your paid pilot request has been received."
+      : parsed.data.access_type === "partner_preview"
+        ? "Your partner preview request has been received. The evaluation window is arranged through the collaboration conversation."
+        : "Your product access request has been received. Public self-serve trials use a 7-day window; co-build access is reviewed separately.",
+    eventName
+  };
+}
+
+export async function submitLeadRadarConfig(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = leadRadarConfigSchema.safeParse({
+    email: getText(formData, "email").toLowerCase(),
+    company_name: getText(formData, "company_name") || undefined,
+    target_market: getText(formData, "target_market") || undefined,
+    platforms: getText(formData, "platforms") || undefined,
+    keywords: getText(formData, "keywords"),
+    countries: getText(formData, "countries") || undefined,
+    capabilities: getText(formData, "capabilities") || undefined,
+    lead_types: getText(formData, "lead_types") || undefined,
+    notes: getText(formData, "notes") || undefined,
+    source_page: getText(formData, "source_page") || undefined
+  });
+
+  if (!parsed.success) {
+    return { success: false, message: "Please add your email and at least one keyword or signal phrase." };
+  }
+
+  const keywords = parsed.data.keywords
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
+
+  if (!keywords.length) {
+    return { success: false, message: "Please add at least one keyword or signal phrase." };
+  }
+
+  try {
+    await addLeadRadarConfig({
+      email: parsed.data.email,
+      company_name: parsed.data.company_name,
+      target_market: parsed.data.target_market,
+      platforms: parsed.data.platforms,
+      keywords,
+      countries: parsed.data.countries,
+      capabilities: parsed.data.capabilities,
+      lead_types: parsed.data.lead_types,
+      notes: parsed.data.notes
+    });
+    await trackTrialEvent({
+      product_slug: "leadradar",
+      event_type: "radar_config_completed",
+      email: parsed.data.email,
+      source_page: parsed.data.source_page,
+      metadata: {
+        keyword_count: keywords.length,
+        company_name: parsed.data.company_name
+      }
+    });
+    await trackTrialEvent({
+      product_slug: "leadradar",
+      event_type: "keywords_added",
+      email: parsed.data.email,
+      source_page: parsed.data.source_page,
+      metadata: { keywords }
+    });
+  } catch (error) {
+    console.error("Failed to submit LeadRadar config:", error);
+    return {
+      success: false,
+      message: "Configuration could not be submitted just now. Please email soloclientlab.com@gmail.com."
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/leadradar-configs");
+
+  return {
+    success: true,
+    message: "Your LeadRadar configuration has been received.",
+    eventName: "radar_config_completed"
   };
 }
 
@@ -377,35 +519,22 @@ export async function upsertDemand(formData: FormData) {
 }
 
 export async function upsertPost(formData: FormData) {
-  const relatedDemandIds = formData.getAll("related_demand_ids")
-    .map((value) => (typeof value === "string" ? value.trim() : ""))
-    .filter(Boolean);
   const postId = getText(formData, "id") || undefined;
 
   try {
-    const coverImage = formData.get("cover_image");
-    const existingCoverImageUrl = getText(formData, "existing_cover_image_url") || undefined;
-    const removeCoverImage = getText(formData, "remove_cover_image") === "on";
-    const uploadedCoverImageUrl = coverImage instanceof File ? await saveUploadedPostImage(coverImage) : undefined;
-
     await savePost({
       id: postId,
       title: getText(formData, "title"),
       slug: getText(formData, "slug"),
       summary: getText(formData, "summary") || undefined,
       content: getText(formData, "content") || undefined,
-      cover_image_url: removeCoverImage ? undefined : uploadedCoverImageUrl ?? existingCoverImageUrl,
-      related_persona: getText(formData, "related_persona") || undefined,
-      related_demand_ids: relatedDemandIds,
+      cover_image_url: getText(formData, "cover_image_url") || undefined,
       topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined,
       seo_title: getText(formData, "seo_title") || undefined,
       seo_description: getText(formData, "seo_description") || undefined,
-      cta_type: getText(formData, "cta_type") as PostCtaType,
-      cta_target: getText(formData, "cta_target") || undefined,
       status: getText(formData, "status") as PostStatus,
       published_at: getOptionalDateTime(formData, "published_at"),
-      read_time: getText(formData, "read_time") || undefined,
-      hero_label: getText(formData, "hero_label") || undefined
+      read_time: getText(formData, "read_time") || undefined
     });
   } catch (error) {
     console.error("Failed to save post:", error);

@@ -18,7 +18,7 @@ export default async function AdminResourcesPage() {
         </Link>
       </div>
       <SimpleTable
-        headers={["Title", "Slug", "Type", "Delivery", "Topic", "Subscribers", "Conversion share", "Status"]}
+        headers={["Title", "Slug", "Type", "Delivery", "Topic", "Contacts", "Conversion share", "Status"]}
         rows={resources.map((resource) => [
           <Link key={resource.id} href={`/admin/resources/${resource.id}`}>
             {resource.title}

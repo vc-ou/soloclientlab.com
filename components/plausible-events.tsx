@@ -7,7 +7,12 @@ type PlausibleEventName =
   | "tool_demo_clicked"
   | "tool_started"
   | "tool_completed"
-  | "tool_feedback_submitted";
+  | "tool_feedback_submitted"
+  | "trial_access_requested"
+  | "partner_preview_requested"
+  | "radar_config_completed"
+  | "paid_pilot_requested"
+  | "csv_exported";
 
 declare global {
   interface Window {

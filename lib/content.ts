@@ -2,7 +2,7 @@ import type { TopicTag } from "@/lib/types";
 
 export const siteName = "SoloClientLab.com";
 export const siteDescription =
-  "Research-backed client acquisition insights for solo service businesses, with practical validation guidance and AI workflows built for independent experts.";
+  "Research and products for solo consultants, service businesses, and manufacturing teams working on client acquisition and public demand signals.";
 
 export const publicSocialProof = {
   newsletterJoinCopy:
@@ -13,49 +13,45 @@ export const publicSocialProof = {
 
 export const homepageBottlenecks = [
   {
-    title: "Stop relying on random referrals",
-    body: "You rely on word-of-mouth, but you lack a predictable, repeatable channel to generate inbound interest whenever you need it."
+    title: "Signals disappear in noisy public threads",
+    body: "Useful buying, sourcing, and workflow questions get buried inside comments, accounts, and keyword paths before anyone can review them."
   },
   {
-    title: "Fix your messaging to attract high-value clients",
-    body: "Prospects don't immediately see why your offer fits their exact situation because your market positioning hasn't been validated by real-time demand data."
+    title: "Manual review does not scale",
+    body: "Teams can scan comments by hand for a while, but the process becomes inconsistent when volume rises or multiple people need to review the same signal."
   },
   {
-    title: "Automate your follow-up system for solo service businesses",
-    body: "You have content drafts and occasional text conversations, but no practical, automated workflows to consistently turn silent interest into discovery calls."
+    title: "Research needs a product loop",
+    body: "A pattern is only useful when it can move from article insight into a real workflow, configuration, review, export, and follow-up decision."
   }
 ] as const;
 
 export const homepageNextSteps = [
   {
-    title: "Diagnose the bottleneck",
-    body: "See which client acquisition problem is actually slowing growth right now instead of trying five tactics at once."
+    title: "Name the signal source",
+    body: "Start from the public threads, keywords, accounts, or comments where real demand language already appears."
   },
   {
-    title: "Pick a practical direction",
-    body: "Use research and lightweight workflow tests to choose the next acquisition move that fits a solo business with limited time."
+    title: "Connect research to a workflow",
+    body: "Use research to explain the repeated friction, then test whether a lightweight product can make that step easier."
   },
   {
-    title: "Build a lightweight system",
-    body: "Turn one-off outreach, content, and follow-up into a simple workflow you can repeat every week."
+    title: "Review before claiming validation",
+    body: "Treat page views and self-tests as weak signals; product use, configuration, export, and business feedback are stronger."
   }
 ] as const;
 
 export const topicLabels: Record<TopicTag, string> = {
-  client_acquisition: "Client Acquisition",
-  marketing_positioning: "Marketing & Positioning",
-  ai_automation: "AI & Automation",
-  offer_validation: "Offer Validation",
-  operations: "Operations"
+  manufacturing_social_lead_discovery: "Manufacturing Social Lead Discovery",
+  workflow_signal_research: "Workflow Signal Research",
+  solo_worker_client_acquisition: "Solo Worker Client Acquisition"
 };
 
 export const topicOptions = [
   { value: "all", label: "All topics" },
-  { value: "client_acquisition", label: topicLabels.client_acquisition },
-  { value: "marketing_positioning", label: topicLabels.marketing_positioning },
-  { value: "ai_automation", label: topicLabels.ai_automation },
-  { value: "offer_validation", label: topicLabels.offer_validation },
-  { value: "operations", label: topicLabels.operations }
+  { value: "manufacturing_social_lead_discovery", label: topicLabels.manufacturing_social_lead_discovery },
+  { value: "workflow_signal_research", label: topicLabels.workflow_signal_research },
+  { value: "solo_worker_client_acquisition", label: topicLabels.solo_worker_client_acquisition }
 ] as const;
 
 export const personaOptions = [
@@ -107,10 +103,10 @@ export const waitlistProjects = {
   },
   "leadradar-for-tiktok": {
     slug: "leadradar-for-tiktok",
-    name: "LeadRadarforTikTok",
-    headline: "LeadRadarforTikTok Early Interest List",
+    name: "LeadRadar",
+    headline: "LeadRadar Product Access for Manufacturing Teams",
     subtitle:
-      "A small Chrome sidebar experiment for B2B teams who want to turn TikTok comments into filterable, exportable demand signals.",
+      "Trial access and co-build access for CNC and manufacturing teams that want to turn social comments into reviewable, exportable demand signals.",
     fitItems: [
       {
         title: "You already scan comments for leads",
@@ -167,7 +163,7 @@ export const homeProofItems = [
   },
   {
     title: "Turn research into next steps",
-    body: "We turn repeated pain patterns into practical client acquisition experiments for solo service businesses."
+    body: "We turn repeated pain patterns into product experiments that can be tried, configured, and reviewed."
   },
   {
     title: "Validate before you build",
@@ -277,7 +273,7 @@ export const aboutMethodSteps = [
   {
     step: "3",
     title: "Validate",
-    body: "We compare research notes with site analytics, CTA clicks, subscriber behavior, replies, and waitlist submissions, while marking self-test activity separately."
+    body: "We compare research notes with GSC search data, product-page visits, workflow usage, direct replies, and user feedback while marking self-test activity separately."
   },
   {
     step: "4",
@@ -288,7 +284,7 @@ export const aboutMethodSteps = [
     step: "5",
     title: "Build & Validate Workflows",
     body: "When research uncovers a repeatable workflow gap, we build small demos or MVPs before claiming a broader product category.",
-    activeExperiment: "Current experiment: LeadRadar for TikTok comment signal review →",
-    activeExperimentHref: "/tools/leadradar"
+    activeExperiment: "Current product: LeadRadar for CNC / Manufacturing →",
+    activeExperimentHref: "/products/leadradar"
   }
 ];

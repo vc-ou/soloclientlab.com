@@ -3,16 +3,15 @@ import Link from "next/link";
 import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { getPublicPosts } from "@/lib/db";
 import { homeProofItems, homepageBottlenecks, homepageNextSteps } from "@/lib/content";
-import { getLeadRadarExtensionCtaLabel, getLeadRadarExtensionHref, getLeadRadarExtensionSupportCopy } from "@/lib/extension-links";
 
-const leadRadarDemoHref = "/tools/leadradar";
+const leadRadarProductHref = "/products/leadradar";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Solo Consultant Client Acquisition Tools | SoloClientLab.com"
+    absolute: "Client Acquisition Research + Products | SoloClientLab"
   },
   description:
-    "Find high-intent client demand in public threads with research-backed acquisition workflows, lightweight tools, and repeatable systems for solo experts.",
+    "Research on client acquisition for solo consultants and one-person service businesses, plus focused products such as LeadRadar for CNC and manufacturing teams.",
   alternates: {
     canonical: "/"
   }
@@ -21,9 +20,6 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const posts = await getPublicPosts();
   const featured = posts.slice(0, 3);
-  const extensionHref = getLeadRadarExtensionHref();
-  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
-  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
   return (
     <>
@@ -32,28 +28,30 @@ export default async function HomePage() {
         className="hero-copy-90 hero-home-wide"
         title={
           <span className="hero-title-lockup">
-            <span className="hero-title-line">Client acquisition for solo consultants</span>
-            <span className="hero-title-line hero-title-accent">Spot High-Intent Demand Signals</span>
+            <span className="hero-title-line">Client acquisition research for solo consultants</span>
+            <span className="hero-title-line hero-title-accent">Focused products for manufacturing teams</span>
           </span>
         }
-        description="Research-backed client acquisition workflows for solo service businesses. Find, validate, and convert leads from public conversations without relying on noisy social media algorithms."
+        description="SoloClientLab publishes research on how solo service businesses get clients without relying on referrals, then builds focused products such as LeadRadar for CNC and manufacturing teams."
         aside={
           <div className="hero-showcase">
             <div className="hero-actions hero-primary-actions">
-              <Link href={leadRadarDemoHref} className="button primary">
-                Try LeadRadar now
+              <Link href={leadRadarProductHref} className="button primary">
+                Explore LeadRadar
               </Link>
-              <Link href={extensionHref} className="button secondary">
-                {extensionCtaLabel}
+              <Link href="/research" className="button secondary">
+                Explore research
               </Link>
             </div>
-            <div className="hero-visual hero-device-stage">
-              <div id="home-hero-cta-card" className="hero-device-card hero-device-card-flat">
-                <p className="eyebrow">SoloClientLab.com</p>
-                <strong>Research, tools, and demand workflows</strong>
-                <p>Use research and focused tooling to find better signals before they get buried in noisy public threads.</p>
+            <div className="hero-product-rail">
+              <div>
+                <p className="eyebrow">Current product</p>
+                <strong>LeadRadar for CNC / Manufacturing</strong>
+                <p>Review sourcing and buying signals from public social conversations before they get buried.</p>
               </div>
-              <div className="hero-device-glow" />
+              <Link href={leadRadarProductHref} className="inline-report-link">
+                View product <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         }
@@ -64,11 +62,11 @@ export default async function HomePage() {
           <div className="stats-strip hero-stats hero-bottom-stats">
             <div>
               <strong>Early-stage</strong>
-              <span>Research project</span>
+              <span>Research + product lab</span>
             </div>
             <div>
               <strong>In progress</strong>
-              <span>Workflow experiments</span>
+              <span>Signal workflows</span>
             </div>
           </div>
         </div>
@@ -87,7 +85,7 @@ export default async function HomePage() {
 
       <section className="container">
         <div className="section-panel">
-          <SectionHeading title="Where solo service businesses usually get stuck" />
+          <SectionHeading title="Where public demand workflows usually break down" />
           <div className="grid-3">
             {homepageBottlenecks.map((item) => (
               <div key={item.title} className="card">
@@ -98,8 +96,8 @@ export default async function HomePage() {
           </div>
           <div className="inline-report-cta">
             <p>Some workflows are best understood in public research. Others need a working tool and a tighter feedback loop.</p>
-            <Link href={leadRadarDemoHref} className="inline-report-link">
-              Try the LeadRadar demo <span aria-hidden="true">→</span>
+            <Link href={leadRadarProductHref} className="inline-report-link">
+              Explore LeadRadar for manufacturing <span aria-hidden="true">→</span>
             </Link>
             <p>Use the tool first on-site, then decide whether the extension workflow is worth the next step.</p>
           </div>
@@ -128,8 +126,8 @@ export default async function HomePage() {
         <div className="two-column home-conversion-panel">
           <div className="resource-showcase">
             <p className="eyebrow">Live workflow</p>
-            <h2>Move from research into a real demand-capture workflow</h2>
-            <p>When a repeated problem deserves a real test, we turn it into a lightweight workflow and expose it to early operators in public.</p>
+            <h2>Move from Research into a product workflow</h2>
+            <p>When a repeated problem deserves a real test, we turn it into a focused product workflow with trial access and calibration feedback.</p>
             <div className="activity-list">
               {homepageNextSteps.map((item) => (
                 <div key={item.title}>
@@ -138,10 +136,10 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-            <Link href={leadRadarDemoHref} className="button primary">
-              Try LeadRadar now
+            <Link href={leadRadarProductHref} className="button primary">
+              Explore LeadRadar
             </Link>
-            <p style={{ marginTop: 12 }}>Start with the on-site demo. Move to extension install or private access only if the workflow feels useful.</p>
+            <p style={{ marginTop: 12 }}>See how the product supports manufacturing teams before opening the on-site demo or requesting trial access.</p>
           </div>
         </div>
       </section>

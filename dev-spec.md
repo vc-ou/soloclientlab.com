@@ -1,16 +1,16 @@
-# SoloClientLab.com V1 开发规格
+# SoloClientLab.com V2 开发规格
 
 ## 1. 产品范围
 
-本项目是一个面向英文用户的独立站，首版目标是验证：
+本项目是一个面向英文用户的独立站，V2 目标是验证：
 
-`Research 内容 / 外部分发 -> 直接使用工具 -> 反馈 / 邮箱承接 -> Waitlist -> 后续付费验证`
+`Research -> SEO / GSC -> Markdown 内链 -> Products -> Trial / Install / Configure / Review / Feedback / Paid pilot`
 
-V1 聚焦主题：
+V2 聚焦主题：
 
-`client acquisition for solo service businesses`
+`public demand signals + LeadRadar for CNC / Manufacturing`
 
-V1 不开发支付、会员、社区、自动邮件营销、AI 自动抓取、Programmatic SEO、复杂 Dashboard。
+V2 不开发完整支付、会员、社区、自动邮件营销、AI 自动抓取、Programmatic SEO、复杂 Dashboard。
 
 ## 2. 技术栈
 
@@ -30,71 +30,79 @@ V1 不开发支付、会员、社区、自动邮件营销、AI 自动抓取、Pr
 
 | Route | Page | Purpose |
 | --- | --- | --- |
-| `/` | Home | 主入口，优先推动工具开始使用，并并列承接邮箱 |
-| `/research` | Research index | 展示研究文章列表，并把流量导向工具或后续承接 |
-| `/research/[slug]` | Research detail | 承接 SEO 流量，并导向工具、资源或订阅 |
-| `/resources` | Resources hub | 隐藏的次级承接页，用于研究集合与订阅承接 |
-| `/resources/client-acquisition-report` | Resource page | 现有次级资源页，偏向更新与订阅承接，不作为主入口 |
-| `/newsletter` | Newsletter landing | 解释订阅价值并承接高意向用户 |
-| `/waitlist/[slug]` | Waitlist page | 收集高意向用户 |
-| `/about` | About | 介绍作者和研究方法 |
+| `/` | Home | Research + Products 共存入口，主 CTA 导向 Products / LeadRadar，次级 CTA 导向 Research |
+| `/research` | Research index | 展示研究文章列表，按三个 V2 栏目组织 SEO / GSC 承接 |
+| `/research/[slug]` | Research detail | 承接 SEO 流量，通过 Markdown 内链导向 Products、产品页、栏目或相关文章 |
+| `/products` | Products index | 展示当前正式产品入口 |
+| `/products/leadradar` | LeadRadar product page | LeadRadar for CNC / Manufacturing 正式产品页 |
+| `/tools/leadradar` | LeadRadar demo bridge | 保留旧曝光页，作为 demo / bridge 页面并链接到正式产品页 |
+| `/resources` | Resources hub | Legacy redirect / secondary route, not primary IA |
+| `/resources/client-acquisition-report` | Resource page | Legacy secondary resource route |
+| `/newsletter` | Newsletter landing | Legacy redirect route, not primary IA |
+| `/waitlist/[slug]` | Product access page | Product Access / Trial Access / Co-build Access 采集页 |
+| `/about` | About | Research + Product Lab 方法说明 |
 
 ### Admin Routes
 
 | Route | Page | Purpose |
 | --- | --- | --- |
 | `/admin` | Admin overview | 查看核心指标 |
-| `/admin/demands` | Demand database | 管理需求记录 |
-| `/admin/posts` | Research CMS | 管理文章 |
-| `/admin/resources` | Resource manager | 管理免费资源 |
-| `/admin/subscribers` | Subscriber center | 管理订阅用户 |
-| `/admin/waitlists` | Waitlist center | 管理 Waitlist 线索 |
+| `/admin/metrics` | Metrics center | 查看产品侧本地信号，并提示结合 GSC |
+| `/admin/post-analytics` | Post analytics | 查看文章站内访问，GSC 是文章判断主来源 |
+| `/admin/posts` | Article CMS | 管理 SEO-ready 文章 |
+| `/admin/subscribers` | Contacts | 查看历史订阅、联系记录和产品访问相关联系人 |
+| `/admin/waitlists` | Access Leads | 查看 Product Access / Trial Access / Co-build Access 线索 |
+| `/admin/feedback` | Trial & Calibration Feedback | 查看产品试用和校准反馈 |
 
 Admin routes require Supabase Auth.
+
+Legacy admin routes remain available by direct URL for old data compatibility, but they are not part of the V2 main sidebar:
+
+- `/admin/demands`
+- `/admin/resources`
+- `/admin/subscribers` remains the URL, but the UI calls it Contacts
+- `/admin/waitlists` remains the URL, but the UI calls it Access Leads
 
 ## 4. Public Pages
 
 ### 4.1 Home `/`
 
-Primary goal: tool engagement.
+Primary goal: Research + Products 共存，并优先导向 Products / LeadRadar。
 
 Required sections:
 
 - Hero
-- Tool entry module
+- Products / LeadRadar entry
 - Value proposition
 - Lightweight feedback prompt
 - Install extension CTA for tool flows that require browser extension usage
 - Featured research
-- Tool + email coexistence block
+- Research + Product Lab proof
 - Research method or simple proof section
 
 Hero copy:
 
-- H1: `A practical tool for solo service businesses that need clients`
-- Subtitle: `Use the tool first, see immediate value, then decide whether you want deeper research, updates, or to continue in the full extension workflow.`
-- Primary CTA: `Start using the tool`
-- Secondary CTA: `Read the research`
+- H1: `Research that explains the signal. Products that help you act on it.`
+- Subtitle: `SoloClientLab studies public conversations, search behavior, and workflow friction, then turns repeatable demand signals into focused products.`
+- Primary CTA: `Explore products`
+- Secondary CTA: `Explore research`
 
 Behavior:
 
-- Primary CTA jumps to the homepage tool entry section
+- Primary CTA links to `/products` or `/products/leadradar`
 - Secondary CTA links to `/research`
 - Homepage includes an interactive tool entry area above the fold or immediately below the hero
 - Tool can be started without login and without mandatory email capture
-- Newsletter form remains available on homepage as a parallel path, not as the blocking first step
+- Newsletter / lead magnet / waitlist language is not used in the homepage primary path
 - Tool section includes a lightweight feedback question such as `Was this useful?` or `What were you trying to solve?`
-- For tools that require browser extension for real-world usage, homepage includes a post-result CTA linking to the Chrome Web Store `Unlisted` listing
+- For tools that require browser extension for real-world usage, homepage routes users to the product page first; public installation uses Microsoft Edge Add-ons after the listing is approved
 - On successful subscription, show a success state without redirecting
 
 Acceptance criteria:
 
-- User can start the tool from homepage without registration
-- User can still subscribe from homepage
-- Submission creates a row in `subscribers`
-- Source fields identify homepage signup
-- Homepage clearly presents both tool entry and email capture without forcing order
-- If extension continuation is enabled, the page includes a clear install CTA that points to the Chrome Web Store `Unlisted` listing
+- User can reach Products and Research from the first screen
+- Homepage clearly presents Research + Products as the V2 positioning
+- If extension continuation is enabled, the page includes a clear install CTA that points to Microsoft Edge Add-ons after approval; before approval it degrades to Product Access
 - Page has SEO title and meta description
 
 ### 4.2 Research Index `/research`
@@ -107,7 +115,7 @@ Required elements:
 - Short description
 - Topic filter
 - Article list
-- CTA that routes users toward the tool or newsletter
+- Optional links toward relevant Products or Research categories
 
 Article card fields:
 
@@ -132,7 +140,7 @@ Acceptance criteria:
 
 ### 4.3 Research Detail `/research/[slug]`
 
-Purpose: SEO content page and tool / conversion bridge.
+Purpose: SEO content page, GSC validation surface, and lightweight internal-link bridge.
 
 Required elements:
 
@@ -140,33 +148,23 @@ Required elements:
 - Summary
 - Published date
 - Main content
-- Related demand evidence section, if available
-- Inline CTA block
-- End-of-post Newsletter CTA
-
-CTA types:
-
-- `tool`
-- `extension_install`
-- `newsletter`
-- `lead_magnet`
-- `waitlist`
+- Optional internal links written directly in Markdown
+- Optional related research links
 
 Behavior:
 
 - Render content from Markdown
 - Use `seo_title` and `seo_description` for metadata
-- If `cta_type = tool`, CTA links to `/#tool-entry` or the current homepage tool anchor
-- If `cta_type = extension_install`, CTA links to configured Chrome Web Store `Unlisted` URL
-- If `cta_type = lead_magnet`, CTA links to `/resources/client-acquisition-report`
-- If `cta_type = newsletter`, CTA shows inline email form
-- If `cta_type = waitlist`, CTA links to configured waitlist page
+- Do not require a configured article CTA for new posts
+- Product promotion should happen through Markdown internal links to `/products`, product pages, research categories, or related articles
+- Newsletter / lead magnet / waitlist / demand-association fields are removed from the default V2 publishing flow
+- `cta_type` and `cta_target` remain legacy optional data only; they are not shown or required in the Post editor and do not render automatic article CTAs
+- Optional `cover_image_url` is retained for social sharing metadata while Research cards stay text-first
 
 Acceptance criteria:
 
 - Article renders Markdown content
-- Email signup from article creates subscriber with `source_type = post`
-- Research detail can route readers directly into the tool experience
+- Article can link readers to related products or research pages through normal Markdown links
 - Metadata is generated per post
 
 ### 4.4 Resources Hub `/resources`
@@ -287,20 +285,21 @@ Purpose: move qualified users from web trial into the full browser-extension wor
 
 Distribution method:
 
-- Chrome Web Store `Unlisted`
+- Microsoft Edge Add-ons for public self-serve distribution
+- Product Access / Partner Preview while the listing is under review
 
 Requirements:
 
 - Install CTA is shown only after the user has had a chance to see trial results, or in clearly secondary placement
-- CTA opens the Chrome Web Store listing
+- CTA opens the Microsoft Edge Add-ons listing after approval
 - Page copy must not imply GitHub download or manual unpacked installation
-- If the Chrome Web Store link is not yet available, CTA should degrade to newsletter or waitlist capture
+- If the Microsoft Edge Add-ons link is not yet available, CTA should degrade to Product Access rather than newsletter/waitlist language
 
 Acceptance criteria:
 
 - Install CTA can be configured from environment or content config
 - Clicks on install CTA are trackable
-- User-facing copy matches the `Unlisted` distribution path
+- User-facing copy matches the current Edge Add-ons state: under review before approval, install after approval
 
 ### 4.9 About `/about`
 
@@ -324,21 +323,19 @@ Acceptance criteria:
 
 Display metric cards:
 
-- total demands
 - published posts
-- total subscribers
-- qualified subscribers
-- waitlist count
+- LeadRadar workflow opens
 
-Display simple recent activity:
+Display insight cards:
 
-- latest subscribers
-- latest waitlist entries
-- latest demands
+- article publishing / GSC review reminder
+- product movement reminder
+- legacy-data hidden reminder
 
 Acceptance criteria:
 
 - Authenticated user can view metrics
+- Overview does not show Demand, Subscriber, Resource, or Waitlist modules as V2 core workflow
 - Unauthenticated user is redirected to login
 
 ### 5.2 Demand Database `/admin/demands`
@@ -401,7 +398,6 @@ List columns:
 - slug
 - status
 - topic_tag
-- cta_type
 - published_at
 
 Create/edit fields:
@@ -410,19 +406,14 @@ Create/edit fields:
 - slug, required unique
 - summary
 - content, Markdown
-- related_persona
-- related_demand_ids
 - topic_tag
 - seo_title
 - seo_description
-- cta_type
-- cta_target
 - status
 - published_at
 
 Enums:
 
-- cta_type: `tool`, `extension_install`, `newsletter`, `lead_magnet`, `waitlist`, `none`
 - status: `draft`, `published`, `archived`
 
 Acceptance criteria:
@@ -553,13 +544,9 @@ Acceptance criteria:
 | slug | text | yes | unique |
 | summary | text | no | |
 | content | text | no | Markdown |
-| related_persona | text | no | |
-| related_demand_ids | uuid[] | no | demand ids |
 | topic_tag | text | no | |
 | seo_title | text | no | |
 | seo_description | text | no | |
-| cta_type | text | yes | tool, extension_install, newsletter, lead_magnet, waitlist, none |
-| cta_target | text | no | URL or slug |
 | status | text | yes | draft, published, archived |
 | published_at | timestamptz | no | |
 | created_at | timestamptz | yes | default now() |
@@ -693,12 +680,13 @@ Track these events through Plausible or local metrics:
 | `tool_started` | user begins the homepage tool flow |
 | `tool_completed` | user reaches the core result or completion state |
 | `tool_feedback_submitted` | user submits lightweight post-result feedback |
-| `extension_install_clicked` | user clicks the Chrome Web Store install CTA |
+| `install_clicked` | user clicks the Microsoft Edge Add-ons install CTA after approval |
+| `trial_access_requested` | user requests Product Access while the listing is pending or while support is needed |
 | `newsletter_signup` | successful subscriber creation |
 | `resource_signup` | successful resource form submission |
 | `waitlist_signup` | successful waitlist form submission |
-| `research_cta_click` | user clicks CTA inside research article |
-| `lead_magnet_cta_click` | user clicks lead magnet CTA |
+| `research_internal_link_click` | user clicks a tracked internal link inside research content, if tracking is enabled |
+| `product_page_visit` | user visits a product page from research or navigation |
 
 ## 9. Initial Seed Data
 
@@ -738,18 +726,15 @@ Create at least 3 draft posts:
 ## 10. MVP Acceptance Checklist
 
 - Public homepage renders and lets users start the tool without registration
-- Public homepage still has working email signup
-- Public homepage can optionally route qualified users to Chrome Web Store `Unlisted`
+- Public homepage can route qualified users to LeadRadar Product Access while Edge Add-ons is under review, and to Microsoft Edge Add-ons after approval
 - Research index renders published posts only
-- Research detail renders Markdown and CTA
-- Secondary resource page collects email and stores source metadata
-- Newsletter page collects email
-- Waitlist page collects high-intent users
+- Research detail renders Markdown, SEO metadata, and internal links
+- Legacy resource, newsletter, and waitlist URLs remain reachable or redirected if already public
 - About page renders
 - Admin login protects admin routes
-- Admin can create, edit, and archive demands
 - Admin can create draft and published posts
-- Admin can view subscribers and waitlists
+- Admin sidebar shows V2 core entries: Overview, Metrics, Post Analytics, Posts, Contacts, Access Leads, Feedback
+- Admin can review article views locally and use GSC for search performance
 - Subscriber duplicate email handling works
 - Metrics overview shows basic counts
 - App works without MailerLite configured

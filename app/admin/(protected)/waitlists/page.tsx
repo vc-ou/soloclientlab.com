@@ -24,9 +24,9 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
   );
 
   return (
-    <AdminShell title="Waitlists">
+    <AdminShell title="Access Leads">
       <div className="admin-topbar">
-        <p>Filter waitlist signups by project, slug, interest, or source page.</p>
+        <p>Review product access and trial-interest records by product, access page, interest, or source page.</p>
         <Link
           href={exportParams.toString() ? `/admin/waitlists/export?${exportParams.toString()}` : "/admin/waitlists/export"}
           className="button ghost"
@@ -36,7 +36,7 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
       </div>
       <FilterForm resetHref="/admin/waitlists">
         <label className="field">
-          <span>Project</span>
+          <span>Product</span>
           <select name="project_name" defaultValue={filters.project_name ?? ""}>
             <option value="">All projects</option>
             {filterOptions.projects.map((option) => (
@@ -81,7 +81,7 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
         </label>
       </FilterForm>
       <SimpleTable
-        headers={["Project", "Page slug", "Email", "Interest", "Source page", "Created"]}
+        headers={["Product", "Access page", "Email", "Interest", "Source page", "Created"]}
         rows={waitlists.map((entry) => [
           entry.project_name,
           entry.page_slug,

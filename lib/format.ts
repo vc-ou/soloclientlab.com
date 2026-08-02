@@ -13,6 +13,13 @@ export function formatDate(date?: string) {
 export function labelForTopic(topic?: string) {
   if (!topic) return "Research";
 
+  if (topic === "client_acquisition" || topic === "marketing_positioning") {
+    return topicLabels.solo_worker_client_acquisition;
+  }
+  if (topic === "ai_automation" || topic === "offer_validation" || topic === "operations") {
+    return topicLabels.workflow_signal_research;
+  }
+
   return topicLabels[topic as keyof typeof topicLabels] ?? topic;
 }
 

@@ -26,8 +26,8 @@ export function AdminShell({
       <main className="admin-main">
         <div className="admin-topbar">
           <h1>{title}</h1>
-          <Link href="/" className="button ghost">
-            View site
+          <Link href="/products" className="button ghost">
+            View products
           </Link>
         </div>
         {children}

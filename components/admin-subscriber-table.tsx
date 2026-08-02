@@ -36,7 +36,7 @@ function DeleteSubscriberButton({ id }: { id: string }) {
         className="button ghost danger-button"
         disabled={pending}
         onClick={(event) => {
-          if (!window.confirm("Delete this subscriber? This cannot be undone.")) {
+          if (!window.confirm("Delete this contact? This cannot be undone.")) {
             event.preventDefault();
           }
         }}
@@ -85,7 +85,7 @@ function SubscriberNoteModal({
       >
         <div className="admin-modal-header">
           <div>
-            <p className="eyebrow">Subscriber note</p>
+            <p className="eyebrow">Contact note</p>
             <h2 id="subscriber-note-title">{subscriber.email}</h2>
           </div>
           <button type="button" className="button ghost" onClick={onClose}>
@@ -148,7 +148,7 @@ export function AdminSubscriberTable({ subscribers }: { subscribers: Subscriber[
               <th>Email</th>
               <th>Source type</th>
               <th>Source page</th>
-              <th>Secondary source</th>
+              <th>Legacy source</th>
               <th>Persona</th>
               <th>Topic</th>
               <th>Status</th>

@@ -44,7 +44,7 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
   return (
     <>
       <PageHero
-        eyebrow="Join the waitlist"
+        eyebrow="Product access"
         title={project.headline}
         description={project.subtitle}
         aside={
@@ -69,7 +69,7 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
       </section>
 
       <section className="container">
-        <h2>What this workflow will help you do</h2>
+        <h2>What this product access can help you test</h2>
         <div className="grid-5">
           {outcomeItems.map((item) => (
             <div key={item} className="card">
@@ -82,7 +82,7 @@ export default async function WaitlistPage({ params, searchParams }: WaitlistPag
 
       <section className="container">
         <div className="quote-banner">
-          <h3>Who this is for</h3>
+          <h3>Who this access is for</h3>
           <p>{project.whoThisIsFor}</p>
           <p style={{ marginBottom: 0 }}>{publicSocialProof.newsletterJoinCopy}</p>
         </div>

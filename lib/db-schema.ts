@@ -31,22 +31,41 @@ create table if not exists posts (
   summary text,
   content text,
   cover_image_url text,
-  related_persona text,
-  related_demand_ids jsonb not null default '[]'::jsonb,
   topic_tag text,
   seo_title text,
   seo_description text,
-  cta_type text not null,
+  cta_type text,
   cta_target text,
   status text not null,
   published_at timestamptz,
   created_at timestamptz not null,
   updated_at timestamptz not null,
-  read_time text,
-  hero_label text
+  read_time text
 );
 
 alter table posts add column if not exists cover_image_url text;
+alter table posts add column if not exists cta_type text;
+alter table posts add column if not exists cta_target text;
+alter table posts drop column if exists related_persona;
+alter table posts drop column if exists related_demand_ids;
+alter table posts drop column if exists hero_label;
+
+update posts
+set topic_tag = case topic_tag
+  when 'client_acquisition' then 'solo_worker_client_acquisition'
+  when 'marketing_positioning' then 'solo_worker_client_acquisition'
+  when 'ai_automation' then 'workflow_signal_research'
+  when 'offer_validation' then 'workflow_signal_research'
+  when 'operations' then 'workflow_signal_research'
+  else topic_tag
+end
+where topic_tag in (
+  'client_acquisition',
+  'marketing_positioning',
+  'ai_automation',
+  'offer_validation',
+  'operations'
+);
 
 create table if not exists resources (
   id text primary key,
@@ -96,11 +115,14 @@ create table if not exists post_events (
   post_id text references posts(id) on delete set null,
   post_slug text not null,
   event_type text not null,
-  cta_type text,
   path text,
   referrer text,
+  target_url text,
   created_at timestamptz not null
 );
+
+alter table post_events drop column if exists cta_type;
+alter table post_events add column if not exists target_url text;
 
 create table if not exists feedback (
   id text primary key,
@@ -110,6 +132,63 @@ create table if not exists feedback (
   problem_context text not null,
   attachment_url text,
   attachment_name text,
+  created_at timestamptz not null
+);
+
+create table if not exists product_access_requests (
+  id text primary key,
+  product_slug text not null,
+  access_type text not null,
+  email text not null,
+  company_name text,
+  role text,
+  source_page text,
+  use_case text,
+  status text not null default 'new',
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists product_trials (
+  id text primary key,
+  product_slug text not null,
+  email text not null,
+  access_request_id text references product_access_requests(id) on delete set null,
+  status text not null,
+  trial_started_at timestamptz,
+  trial_ends_at timestamptz,
+  co_build_unlock_ends_at timestamptz,
+  source_page text,
+  notes text,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists leadradar_configs (
+  id text primary key,
+  email text not null,
+  company_name text,
+  target_market text,
+  platforms text,
+  keywords jsonb not null default '[]'::jsonb,
+  countries text,
+  capabilities text,
+  lead_types text,
+  notes text,
+  status text not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists trial_events (
+  id text primary key,
+  product_slug text not null,
+  event_type text not null,
+  email text,
+  source_page text,
+  path text,
+  referrer text,
+  metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null
 );
 
@@ -125,4 +204,12 @@ create index if not exists idx_post_events_post_slug on post_events (post_slug);
 create index if not exists idx_post_events_event_type on post_events (event_type);
 create index if not exists idx_feedback_tool_slug on feedback (tool_slug);
 create index if not exists idx_feedback_created_at on feedback (created_at desc);
+create index if not exists idx_product_access_requests_product_slug on product_access_requests (product_slug);
+create index if not exists idx_product_access_requests_email on product_access_requests (email);
+create index if not exists idx_product_trials_product_slug on product_trials (product_slug);
+create index if not exists idx_product_trials_status on product_trials (status);
+create index if not exists idx_leadradar_configs_email on leadradar_configs (email);
+create index if not exists idx_trial_events_product_slug on trial_events (product_slug);
+create index if not exists idx_trial_events_event_type on trial_events (event_type);
+create index if not exists idx_trial_events_created_at on trial_events (created_at desc);
 `;

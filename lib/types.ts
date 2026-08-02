@@ -1,14 +1,36 @@
 export type TopicTag =
-  | "client_acquisition"
-  | "marketing_positioning"
-  | "ai_automation"
-  | "offer_validation"
-  | "operations";
+  | "manufacturing_social_lead_discovery"
+  | "workflow_signal_research"
+  | "solo_worker_client_acquisition";
 
 export type PostStatus = "draft" | "published" | "archived";
-export type PostCtaType = "newsletter" | "lead_magnet" | "waitlist" | "none";
-export type EventCtaType = PostCtaType | "tool_demo";
-export type PostEventType = "view" | "cta_click" | "subscription";
+export type PostEventType =
+  | "view"
+  | "cta_click"
+  | "article_internal_link_click"
+  | "product_page_view"
+  | "trial_access_click"
+  | "install_click"
+  | "demo_open"
+  | "review_complete";
+export type ProductSlug = "leadradar" | "needradar-workflow-lab";
+export type ProductAccessType = "product_access" | "trial_access" | "co_build_access" | "partner_preview" | "paid_pilot";
+export type ProductAccessStatus = "new" | "reviewing" | "invited" | "declined";
+export type ProductTrialStatus = "requested" | "active" | "completed" | "expired" | "paid_pilot_requested";
+export type LeadRadarConfigStatus = "started" | "completed";
+export type TrialEventType =
+  | "product_page_visit"
+  | "trial_access_requested"
+  | "partner_preview_requested"
+  | "install_clicked"
+  | "radar_config_started"
+  | "radar_config_completed"
+  | "keywords_added"
+  | "review_completed"
+  | "csv_exported"
+  | "calibration_feedback_submitted"
+  | "paid_pilot_requested"
+  | "demo_open";
 export type DemandStatus =
   | "raw"
   | "reviewed"
@@ -26,7 +48,8 @@ export type SourceType =
   | "post"
   | "resource"
   | "newsletter_page"
-  | "waitlist";
+  | "waitlist"
+  | "product_access";
 
 export type Demand = {
   id: string;
@@ -58,19 +81,16 @@ export type Post = {
   summary?: string;
   content?: string;
   cover_image_url?: string;
-  related_persona?: string;
-  related_demand_ids?: string[];
   topic_tag?: TopicTag;
   seo_title?: string;
   seo_description?: string;
-  cta_type: PostCtaType;
+  cta_type?: string;
   cta_target?: string;
   status: PostStatus;
   published_at?: string;
   created_at: string;
   updated_at: string;
   read_time?: string;
-  hero_label?: string;
 };
 
 export type Resource = {
@@ -119,9 +139,66 @@ export type PostEvent = {
   post_id?: string;
   post_slug: string;
   event_type: PostEventType;
-  cta_type?: EventCtaType;
   path?: string;
   referrer?: string;
+  target_url?: string;
+  created_at: string;
+};
+
+export type ProductAccessRequest = {
+  id: string;
+  product_slug: ProductSlug;
+  access_type: ProductAccessType;
+  email: string;
+  company_name?: string;
+  role?: string;
+  source_page?: string;
+  use_case?: string;
+  status: ProductAccessStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductTrial = {
+  id: string;
+  product_slug: ProductSlug;
+  email: string;
+  access_request_id?: string;
+  status: ProductTrialStatus;
+  trial_started_at?: string;
+  trial_ends_at?: string;
+  co_build_unlock_ends_at?: string;
+  source_page?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LeadRadarConfig = {
+  id: string;
+  email: string;
+  company_name?: string;
+  target_market?: string;
+  platforms?: string;
+  keywords: string[];
+  countries?: string;
+  capabilities?: string;
+  lead_types?: string;
+  notes?: string;
+  status: LeadRadarConfigStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TrialEvent = {
+  id: string;
+  product_slug: ProductSlug;
+  event_type: TrialEventType;
+  email?: string;
+  source_page?: string;
+  path?: string;
+  referrer?: string;
+  metadata?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -142,12 +219,7 @@ export type PostPerformance = {
   slug: string;
   status: PostStatus;
   publishedAt?: string;
-  ctaType: PostCtaType;
   views: number;
-  ctaClicks: number;
-  subscriptions: number;
-  ctaClickRate: number;
-  subscriptionRate: number;
   lastEventAt?: string;
 };
 
@@ -159,6 +231,10 @@ export type Database = {
   waitlists: WaitlistEntry[];
   post_events: PostEvent[];
   feedback: FeedbackEntry[];
+  product_access_requests: ProductAccessRequest[];
+  product_trials: ProductTrial[];
+  leadradar_configs: LeadRadarConfig[];
+  trial_events: TrialEvent[];
 };
 
 export type ActionState = {
@@ -166,5 +242,13 @@ export type ActionState = {
   message: string;
   redirectUrl?: string;
   redirectLabel?: string;
-  eventName?: "newsletter_signup" | "resource_signup" | "waitlist_signup" | "tool_feedback_submitted";
+  eventName?:
+    | "newsletter_signup"
+    | "resource_signup"
+    | "waitlist_signup"
+    | "tool_feedback_submitted"
+    | "trial_access_requested"
+    | "partner_preview_requested"
+    | "radar_config_completed"
+    | "paid_pilot_requested";
 };

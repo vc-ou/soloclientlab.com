@@ -1,7 +1,7 @@
 import { AdminShell, FormActions } from "@/components/admin";
 import { PostEditorFields } from "@/components/post-editor-fields";
 import { upsertPost } from "@/lib/actions";
-import { getAdminPosts, getAnyPostById, getDemands } from "@/lib/db";
+import { getAdminPosts, getAnyPostById } from "@/lib/db";
 
 type PostEditorProps = {
   params: Promise<{ id: string }>;
@@ -12,9 +12,8 @@ export default async function PostEditorPage({ params, searchParams }: PostEdito
   const { id } = await params;
   const { error } = await searchParams;
   const preferLocal = process.env.NODE_ENV !== "production";
-  const [post, demands, posts] = await Promise.all([
+  const [post, posts] = await Promise.all([
     id === "new" ? Promise.resolve(null) : getAnyPostById(id, { preferLocal, timeoutMs: 4000 }).then((item) => item ?? null),
-    getDemands({ preferLocal, timeoutMs: 4000 }),
     getAdminPosts()
   ]);
 
@@ -23,7 +22,7 @@ export default async function PostEditorPage({ params, searchParams }: PostEdito
       <form action={upsertPost} className="admin-form" encType="multipart/form-data">
         {error ? <p className="admin-action-feedback">{decodeURIComponent(error)}</p> : null}
         <input type="hidden" name="id" value={post?.id ?? ""} />
-        <PostEditorFields post={post} demands={demands} posts={posts} />
+        <PostEditorFields post={post} posts={posts} />
         <FormActions />
       </form>
     </AdminShell>

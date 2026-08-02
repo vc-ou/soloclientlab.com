@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/post-detail";
-import { getDemandsByIds, getPostBySlug, getRelatedPosts } from "@/lib/db";
+import { getPostBySlug, getRelatedPosts } from "@/lib/db";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 
@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       type: "article",
       publishedTime: post.published_at,
       modifiedTime: post.updated_at,
-      images: post.cover_image_url ? [post.cover_image_url] : undefined
+      images: post.cover_image_url ? [{ url: post.cover_image_url }] : undefined
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title: post.seo_title ?? post.title,
       description: post.seo_description ?? post.summary,
       images: post.cover_image_url ? [post.cover_image_url] : undefined
@@ -49,10 +49,7 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const [related, relatedDemands] = await Promise.all([
-    getRelatedPosts(post.slug, 3),
-    getDemandsByIds(post.related_demand_ids ?? [])
-  ]);
+  const related = await getRelatedPosts(post.slug, 3);
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -63,7 +60,6 @@ export default async function PostPage({ params }: PostPageProps) {
     description: post.seo_description ?? post.summary,
     datePublished: post.published_at,
     dateModified: post.updated_at ?? post.published_at,
-    image: post.cover_image_url ? [post.cover_image_url] : undefined,
     author: {
       "@type": "Organization",
       name: "SoloClientLab.com",
@@ -71,7 +67,8 @@ export default async function PostPage({ params }: PostPageProps) {
     },
     publisher: {
       "@id": `${siteUrl}/#organization`
-    }
+    },
+    image: post.cover_image_url
   };
 
   return (
@@ -80,7 +77,7 @@ export default async function PostPage({ params }: PostPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
-      <PostDetail post={post} related={related} relatedDemands={relatedDemands} />
+      <PostDetail post={post} related={related} />
     </>
   );
 }

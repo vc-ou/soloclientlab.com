@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 const adminNavItems = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/metrics", label: "Metrics" },
+  { href: "/admin/products", label: "Products" },
+  { href: "/admin/product-access", label: "Product Access" },
+  { href: "/admin/trials", label: "Trials" },
+  { href: "/admin/leadradar-configs", label: "LeadRadar Configs" },
   { href: "/admin/post-analytics", label: "Post Analytics" },
-  { href: "/admin/demands", label: "Demands" },
   { href: "/admin/posts", label: "Posts" },
-  { href: "/admin/resources", label: "Secondary Pages" },
-  { href: "/admin/subscribers", label: "Subscribers" },
-  { href: "/admin/waitlists", label: "Waitlists" },
+  { href: "/admin/subscribers", label: "Contacts" },
+  { href: "/admin/waitlists", label: "Access Leads" },
   { href: "/admin/feedback", label: "Feedback" }
 ];
 

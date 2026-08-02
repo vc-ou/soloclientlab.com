@@ -7,9 +7,9 @@ export default async function AdminPostsPage() {
   const posts = await getAdminPosts();
 
   return (
-    <AdminShell title="Research CMS">
+    <AdminShell title="Article CMS">
       <div className="admin-topbar">
-        <p>Create and manage draft or published research posts.</p>
+        <p>Create and manage SEO-ready articles for search and GSC review.</p>
         <AdminLinkButton
           href="/admin/posts/new"
           idleLabel="New post"

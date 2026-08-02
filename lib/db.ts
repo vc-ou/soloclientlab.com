@@ -9,11 +9,15 @@ import type {
   Database,
   Demand,
   FeedbackEntry,
+  LeadRadarConfig,
   Post,
   PostEvent,
   PostPerformance,
+  ProductAccessRequest,
+  ProductTrial,
   Resource,
   Subscriber,
+  TrialEvent,
   WaitlistEntry
 } from "@/lib/types";
 
@@ -24,12 +28,18 @@ type DemandRow = Omit<Demand, "tags"> & {
   tags: string[] | null;
 };
 
-type PostRow = Omit<Post, "related_demand_ids"> & {
-  related_demand_ids: string[] | null;
-};
+type PostRow = Post;
 
 type PostEventRow = PostEvent;
 type FeedbackRow = FeedbackEntry;
+type ProductAccessRequestRow = ProductAccessRequest;
+type ProductTrialRow = ProductTrial;
+type LeadRadarConfigRow = Omit<LeadRadarConfig, "keywords"> & {
+  keywords: string[] | null;
+};
+type TrialEventRow = Omit<TrialEvent, "metadata"> & {
+  metadata: Record<string, unknown> | null;
+};
 
 type SubscriberFilters = {
   source_type?: string;
@@ -74,6 +84,17 @@ type ToolTrafficMetric = {
   lastEventAt?: string;
 };
 
+function normalizeTopicTag(topic?: string | null) {
+  if (topic === "client_acquisition" || topic === "marketing_positioning") {
+    return "solo_worker_client_acquisition";
+  }
+  if (topic === "ai_automation" || topic === "offer_validation" || topic === "operations") {
+    return "workflow_signal_research";
+  }
+
+  return topic ?? undefined;
+}
+
 async function ensureDbFile() {
   await mkdir(dataDir, { recursive: true });
 
@@ -90,12 +111,25 @@ async function readLocalDb(): Promise<Database> {
   const parsed = JSON.parse(raw) as Partial<Database>;
   return {
     demands: parsed.demands ?? [],
-    posts: parsed.posts ?? [],
+    posts: (parsed.posts ?? []).map((post) => ({
+      ...post,
+      topic_tag: normalizeTopicTag(post.topic_tag) as Post["topic_tag"]
+    })),
     resources: parsed.resources ?? [],
     subscribers: parsed.subscribers ?? [],
     waitlists: parsed.waitlists ?? [],
     post_events: parsed.post_events ?? [],
-    feedback: parsed.feedback ?? []
+    feedback: parsed.feedback ?? [],
+    product_access_requests: parsed.product_access_requests ?? [],
+    product_trials: parsed.product_trials ?? [],
+    leadradar_configs: (parsed.leadradar_configs ?? []).map((config) => ({
+      ...config,
+      keywords: config.keywords ?? []
+    })),
+    trial_events: (parsed.trial_events ?? []).map((event) => ({
+      ...event,
+      metadata: event.metadata ?? {}
+    }))
   };
 }
 
@@ -115,12 +149,16 @@ async function writeLocalDb(db: Database) {
 function createInMemoryFallbackDb(): Database {
   return {
     demands: seedDatabase.demands.map((item) => ({ ...item, tags: [...(item.tags ?? [])] })),
-    posts: seedDatabase.posts.map((item) => ({ ...item, related_demand_ids: [...(item.related_demand_ids ?? [])] })),
+    posts: seedDatabase.posts.map((item) => ({ ...item })),
     resources: seedDatabase.resources.map((item) => ({ ...item })),
     subscribers: [],
     waitlists: [],
     post_events: [],
-    feedback: []
+    feedback: [],
+    product_access_requests: [],
+    product_trials: [],
+    leadradar_configs: [],
+    trial_events: []
   };
 }
 
@@ -214,6 +252,7 @@ function markTestValue(value?: string | null) {
 function mapDemandRow(row: DemandRow): Demand {
   return {
     ...row,
+    topic_tag: normalizeTopicTag(row.topic_tag) as Demand["topic_tag"],
     tags: row.tags ?? [],
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString()
@@ -223,7 +262,7 @@ function mapDemandRow(row: DemandRow): Demand {
 function mapPostRow(row: PostRow): Post {
   return {
     ...row,
-    related_demand_ids: row.related_demand_ids ?? [],
+    topic_tag: normalizeTopicTag(row.topic_tag) as Post["topic_tag"],
     published_at: toIsoString(row.published_at),
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString()
@@ -238,14 +277,11 @@ function toPostListItem(post: Post): Post {
     summary: post.summary,
     cover_image_url: post.cover_image_url,
     topic_tag: post.topic_tag,
-    cta_type: post.cta_type,
-    cta_target: post.cta_target,
     status: post.status,
     published_at: post.published_at,
     created_at: post.created_at,
     updated_at: post.updated_at,
-    read_time: post.read_time,
-    hero_label: post.hero_label
+    read_time: post.read_time
   };
 }
 
@@ -282,6 +318,42 @@ function mapPostEventRow(row: PostEventRow): PostEvent {
 function mapFeedbackRow(row: FeedbackRow): FeedbackEntry {
   return {
     ...row,
+    created_at: new Date(row.created_at).toISOString()
+  };
+}
+
+function mapProductAccessRequestRow(row: ProductAccessRequestRow): ProductAccessRequest {
+  return {
+    ...row,
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapProductTrialRow(row: ProductTrialRow): ProductTrial {
+  return {
+    ...row,
+    trial_started_at: toIsoString(row.trial_started_at),
+    trial_ends_at: toIsoString(row.trial_ends_at),
+    co_build_unlock_ends_at: toIsoString(row.co_build_unlock_ends_at),
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapLeadRadarConfigRow(row: LeadRadarConfigRow): LeadRadarConfig {
+  return {
+    ...row,
+    keywords: row.keywords ?? [],
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapTrialEventRow(row: TrialEventRow): TrialEvent {
+  return {
+    ...row,
+    metadata: row.metadata ?? {},
     created_at: new Date(row.created_at).toISOString()
   };
 }
@@ -400,8 +472,64 @@ async function readPostgresDb(): Promise<Database> {
 
     throw error;
   });
+  const productAccessRequestsPromise = withTimeout(
+    sql<ProductAccessRequestRow[]>`select * from product_access_requests order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "product_access_requests")) {
+      console.warn("product_access_requests table is not available yet, using empty product access data.");
+      return [] as ProductAccessRequestRow[];
+    }
 
-  const [demands, posts, resources, subscribers, waitlists, postEvents, feedback] = await withTimeout(
+    throw error;
+  });
+  const productTrialsPromise = withTimeout(
+    sql<ProductTrialRow[]>`select * from product_trials order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "product_trials")) {
+      console.warn("product_trials table is not available yet, using empty product trial data.");
+      return [] as ProductTrialRow[];
+    }
+
+    throw error;
+  });
+  const leadRadarConfigsPromise = withTimeout(
+    sql<LeadRadarConfigRow[]>`select * from leadradar_configs order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "leadradar_configs")) {
+      console.warn("leadradar_configs table is not available yet, using empty LeadRadar config data.");
+      return [] as LeadRadarConfigRow[];
+    }
+
+    throw error;
+  });
+  const trialEventsPromise = withTimeout(
+    sql<TrialEventRow[]>`select * from trial_events order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "trial_events")) {
+      console.warn("trial_events table is not available yet, using empty trial event data.");
+      return [] as TrialEventRow[];
+    }
+
+    throw error;
+  });
+
+  const [
+    demands,
+    posts,
+    resources,
+    subscribers,
+    waitlists,
+    postEvents,
+    feedback,
+    productAccessRequests,
+    productTrials,
+    leadRadarConfigs,
+    trialEvents
+  ] = await withTimeout(
     Promise.all([
       sql<DemandRow[]>`select * from demands order by created_at desc`,
       sql<PostRow[]>`select * from posts order by created_at desc`,
@@ -409,7 +537,11 @@ async function readPostgresDb(): Promise<Database> {
       sql<Subscriber[]>`select * from subscribers order by created_at desc`,
       sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`,
       postEventsPromise,
-      feedbackPromise
+      feedbackPromise,
+      productAccessRequestsPromise,
+      productTrialsPromise,
+      leadRadarConfigsPromise,
+      trialEventsPromise
     ])
   );
 
@@ -420,7 +552,11 @@ async function readPostgresDb(): Promise<Database> {
     subscribers: subscribers.map(mapSubscriberRow),
     waitlists: waitlists.map(mapWaitlistRow),
     post_events: postEvents.map(mapPostEventRow),
-    feedback: feedback.map(mapFeedbackRow)
+    feedback: feedback.map(mapFeedbackRow),
+    product_access_requests: productAccessRequests.map(mapProductAccessRequestRow),
+    product_trials: productTrials.map(mapProductTrialRow),
+    leadradar_configs: leadRadarConfigs.map(mapLeadRadarConfigRow),
+    trial_events: trialEvents.map(mapTrialEventRow)
   };
 }
 
@@ -461,15 +597,15 @@ async function readPublicPosts(topic?: string) {
         "Public posts read",
         () => topic && topic !== "all"
           ? withTimeout(sql<PostRow[]>`
-              select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
-                status, published_at, created_at, updated_at, read_time, hero_label
+              select id, title, slug, summary, topic_tag,
+                status, published_at, created_at, updated_at, read_time
               from posts
               where status = 'published' and topic_tag = ${topic}
               order by published_at desc nulls last, created_at desc
             `)
           : withTimeout(sql<PostRow[]>`
-              select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
-                status, published_at, created_at, updated_at, read_time, hero_label
+              select id, title, slug, summary, topic_tag,
+                status, published_at, created_at, updated_at, read_time
               from posts
               where status = 'published'
               order by published_at desc nulls last, created_at desc
@@ -584,9 +720,9 @@ type TrackPostEventInput = {
   postId?: string;
   postSlug: string;
   eventType: PostEvent["event_type"];
-  ctaType?: PostEvent["cta_type"];
   path?: string;
   referrer?: string;
+  targetUrl?: string;
   createdAt?: string;
 };
 
@@ -594,17 +730,34 @@ export async function trackPostEvent(input: TrackPostEventInput) {
   const createdAt = input.createdAt ?? new Date().toISOString();
   const safePath = input.path?.slice(0, 300);
   const safeReferrer = input.referrer?.slice(0, 500);
+  const safeTargetUrl = input.targetUrl?.slice(0, 500);
 
   if (hasDatabaseUrl()) {
     const writeSql = getWriteSql();
-    await writeSql`
-      insert into post_events (
-        id, post_id, post_slug, event_type, cta_type, path, referrer, created_at
-      ) values (
-        ${randomUUID()}, ${input.postId ?? null}, ${input.postSlug}, ${input.eventType},
-        ${input.ctaType ?? null}, ${safePath ?? null}, ${safeReferrer ?? null}, ${createdAt}
-      )
-    `;
+    try {
+      await writeSql`
+        insert into post_events (
+          id, post_id, post_slug, event_type, path, referrer, target_url, created_at
+        ) values (
+          ${randomUUID()}, ${input.postId ?? null}, ${input.postSlug}, ${input.eventType},
+          ${safePath ?? null}, ${safeReferrer ?? null}, ${safeTargetUrl ?? null}, ${createdAt}
+        )
+      `;
+    } catch (error) {
+      const databaseError = error as { code?: string; message?: string } | undefined;
+      if (databaseError?.code !== "42703" && !databaseError?.message?.includes("target_url")) {
+        throw error;
+      }
+
+      await writeSql`
+        insert into post_events (
+          id, post_id, post_slug, event_type, path, referrer, created_at
+        ) values (
+          ${randomUUID()}, ${input.postId ?? null}, ${input.postSlug}, ${input.eventType},
+          ${safePath ?? null}, ${safeReferrer ?? null}, ${createdAt}
+        )
+      `;
+    }
 
     if (shouldMirrorDatabaseToLocalFile()) {
       const localDb = await readLocalDb();
@@ -613,9 +766,9 @@ export async function trackPostEvent(input: TrackPostEventInput) {
         post_id: input.postId,
         post_slug: input.postSlug,
         event_type: input.eventType,
-        cta_type: input.ctaType,
         path: safePath,
         referrer: safeReferrer,
+        target_url: safeTargetUrl,
         created_at: createdAt
       });
       await writeLocalDb(localDb);
@@ -629,9 +782,61 @@ export async function trackPostEvent(input: TrackPostEventInput) {
     post_id: input.postId,
     post_slug: input.postSlug,
     event_type: input.eventType,
-    cta_type: input.ctaType,
     path: safePath,
     referrer: safeReferrer,
+    target_url: safeTargetUrl,
+    created_at: createdAt
+  });
+  await writeLocalDb(db);
+}
+
+export async function trackTrialEvent(input: Omit<TrialEvent, "id" | "created_at"> & { createdAt?: string }) {
+  const createdAt = input.createdAt ?? new Date().toISOString();
+  const safePath = input.path?.slice(0, 300);
+  const safeReferrer = input.referrer?.slice(0, 500);
+  const safeSourcePage = input.source_page?.slice(0, 300);
+  const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into trial_events (
+        id, product_slug, event_type, email, source_page, path, referrer, metadata, created_at
+      ) values (
+        ${randomUUID()}, ${input.product_slug}, ${input.event_type}, ${input.email?.toLowerCase() ?? null},
+        ${safeSourcePage ?? null}, ${safePath ?? null}, ${safeReferrer ?? null},
+        ${writeSql.json(metadataJson)}, ${createdAt}
+      )
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.trial_events.unshift({
+        id: randomUUID(),
+        product_slug: input.product_slug,
+        event_type: input.event_type,
+        email: input.email?.toLowerCase(),
+        source_page: safeSourcePage,
+        path: safePath,
+        referrer: safeReferrer,
+        metadata: metadataJson,
+        created_at: createdAt
+      });
+      await writeLocalDb(localDb);
+    }
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.trial_events.unshift({
+    id: randomUUID(),
+    product_slug: input.product_slug,
+    event_type: input.event_type,
+    email: input.email?.toLowerCase(),
+    source_page: safeSourcePage,
+    path: safePath,
+    referrer: safeReferrer,
+    metadata: metadataJson,
     created_at: createdAt
   });
   await writeLocalDb(db);
@@ -758,11 +963,182 @@ export async function addFeedbackEntry(
   await writeLocalDb(db);
 }
 
-function extractSourcePostSlug(sourcePage?: string) {
-  if (!sourcePage) return undefined;
+function addDaysIso(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next.toISOString();
+}
 
-  const match = sourcePage.match(/\/research\/([^/?#]+)/);
-  return match?.[1];
+export async function addProductAccessRequest(
+  input: Omit<ProductAccessRequest, "id" | "created_at" | "updated_at" | "status"> & {
+    status?: ProductAccessRequest["status"];
+  }
+) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const email = input.email.toLowerCase();
+  const accessRequestId = randomUUID();
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into product_access_requests (
+        id, product_slug, access_type, email, company_name, role, source_page, use_case,
+        status, created_at, updated_at
+      ) values (
+        ${accessRequestId}, ${input.product_slug}, ${input.access_type}, ${email},
+        ${input.company_name ?? null}, ${input.role ?? null}, ${input.source_page ?? null},
+        ${input.use_case ?? null}, ${input.status ?? "new"}, ${nowIso}, ${nowIso}
+      )
+    `;
+
+    if (input.access_type === "trial_access" || input.access_type === "co_build_access") {
+      await writeSql`
+        insert into product_trials (
+          id, product_slug, email, access_request_id, status, trial_started_at,
+          trial_ends_at, co_build_unlock_ends_at, source_page, notes, created_at, updated_at
+        ) values (
+          ${randomUUID()}, ${input.product_slug}, ${email}, ${accessRequestId}, 'requested',
+          ${nowIso}, ${addDaysIso(now, 7)},
+          ${input.access_type === "co_build_access" ? addDaysIso(now, 30) : null},
+          ${input.source_page ?? null}, ${input.use_case ?? null}, ${nowIso}, ${nowIso}
+        )
+      `;
+    }
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.product_access_requests.unshift({
+        id: accessRequestId,
+        product_slug: input.product_slug,
+        access_type: input.access_type,
+        email,
+        company_name: input.company_name,
+        role: input.role,
+        source_page: input.source_page,
+        use_case: input.use_case,
+        status: input.status ?? "new",
+        created_at: nowIso,
+        updated_at: nowIso
+      });
+      if (input.access_type === "trial_access" || input.access_type === "co_build_access") {
+        localDb.product_trials.unshift({
+          id: randomUUID(),
+          product_slug: input.product_slug,
+          email,
+          access_request_id: accessRequestId,
+          status: "requested",
+          trial_started_at: nowIso,
+          trial_ends_at: addDaysIso(now, 7),
+          co_build_unlock_ends_at: input.access_type === "co_build_access" ? addDaysIso(now, 30) : undefined,
+          source_page: input.source_page,
+          notes: input.use_case,
+          created_at: nowIso,
+          updated_at: nowIso
+        });
+      }
+      await writeLocalDb(localDb);
+    }
+
+    return accessRequestId;
+  }
+
+  const db = await readLocalDb();
+  db.product_access_requests.unshift({
+    id: accessRequestId,
+    product_slug: input.product_slug,
+    access_type: input.access_type,
+    email,
+    company_name: input.company_name,
+    role: input.role,
+    source_page: input.source_page,
+    use_case: input.use_case,
+    status: input.status ?? "new",
+    created_at: nowIso,
+    updated_at: nowIso
+  });
+  if (input.access_type === "trial_access" || input.access_type === "co_build_access") {
+    db.product_trials.unshift({
+      id: randomUUID(),
+      product_slug: input.product_slug,
+      email,
+      access_request_id: accessRequestId,
+      status: "requested",
+      trial_started_at: nowIso,
+      trial_ends_at: addDaysIso(now, 7),
+      co_build_unlock_ends_at: input.access_type === "co_build_access" ? addDaysIso(now, 30) : undefined,
+      source_page: input.source_page,
+      notes: input.use_case,
+      created_at: nowIso,
+      updated_at: nowIso
+    });
+  }
+  await writeLocalDb(db);
+  return accessRequestId;
+}
+
+export async function addLeadRadarConfig(
+  input: Omit<LeadRadarConfig, "id" | "created_at" | "updated_at" | "status"> & {
+    status?: LeadRadarConfig["status"];
+  }
+) {
+  const now = new Date().toISOString();
+  const email = input.email.toLowerCase();
+  const keywords = input.keywords.map((keyword) => keyword.trim()).filter(Boolean);
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into leadradar_configs (
+        id, email, company_name, target_market, platforms, keywords, countries,
+        capabilities, lead_types, notes, status, created_at, updated_at
+      ) values (
+        ${randomUUID()}, ${email}, ${input.company_name ?? null}, ${input.target_market ?? null},
+        ${input.platforms ?? null}, ${writeSql.json(keywords)}, ${input.countries ?? null},
+        ${input.capabilities ?? null}, ${input.lead_types ?? null}, ${input.notes ?? null},
+        ${input.status ?? "completed"}, ${now}, ${now}
+      )
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.leadradar_configs.unshift({
+        id: randomUUID(),
+        email,
+        company_name: input.company_name,
+        target_market: input.target_market,
+        platforms: input.platforms,
+        keywords,
+        countries: input.countries,
+        capabilities: input.capabilities,
+        lead_types: input.lead_types,
+        notes: input.notes,
+        status: input.status ?? "completed",
+        created_at: now,
+        updated_at: now
+      });
+      await writeLocalDb(localDb);
+    }
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.leadradar_configs.unshift({
+    id: randomUUID(),
+    email,
+    company_name: input.company_name,
+    target_market: input.target_market,
+    platforms: input.platforms,
+    keywords,
+    countries: input.countries,
+    capabilities: input.capabilities,
+    lead_types: input.lead_types,
+    notes: input.notes,
+    status: input.status ?? "completed",
+    created_at: now,
+    updated_at: now
+  });
+  await writeLocalDb(db);
 }
 
 export async function saveDemand(input: Partial<Demand> & Pick<Demand, "title" | "status">) {
@@ -853,7 +1229,7 @@ export async function saveDemand(input: Partial<Demand> & Pick<Demand, "title" |
   await writeLocalDb(db);
 }
 
-export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug" | "status" | "cta_type">) {
+export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug" | "status">) {
   if (hasDatabaseUrl()) {
     const sql = getWriteSql();
     const now = new Date().toISOString();
@@ -881,18 +1257,15 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           summary = ${input.summary ?? null},
           content = ${input.content ?? null},
           cover_image_url = ${input.cover_image_url ?? null},
-          related_persona = ${input.related_persona ?? null},
-          related_demand_ids = ${sql.json(input.related_demand_ids ?? [])},
           topic_tag = ${input.topic_tag ?? null},
           seo_title = ${input.seo_title ?? null},
           seo_description = ${input.seo_description ?? null},
-          cta_type = ${input.cta_type},
-          cta_target = ${input.cta_target ?? null},
+          cta_type = coalesce(${input.cta_type ?? null}, cta_type),
+          cta_target = coalesce(${input.cta_target ?? null}, cta_target),
           status = ${input.status},
           published_at = ${publishedAt},
           updated_at = ${now},
-          read_time = ${input.read_time ?? null},
-          hero_label = ${input.hero_label ?? null}
+          read_time = ${input.read_time ?? null}
         where id = ${input.id}
       `;
     } else {
@@ -902,15 +1275,17 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
 
       await sql`
         insert into posts (
-          id, title, slug, summary, content, cover_image_url, related_persona, related_demand_ids,
+          id, title, slug, summary, content, cover_image_url,
           topic_tag, seo_title, seo_description, cta_type, cta_target, status,
-          published_at, created_at, updated_at, read_time, hero_label
+          published_at, created_at, updated_at, read_time
         ) values (
-          ${postId}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null}, ${input.cover_image_url ?? null},
-          ${input.related_persona ?? null}, ${sql.json(input.related_demand_ids ?? [])}, ${input.topic_tag ?? null},
-          ${input.seo_title ?? null}, ${input.seo_description ?? null}, ${input.cta_type}, ${input.cta_target ?? null},
+          ${postId}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null},
+          ${input.cover_image_url ?? null},
+          ${input.topic_tag ?? null},
+          ${input.seo_title ?? null}, ${input.seo_description ?? null},
+          ${input.cta_type ?? null}, ${input.cta_target ?? null},
           ${input.status}, ${publishedAt ?? null},
-          ${now}, ${now}, ${input.read_time ?? null}, ${input.hero_label ?? null}
+          ${now}, ${now}, ${input.read_time ?? null}
         )
       `;
     }
@@ -936,8 +1311,6 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           summary: input.summary,
           content: input.content,
           cover_image_url: input.cover_image_url,
-          related_persona: input.related_persona,
-          related_demand_ids: input.related_demand_ids ?? [],
           topic_tag: input.topic_tag,
           seo_title: input.seo_title,
           seo_description: input.seo_description,
@@ -947,8 +1320,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
           created_at: now,
           updated_at: now,
-          read_time: input.read_time,
-          hero_label: input.hero_label
+          read_time: input.read_time
         });
       }
 
@@ -979,8 +1351,6 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
       summary: input.summary,
       content: input.content,
       cover_image_url: input.cover_image_url,
-      related_persona: input.related_persona,
-      related_demand_ids: input.related_demand_ids ?? [],
       topic_tag: input.topic_tag,
       seo_title: input.seo_title,
       seo_description: input.seo_description,
@@ -990,8 +1360,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
       published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
       created_at: now,
       updated_at: now,
-      read_time: input.read_time,
-      hero_label: input.hero_label
+      read_time: input.read_time
     });
   }
 
@@ -1088,8 +1457,8 @@ export async function getAdminPosts() {
     const posts = await readWithRetry(
       "Admin posts read",
       () => withTimeout(sql<PostRow[]>`
-        select id, title, slug, summary, cover_image_url, topic_tag, cta_type, cta_target,
-          status, published_at, created_at, updated_at, read_time, hero_label
+        select id, title, slug, summary, topic_tag,
+          status, published_at, created_at, updated_at, read_time
         from posts
         order by created_at desc
       `, ADMIN_DB_TIMEOUT_MS)
@@ -1368,6 +1737,12 @@ export async function getDashboardMetrics() {
           waitlist_count: number;
           waitlist_subscribers: number;
           leadradar_demo_clicks: number;
+          research_views: number;
+          product_page_views: number;
+          trial_access_clicks: number;
+          install_clicks: number;
+          review_completions: number;
+          feedback_count: number;
         }[]>`
           select
             (select count(*)::int from demands where status <> 'archived') as total_demands,
@@ -1387,9 +1762,39 @@ export async function getDashboardMetrics() {
               select count(*)::int
               from post_events
               where post_slug = 'tools/leadradar'
-                and event_type = 'cta_click'
-                and cta_type = 'tool_demo'
+                and event_type in ('cta_click', 'demo_open')
             ) as leadradar_demo_clicks
+            ,
+            (
+              select count(*)::int
+              from post_events
+              where event_type = 'view'
+            ) as research_views,
+            (
+              select count(*)::int
+              from post_events
+              where post_slug = 'products/leadradar'
+                and event_type = 'product_page_view'
+            ) as product_page_views,
+            (
+              select count(*)::int
+              from post_events
+              where post_slug = 'products/leadradar'
+                and event_type = 'trial_access_click'
+            ) as trial_access_clicks,
+            (
+              select count(*)::int
+              from post_events
+              where post_slug = 'products/leadradar'
+                and event_type = 'install_click'
+            ) as install_clicks,
+            (
+              select count(*)::int
+              from post_events
+              where post_slug = 'tools/leadradar'
+                and event_type = 'review_complete'
+            ) as review_completions,
+            (select count(*)::int from feedback) as feedback_count
         `,
         sql<Subscriber[]>`select * from subscribers order by created_at desc limit 5`,
         sql<WaitlistEntry[]>`select * from waitlists order by created_at desc limit 5`,
@@ -1402,8 +1807,7 @@ export async function getDashboardMetrics() {
             max(created_at)::text as last_event_at
           from post_events
           where post_slug = 'tools/leadradar'
-            and event_type = 'cta_click'
-            and cta_type = 'tool_demo'
+            and event_type in ('cta_click', 'demo_open')
           group by
             coalesce(nullif(path, ''), '/tools/leadradar'),
             coalesce(nullif(referrer, ''), 'Direct / unknown')
@@ -1425,6 +1829,12 @@ export async function getDashboardMetrics() {
       resourceSignups,
       waitlistCount: metrics.waitlist_count,
       leadRadarDemoClicks: metrics.leadradar_demo_clicks,
+      researchViews: metrics.research_views,
+      productPageViews: metrics.product_page_views,
+      trialAccessClicks: metrics.trial_access_clicks,
+      installClicks: metrics.install_clicks,
+      reviewCompletions: metrics.review_completions,
+      feedbackCount: metrics.feedback_count,
       leadRadarDemoTraffic: leadRadarDemoReferrers.map((item) => ({
         path: item.path ?? "/tools/leadradar",
         referrer: item.referrer ?? "Direct / unknown",
@@ -1446,7 +1856,7 @@ export async function getDashboardMetrics() {
   const waitlistEmails = new Set(db.waitlists.map((item) => item.email.toLowerCase()));
   const waitlistSubscribers = activeSubscribers.filter((item) => waitlistEmails.has(item.email.toLowerCase()));
   const leadRadarDemoEvents = db.post_events.filter(
-    (event) => event.post_slug === "tools/leadradar" && event.event_type === "cta_click" && event.cta_type === "tool_demo"
+    (event) => event.post_slug === "tools/leadradar" && ["cta_click", "demo_open"].includes(event.event_type)
   );
   const leadRadarDemoTrafficMap = new Map<string, ToolTrafficMetric>();
 
@@ -1470,6 +1880,20 @@ export async function getDashboardMetrics() {
     resourceSignups: resourceSubscribers.length,
     waitlistCount: db.waitlists.length,
     leadRadarDemoClicks: leadRadarDemoEvents.length,
+    researchViews: db.post_events.filter((event) => event.event_type === "view").length,
+    productPageViews: db.post_events.filter(
+      (event) => event.post_slug === "products/leadradar" && event.event_type === "product_page_view"
+    ).length,
+    trialAccessClicks: db.post_events.filter(
+      (event) => event.post_slug === "products/leadradar" && event.event_type === "trial_access_click"
+    ).length,
+    installClicks: db.post_events.filter(
+      (event) => event.post_slug === "products/leadradar" && event.event_type === "install_click"
+    ).length,
+    reviewCompletions: db.post_events.filter(
+      (event) => event.post_slug === "tools/leadradar" && event.event_type === "review_complete"
+    ).length,
+    feedbackCount: db.feedback.length,
     leadRadarDemoTraffic: Array.from(leadRadarDemoTrafficMap.values())
       .sort((a, b) => b.clicks - a.clicks || (b.lastEventAt ?? "").localeCompare(a.lastEventAt ?? ""))
       .slice(0, 10),
@@ -1491,15 +1915,13 @@ export async function getPostPerformance() {
 
   const counters = new Map<string, {
     views: number;
-    ctaClicks: number;
-    subscriptions: number;
     lastEventAt?: string;
   }>();
 
   const ensureCounter = (slug: string) => {
     const existing = counters.get(slug);
     if (existing) return existing;
-    const created = { views: 0, ctaClicks: 0, subscriptions: 0, lastEventAt: undefined as string | undefined };
+    const created = { views: 0, lastEventAt: undefined as string | undefined };
     counters.set(slug, created);
     return created;
   };
@@ -1507,28 +1929,14 @@ export async function getPostPerformance() {
   for (const event of db.post_events) {
     const counter = ensureCounter(event.post_slug);
     if (event.event_type === "view") counter.views += 1;
-    if (event.event_type === "cta_click") counter.ctaClicks += 1;
-    if (event.event_type === "subscription") counter.subscriptions += 1;
     if (!counter.lastEventAt || event.created_at > counter.lastEventAt) {
       counter.lastEventAt = event.created_at;
-    }
-  }
-
-  for (const subscriber of db.subscribers) {
-    const slug = extractSourcePostSlug(subscriber.source_page);
-    if (!slug) continue;
-    const counter = ensureCounter(slug);
-    counter.subscriptions += 1;
-    if (!counter.lastEventAt || subscriber.created_at > counter.lastEventAt) {
-      counter.lastEventAt = subscriber.created_at;
     }
   }
 
   return publishedOrDraftPosts.map<PostPerformance>((post) => {
     const counter = counters.get(post.slug) ?? {
       views: 0,
-      ctaClicks: 0,
-      subscriptions: 0,
       lastEventAt: undefined
     };
 
@@ -1538,15 +1946,127 @@ export async function getPostPerformance() {
       slug: post.slug,
       status: post.status,
       publishedAt: post.published_at,
-      ctaType: post.cta_type,
       views: counter.views,
-      ctaClicks: counter.ctaClicks,
-      subscriptions: counter.subscriptions,
-      ctaClickRate: counter.views ? counter.ctaClicks / counter.views : 0,
-      subscriptionRate: counter.views ? counter.subscriptions / counter.views : 0,
       lastEventAt: counter.lastEventAt
     };
   });
+}
+
+export async function getProductAccessRequests(): Promise<ProductAccessRequest[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Product access requests read",
+        () => withTimeout(sql<ProductAccessRequestRow[]>`
+          select * from product_access_requests
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapProductAccessRequestRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "product_access_requests")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.product_access_requests;
+}
+
+export async function getProductTrials(): Promise<ProductTrial[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Product trials read",
+        () => withTimeout(sql<ProductTrialRow[]>`
+          select * from product_trials
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapProductTrialRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "product_trials")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.product_trials;
+}
+
+export async function getLeadRadarConfigs(): Promise<LeadRadarConfig[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "LeadRadar configs read",
+        () => withTimeout(sql<LeadRadarConfigRow[]>`
+          select * from leadradar_configs
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapLeadRadarConfigRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "leadradar_configs")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.leadradar_configs;
+}
+
+export async function getTrialEvents(): Promise<TrialEvent[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Trial events read",
+        () => withTimeout(sql<TrialEventRow[]>`
+          select * from trial_events
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapTrialEventRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "trial_events")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.trial_events;
+}
+
+export async function getProductAdminMetrics() {
+  const [accessRequests, trials, configs, events] = await Promise.all([
+    getProductAccessRequests(),
+    getProductTrials(),
+    getLeadRadarConfigs(),
+    getTrialEvents()
+  ]);
+
+  const eventCount = (eventType: TrialEvent["event_type"]) => events.filter((event) => event.event_type === eventType).length;
+
+  return {
+    accessRequests: accessRequests.length,
+    activeTrials: trials.filter((trial) => trial.status === "active" || trial.status === "requested").length,
+    completedConfigs: configs.filter((config) => config.status === "completed").length,
+    productPageVisits: eventCount("product_page_visit"),
+    trialAccessRequested: eventCount("trial_access_requested"),
+    partnerPreviewRequested: eventCount("partner_preview_requested"),
+    installClicked: eventCount("install_clicked"),
+    configStarted: eventCount("radar_config_started"),
+    configCompleted: eventCount("radar_config_completed"),
+    keywordsAdded: eventCount("keywords_added"),
+    reviewCompleted: eventCount("review_completed"),
+    csvExported: eventCount("csv_exported"),
+    calibrationFeedbackSubmitted: eventCount("calibration_feedback_submitted"),
+    paidPilotRequested: eventCount("paid_pilot_requested"),
+    latestEvents: events.slice(0, 12)
+  };
 }
 
 export async function resetCacheUnsafe() {

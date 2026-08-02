@@ -5,6 +5,9 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.c
 const staticLastModified = {
   home: "2026-07-27",
   research: "2026-07-27",
+  products: "2026-07-30",
+  leadRadarProduct: "2026-07-31",
+  needRadarWorkflowLab: "2026-07-31",
   leadRadar: "2026-07-27",
   about: "2026-07-27",
   privacy: "2026-07-10",
@@ -28,6 +31,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: staticLastModified.research,
       changeFrequency: "weekly",
       priority: 0.9
+    },
+    {
+      url: `${siteUrl}/products`,
+      lastModified: staticLastModified.products,
+      changeFrequency: "weekly",
+      priority: 0.95
+    },
+    {
+      url: `${siteUrl}/products/leadradar`,
+      lastModified: staticLastModified.leadRadarProduct,
+      changeFrequency: "weekly",
+      priority: 0.95
+    },
+    {
+      url: `${siteUrl}/products/needradar-workflow-lab`,
+      lastModified: staticLastModified.needRadarWorkflowLab,
+      changeFrequency: "weekly",
+      priority: 0.75
     },
     {
       url: `${siteUrl}/tools/leadradar`,

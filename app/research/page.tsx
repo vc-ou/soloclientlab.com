@@ -10,8 +10,8 @@ type ResearchPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Client Acquisition Research for Solo Businesses",
-  description: "Research on how solo service businesses get clients, validate offers, and use AI more practically.",
+  title: "Research on Demand Signals and Product Workflows",
+  description: "Research on manufacturing social lead discovery, workflow signals, and client acquisition for solo workers.",
   alternates: {
     canonical: "/research"
   }
@@ -29,8 +29,8 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
         align="center"
         className="hero-copy-90"
         eyebrow="Research"
-        title="Client Acquisition Research for Solo Consultants"
-        description="Research on how solo service businesses get clients, validate offers, and use AI more practically."
+        title="Research for demand signals and product workflows"
+        description="Research on manufacturing social lead discovery, workflow signals, and client acquisition for solo workers."
       />
 
       <section className="container">
@@ -55,14 +55,14 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
                   <p className="eyebrow">Nothing here yet</p>
                   <h2>No research has been published for {selectedTopicLabel} yet.</h2>
                   <p>
-                    We&apos;re still building out this section. In the meantime, you can browse all research topics or try the live workflow demo.
+                    We&apos;re still building out this section. In the meantime, you can browse all research topics or try the live workflow preview.
                   </p>
                   <div className="empty-state-actions">
                     <Link href="/research" className="button primary">
                       Browse all topics
                     </Link>
-                    <Link href="/tools/leadradar" className="button ghost">
-                      Try LeadRadar
+                    <Link href="/products/leadradar" className="button ghost">
+                      Explore LeadRadar
                     </Link>
                   </div>
                 </div>

@@ -4,10 +4,10 @@ import { getPostBySlug, trackPostEvent } from "@/lib/db";
 type RequestBody = {
   postId?: string;
   postSlug?: string;
-  eventType?: "view" | "cta_click";
-  ctaType?: "newsletter" | "lead_magnet" | "waitlist" | "none";
+  eventType?: "view" | "article_internal_link_click";
   path?: string;
   referrer?: string;
+  targetUrl?: string;
 };
 
 export async function POST(request: Request) {
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: "Invalid JSON body." }, { status: 400 });
   }
 
-  if (!body.postSlug || !body.eventType || !["view", "cta_click"].includes(body.eventType)) {
+  if (!body.postSlug || !body.eventType || !["view", "article_internal_link_click"].includes(body.eventType)) {
     return NextResponse.json({ success: false, message: "Missing required event fields." }, { status: 400 });
   }
 
@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     postId: body.postId ?? post.id,
     postSlug: post.slug,
     eventType: body.eventType,
-    ctaType: body.ctaType,
     path: body.path,
-    referrer: body.referrer
+    referrer: body.referrer,
+    targetUrl: body.targetUrl
   });
 
   return NextResponse.json({ success: true });

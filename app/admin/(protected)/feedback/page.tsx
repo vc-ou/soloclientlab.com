@@ -19,11 +19,11 @@ export default async function AdminFeedbackPage({ searchParams }: AdminFeedbackP
   ]);
 
   return (
-    <AdminShell title="Feedback">
+    <AdminShell title="Trial & Calibration Feedback">
       <div className="admin-topbar">
-        <p>Review demo feedback by usefulness, attachment presence, or source page.</p>
-        <Link href="/tools/leadradar" className="button ghost">
-          View LeadRadar
+        <p>Review trial and calibration feedback by usefulness, attachment presence, or source page.</p>
+        <Link href="/products/leadradar" className="button ghost">
+          View product
         </Link>
       </div>
       <FilterForm resetHref="/admin/feedback">
@@ -63,7 +63,7 @@ export default async function AdminFeedbackPage({ searchParams }: AdminFeedbackP
         </label>
       </FilterForm>
       <SimpleTable
-        headers={["Created", "Tool", "Useful", "Original problem", "Attachment", "Source page"]}
+        headers={["Created", "Product", "Useful", "Calibration context", "Attachment", "Source page"]}
         rows={feedback.map((entry) => [
           entry.created_at.slice(0, 16).replace("T", " "),
           entry.tool_slug,

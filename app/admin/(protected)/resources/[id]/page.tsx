@@ -102,7 +102,7 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
             <div className="resource-preview-stats">
               <div>
                 <strong>{performance?.subscriberCount ?? 0}</strong>
-                <span>Subscribers</span>
+                <span>Contacts</span>
               </div>
               <div>
                 <strong>{Math.round((performance?.conversionRate ?? 0) * 100)}%</strong>

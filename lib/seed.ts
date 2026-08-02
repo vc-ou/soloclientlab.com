@@ -21,7 +21,7 @@ export const seedDatabase: Database = {
       status: "clustered",
       tags: ["client_acquisition", "demand_discovery", "comment_research"],
       next_action: "Use as primary related demand for the manual comment research post",
-      topic_tag: "client_acquisition",
+      topic_tag: "solo_worker_client_acquisition",
       created_at: "2026-07-07T10:30:00.000Z",
       updated_at: "2026-07-07T10:30:00.000Z"
     },
@@ -43,7 +43,7 @@ export const seedDatabase: Database = {
       status: "clustered",
       tags: ["client_acquisition", "lead_research", "source_context"],
       next_action: "Use as supporting related demand for the comment-to-signal workflow angle",
-      topic_tag: "client_acquisition",
+      topic_tag: "solo_worker_client_acquisition",
       created_at: "2026-07-07T10:31:00.000Z",
       updated_at: "2026-07-07T10:31:00.000Z"
     },
@@ -65,7 +65,7 @@ export const seedDatabase: Database = {
       status: "clustered",
       tags: ["client_acquisition", "buyer_intent", "tiktok_comments"],
       next_action: "Use as supporting related demand for LeadRadarforTikTok waitlist validation",
-      topic_tag: "client_acquisition",
+      topic_tag: "manufacturing_social_lead_discovery",
       created_at: "2026-07-07T10:32:00.000Z",
       updated_at: "2026-07-07T10:32:00.000Z"
     },
@@ -87,7 +87,7 @@ export const seedDatabase: Database = {
       status: "reviewed",
       tags: ["client_acquisition", "referrals", "content"],
       next_action: "Use in research post and lead magnet",
-      topic_tag: "client_acquisition",
+      topic_tag: "solo_worker_client_acquisition",
       created_at: now,
       updated_at: now
     },
@@ -109,12 +109,16 @@ export const seedDatabase: Database = {
       status: "clustered",
       tags: ["ai_automation", "content", "workflow"],
       next_action: "Explore waitlist angle",
-      topic_tag: "ai_automation",
+      topic_tag: "workflow_signal_research",
       created_at: now,
       updated_at: now
     }
   ],
   feedback: [],
+  product_access_requests: [],
+  product_trials: [],
+  leadradar_configs: [],
+  trial_events: [],
   posts: [
     {
       id: "post-1",
@@ -122,19 +126,15 @@ export const seedDatabase: Database = {
       slug: "how-consultants-get-clients-in-2024-without-social-media",
       summary:
         "Key findings from 320+ Reddit comments and interviews with independent consultants across different niches.",
-      topic_tag: "client_acquisition",
+      topic_tag: "solo_worker_client_acquisition",
       seo_title: "How Consultants Get Clients in 2024 Without Social Media",
       seo_description:
         "Research-backed findings on how independent consultants generate clients without relying on heavy social posting.",
-      cta_type: "lead_magnet",
-      cta_target: "/resources/client-acquisition-report",
       status: "published",
       published_at: "2026-05-12T12:00:00.000Z",
       created_at: now,
       updated_at: now,
       read_time: "8 min read",
-      hero_label: "Research",
-      related_demand_ids: ["demand-1"],
       content: `## Key Takeaways
 
 - Referrals remain the #1 channel for consultants, but most growth comes from strategic positioning, not just asking for referrals.
@@ -191,17 +191,15 @@ But trust, relationships, and results still come from humans.`
       slug: "ai-tools-that-actually-help-service-businesses-grow",
       summary:
         "7 AI tools that independent professionals use to save time, win clients, and deliver better results.",
-      topic_tag: "ai_automation",
+      topic_tag: "workflow_signal_research",
       seo_title: "AI Tools That Actually Help Service Businesses Grow",
       seo_description:
         "A practical guide to AI tools and workflows that support research, content, and delivery for solo service businesses.",
-      cta_type: "newsletter",
       status: "published",
       published_at: "2026-04-28T12:00:00.000Z",
       created_at: now,
       updated_at: now,
       read_time: "7 min read",
-      hero_label: "Research",
       content: `## What makes an AI tool useful?
 
 Useful AI tools help solo professionals get leverage without adding operational complexity.
@@ -225,18 +223,15 @@ Useful AI tools help solo professionals get leverage without adding operational 
       slug: "how-to-validate-a-high-ticket-offer-before-you-build-it",
       summary:
         "A step-by-step framework to test demand, price, and messaging without building your full offer.",
-      topic_tag: "offer_validation",
+      topic_tag: "workflow_signal_research",
       seo_title: "How to Validate a High-Ticket Offer Before You Build It",
       seo_description:
         "Learn how solo professionals can validate a high-ticket service or product idea before investing time in building it.",
-      cta_type: "waitlist",
-      cta_target: "/waitlist/client-acquisition-ai-workflow",
       status: "published",
       published_at: "2026-04-20T12:00:00.000Z",
       created_at: now,
       updated_at: now,
       read_time: "8 min read",
-      hero_label: "Research",
       content: `## Why validation matters
 
 Validation reduces the risk of spending months building something nobody wants.
@@ -260,9 +255,9 @@ Validation reduces the risk of spending months building something nobody wants.
       id: "post-4",
       title: "How solo service businesses get clients without relying on referrals",
       slug: "how-solo-service-businesses-get-clients-without-relying-on-referrals",
+      seo_title: "Get Clients Without Referrals",
       summary: "Draft research post focused on non-referral acquisition paths for solo professionals.",
-      topic_tag: "client_acquisition",
-      cta_type: "lead_magnet",
+      topic_tag: "solo_worker_client_acquisition",
       status: "draft",
       created_at: now,
       updated_at: now
@@ -272,8 +267,7 @@ Validation reduces the risk of spending months building something nobody wants.
       title: "25 client acquisition pain points from solo professionals",
       slug: "25-client-acquisition-pain-points-from-solo-professionals",
       summary: "Draft roundup of recurring acquisition pain points from interviews and public discussions.",
-      topic_tag: "client_acquisition",
-      cta_type: "newsletter",
+      topic_tag: "solo_worker_client_acquisition",
       status: "draft",
       created_at: now,
       updated_at: now
@@ -283,9 +277,7 @@ Validation reduces the risk of spending months building something nobody wants.
       title: "Why most marketing advice fails for one-person service businesses",
       slug: "why-most-marketing-advice-fails-for-one-person-service-businesses",
       summary: "Draft post contrasting generic advice with the constraints of a one-person business.",
-      topic_tag: "marketing_positioning",
-      cta_type: "waitlist",
-      cta_target: "/waitlist/client-acquisition-ai-workflow",
+      topic_tag: "solo_worker_client_acquisition",
       status: "draft",
       created_at: now,
       updated_at: now
@@ -298,7 +290,7 @@ Validation reduces the risk of spending months building something nobody wants.
       slug: "client-acquisition-report",
       type: "report",
       audience: "solo_service_businesses",
-      related_topic: "client_acquisition",
+      related_topic: "solo_worker_client_acquisition",
       landing_page_slug: "client-acquisition-report",
       delivery_mode: "file",
       delivery_url: "/downloads/client-acquisition-report.pdf",

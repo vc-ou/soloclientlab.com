@@ -11,7 +11,7 @@ export function AdminPostsTable({ initialPosts }: { initialPosts: Post[] }) {
 
   return (
     <SimpleTable
-      headers={["Title", "Slug", "Status", "Topic", "CTA", "Published", "Actions"]}
+      headers={["Title", "Slug", "Status", "Topic", "SEO", "Published", "Actions"]}
       rows={posts.map((post) => [
         <Link key={post.id} href={`/admin/posts/${post.id}`}>
           {post.title}
@@ -19,7 +19,7 @@ export function AdminPostsTable({ initialPosts }: { initialPosts: Post[] }) {
         post.slug,
         post.status,
         post.topic_tag ?? "—",
-        post.cta_type,
+        post.seo_title || post.seo_description ? "Ready" : "Needs SEO",
         post.published_at?.slice(0, 10) ?? "—",
         <PostRowActions
           key={`${post.id}-actions`}

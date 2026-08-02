@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { HeaderCta } from "@/components/header-cta";
 import { HeaderNav } from "@/components/header-nav";
 import { labelForTopic, formatDate } from "@/lib/format";
-import { getOptimizedStorageImageUrl } from "@/lib/image-url";
 import type { Post } from "@/lib/types";
 
 export function SiteHeader() {
@@ -14,7 +13,7 @@ export function SiteHeader() {
           <span className="brand-title">
             SoloClientLab<span className="footer-brand-accent">.com</span>
           </span>
-          <span className="brand-subtitle">Research-backed client acquisition insights for solo service businesses.</span>
+          <span className="brand-subtitle">Research and products for turning public demand signals into client opportunities.</span>
         </Link>
         <HeaderNav />
         <HeaderCta />
@@ -36,7 +35,7 @@ export function SiteFooter() {
               <span className="footer-brand-accent">.com</span>
             </Link>
             <p className="footer-copy">
-              Data-backed client acquisition strategies and automation workflows for solo professional service businesses.
+              Research and practical products for discovering public demand signals and turning them into work that can be reviewed.
             </p>
           </div>
 
@@ -44,7 +43,8 @@ export function SiteFooter() {
             <div>
               <h3 className="footer-heading">Explore</h3>
               <div className="footer-links">
-                <Link href="/research">Research Notes</Link>
+                <Link href="/research">Research</Link>
+                <Link href="/products">Products</Link>
                 <Link href="/about">About</Link>
               </div>
             </div>
@@ -58,9 +58,9 @@ export function SiteFooter() {
           </div>
 
           <div className="footer-principle">
-            <h4>Our Research Principle</h4>
+            <h4>Research + Product Lab</h4>
             <p>
-              We focus on identifying real market demands and structural acquisition problems before breaking them down into practical, automated workflows. No fluff, just data.
+              We study real workflow friction, publish the evidence, and build focused tools only where a repeated problem deserves a product loop.
             </p>
           </div>
         </div>
@@ -119,19 +119,8 @@ export function SectionHeading({
 }
 
 export function PostCard({ post, horizontal = false }: { post: Post; horizontal?: boolean }) {
-  const coverImageUrl = getOptimizedStorageImageUrl(post.cover_image_url, {
-    width: horizontal ? 520 : 900,
-    quality: 75
-  });
-
   return (
     <article className={`post-card${horizontal ? " horizontal" : ""}`}>
-      <div
-        className={`post-media${coverImageUrl ? " has-image" : ""}`}
-        style={coverImageUrl ? { backgroundImage: `url(${coverImageUrl})` } : undefined}
-      >
-        <span>{labelForTopic(post.topic_tag)}</span>
-      </div>
       <div className="post-body">
         <p className="tag">{labelForTopic(post.topic_tag)}</p>
         <h3>

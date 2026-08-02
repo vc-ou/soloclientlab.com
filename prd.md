@@ -307,14 +307,18 @@ V1 前 `10-15` 篇内容围绕同一个主题展开：
 - 痛点研究：真实用户在现有获客流程上卡在哪里
 - 方法拆解：独立专业服务者如何低社交获客
 - AI 工作流：如何用 AI 辅助需求发现、线索判断、触达消息和复盘
-- 验证拆解：一个服务定位如何从问题走到工具体验，再走到 Waitlist
+- 产品解释：一个真实工作流问题如何走到工具体验、试用和配置
 
-每篇文章必须绑定一个 CTA：
+V2 不再要求每篇文章必须绑定后台 CTA。
 
-- 直接试用工具
-- 领取免费资源
-- 订阅 Newsletter
-- 加入某个 Waitlist
+文章发布的第一目标是 SEO 收录和 GSC 验证；产品推广通过 Markdown 正文内链完成：
+
+- 链到 Products 索引页
+- 链到具体产品页
+- 链到 Research 栏目页
+- 链到相关文章
+
+新版文章模型移除旧的 newsletter / lead magnet / waitlist / demand 关联字段；产品承接只通过 Markdown 正文内链完成。
 
 ### SEO 内容类型
 
@@ -371,8 +375,8 @@ V1 首页不再先用邮箱拦截用户。
 - `这个结果有用吗`
 - `你本来想解决什么问题`
 - `如果你想收到后续更新，可以留下邮箱`
-- `如果你想进入真实使用场景，可以安装 Chrome Extension`
-- `如果你想要更完整工作流，可以加入 Waitlist`
+- `如果你想进入真实使用场景，可以申请 Product Access；Edge Add-ons 审核通过后再安装`
+- `如果你想要更完整工作流，可以申请 Partner Preview / Co-build Access`
 
 ### 工具与邮箱的关系
 
@@ -389,20 +393,21 @@ V1 首页不再先用邮箱拦截用户。
 
 如果某个工具的真实使用形态依赖浏览器扩展，不应使用 GitHub 手动安装作为默认公开路径。
 
-V1 推荐使用：
+V2 推荐使用：
 
-- `Chrome Web Store Unlisted`
+- `Microsoft Edge Add-ons`
+- 审核期降级为 `Product Access`
 
 原因：
 
 - 用户不需要接触源码仓库
 - 链路比手动加载解压扩展更短
-- 链接可以直接从站内 CTA 承接
-- 仍然保留非公开分发的控制感
+- 审核通过后链接可以直接从站内 CTA 承接
+- 审核期用 Product Access 承接释放节奏、安装支持和合作验证
 
 因此这类工具的推荐路径应写成：
 
-`看到试用结果 -> 进入 Chrome Web Store Unlisted 链接 -> Add to Chrome -> 在真实页面中继续使用`
+`看到试用结果 -> 申请 Product Access 或进入产品页 -> Edge Add-ons 审核通过后安装 -> 在真实页面中继续使用`
 
 ### 次级承接页定位
 
@@ -500,12 +505,12 @@ Newsletter 落地页
 
 如果某个工具需要浏览器扩展才能进入真实使用场景，首页或试用页应提供安装承接位。
 
-V1 口径：
+V2 口径：
 
 - 站内先做公开试用
-- 结果后给出 `Install Chrome Extension`
-- 实际跳转到 `Chrome Web Store Unlisted` 页面
-- 如商店链接暂未就绪，则临时降级为 `Join Waitlist` 或 `Get Updates`
+- 审核期给出 `Request product access`
+- Edge Add-ons 审核通过后给出 `Install from Microsoft Edge Add-ons`
+- 如商店链接暂未就绪，则临时降级为 `Product Access`，不回到 newsletter / waitlist 主路径
 
 ### About
 
@@ -523,21 +528,21 @@ V1 口径：
 
 ------
 
-## 八、V1 后台系统定位
+## 八、V2 后台系统定位
 
-V1 不做完整 Demand OS。
+V2 不做完整 Demand OS，也不把后台变成漏斗配置中心。
 
-V1 后台只做“支持验证闭环”的最小系统。
+V2 后台只做“文章发布 + 搜索复盘 + 产品信号观察”的最小系统。
 
-### V1 后台核心职责
+### V2 后台核心职责
 
-- 记录需求
-- 管理内容
-- 管理订阅用户
-- 管理 Waitlist
-- 追踪关键转化指标
+- 管理 SEO-ready 文章
+- 查看文章站内访问
+- 提醒结合 GSC 复盘收录、曝光、点击和 query
+- 查看产品验证漏斗：Research -> Product page -> Trial -> Install -> Configure -> Review/export -> Feedback -> Paid pilot
+- 使用 Contacts 和 Access Leads 查看保留的历史与产品访问记录
 
-### V2 再考虑的后台能力
+### 后续再考虑的后台能力
 
 - 关键词中心
 - 需求聚类中心
@@ -548,45 +553,11 @@ V1 后台只做“支持验证闭环”的最小系统。
 
 ------
 
-## 九、V1 后台模块
+## 九、V2 后台模块
 
-## 模块1：Demand Database
+## 模块1：Article CMS
 
-需求数据库
-
-这是核心资产。
-
-### 字段
-
-- title
-- source_url
-- source_platform
-- user_quote
-- persona
-- job_to_be_done
-- problem_stage
-- solution_attempted
-- keyword
-- pain_score
-- frequency_score
-- payment_score
-- evidence_strength
-- status
-- tags
-- next_action
-- created_at
-
-### 功能
-
-- 搜索
-- 筛选
-- 打标
-- 排序
-- 记录后续动作
-
-## 模块2：Research CMS
-
-研究内容管理
+文章内容管理。
 
 ### 字段
 
@@ -594,92 +565,90 @@ V1 后台只做“支持验证闭环”的最小系统。
 - slug
 - summary
 - content
-- related_persona
-- related_demand_ids
+- cover_image_url
 - seo_title
 - seo_description
-- cta_type
 - status
 - published_at
+- read_time
 
 ### 功能
 
 - Markdown 编辑
 - SEO 基础配置
-- 内容与需求关联
-- 内容与 CTA 关联
+- 通过 Markdown 内链连接 Research、Products 和相关文章
 
-## 模块3：Subscriber Center
+## 模块2：Post Analytics
 
-邮件订阅中心
-
-### 字段
-
-- email
-- source_page
-- source_type
-- lead_magnet
-- persona_tag
-- topic_tag
-- note
-- status
-- created_at
-
-### 功能
-
-- 标签管理
-- 分组
-- 导出
-- 与 MailerLite 同步
-
-## 模块4：Waitlist Center
-
-Waitlist 管理
-
-### 字段
-
-- project_name
-- page_slug
-- email
-- source_page
-- interest_tag
-- note
-- created_at
-
-### 功能
-
-- 收集高意向用户
-- 区分来源
-- 记录后续验证动作
-
-## 模块5：Metrics Center
-
-转化指标中心
+文章表现。
 
 ### 重点指标
 
-- home_tool_start_rate
-- home_tool_completion_rate
-- tool_to_extension_install_click_rate
-- tool_to_email_rate
-- tool_feedback_submission_rate
-- article_to_email_rate
-- email_to_reply_rate
-- email_to_waitlist_rate
-- waitlist_count
-- qualified_subscriber_count
+- published_posts_tracked
+- total_article_views
+- last_activity
+
+### 判断口径
+
+后台只看站内访问作为辅助信号。
+
+文章是否成立，优先看 GSC：
+
+- 是否被收录
+- impressions
+- clicks
+- CTR
+- query 是否符合文章意图
+- 文章是否通过正文内链带来产品页访问
+
+## 模块3：Metrics Center
+
+产品和工作流信号。
+
+### 重点指标
+
+- Research -> Product page -> Trial -> Install -> Configure -> Review/export -> Feedback -> Paid pilot
+
+## 模块4：Feedback
+
+产品反馈和工作流反馈。
+
+### 字段
+
+- email
+- role / context
+- message
+- source
+- note
+- created_at
+
+### 功能
+
+- 查看用户反馈
+- 区分真实业务反馈和自测
+- 记录后续跟进动作
+
+## Legacy 直达页面
+
+以下页面、表和字段可以继续存在，但不进入新版后台主导航：
+
+- `/admin/demands`
+- `/admin/resources`
+- `/admin/subscribers`（后台显示为 Contacts）
+- `/admin/waitlists`（后台显示为 Access Leads）
 
 ------
 
 ## 十、数据库设计
 
-V1 核心表：
+当前保留表：
 
 - demands
 - posts
 - subscribers
 - waitlists
 - metrics
+- feedback
 
 V2 再扩展：
 
@@ -786,7 +755,7 @@ Vercel
 #### 内容侧
 
 - 发布 `10-15` 篇高质量 Research 内容
-- 每篇内容都有明确 CTA
+- 每篇内容都有明确搜索意图、SEO 字段和必要正文内链
 
 #### 需求侧
 
@@ -800,15 +769,15 @@ Vercel
 - 明确哪一步最容易流失
 - 明确哪些输入或问题最常出现
 
-#### 订阅侧
+#### 产品承接侧
 
-- 获得 `10+` 个有效邮箱订阅
-- 明确哪些页面、哪些主题、哪些工具结果场景带来的订阅质量更高
+- 获得首批产品访问 / 试用申请
+- 明确哪些页面、哪些主题、哪些文章内链能把读者带到产品页
 
 #### 验证侧
 
-- 至少上线 `1` 个 Waitlist 页
-- 获得 `3-5` 个 Waitlist 或高意向回复
+- 至少上线 `1` 个正式产品页
+- 获得 `3-5` 个产品访问、共创配置或高意向回复
 - 满足阈值后接入最小支付能力，开始第一次付费验证
 
 ### 90 天关键验证指标
@@ -816,9 +785,9 @@ Vercel
 - 首页访问到工具开始使用是否成立
 - 工具开始使用到完成是否成立
 - 工具完成后是否有人愿意提交反馈
-- 文章到邮箱转化是否成立
-- 邮箱到回复是否成立
-- 邮箱到 Waitlist 是否成立
+- Research 文章是否被收录并获得 GSC 曝光
+- Research 文章是否通过正文内链带来产品页访问
+- 产品页访问是否转成试用、配置或高意向回复
 - 是否能识别出 `1` 个最值得继续做的问题主题
 - 是否能识别出 `1` 个反馈最强的职业簇
 

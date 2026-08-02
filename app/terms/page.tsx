@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service for SoloClientLab Research and Tools",
+  title: "Terms of Service for SoloClientLab Research and Products",
   description:
-    "Terms of Service for SoloClientLab.com research, educational resources, downloads, waitlists, and workflow tools for solo professionals.",
+    "Terms of Service for SoloClientLab.com research, product access, trial workflows, and product feedback.",
   alternates: {
     canonical: "/terms"
   }

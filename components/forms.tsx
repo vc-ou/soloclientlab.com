@@ -3,9 +3,10 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { trackPlausibleEvent } from "@/components/plausible-events";
-import { joinWaitlist, subscribeUser } from "@/lib/actions";
+import { sendProductEvent } from "@/components/product-events";
+import { joinWaitlist, requestProductAccess, submitLeadRadarConfig, subscribeUser } from "@/lib/actions";
 import { waitlistInterestOptions } from "@/lib/content";
-import type { ActionState, SourceType } from "@/lib/types";
+import type { ActionState, ProductAccessType, ProductSlug, SourceType } from "@/lib/types";
 
 const initialState: ActionState = {
   success: false,
@@ -14,27 +15,6 @@ const initialState: ActionState = {
 
 const SUBMISSION_TIMEOUT_MESSAGE = "提交暂时没有完成，请通过邮箱联系。邮箱地址：soloclientlab.com@gmail.com";
 const SUBMISSION_TIMEOUT_MS = 6000;
-
-async function trackPostCtaClick(postSlug: string) {
-  try {
-    await fetch("/api/post-events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        postSlug,
-        eventType: "cta_click",
-        ctaType: "newsletter",
-        path: window.location.pathname,
-        referrer: document.referrer || undefined
-      }),
-      keepalive: true
-    });
-  } catch {
-    // Form submission should not depend on analytics.
-  }
-}
 
 function FeedbackModal({
   open,
@@ -134,9 +114,6 @@ export function NewsletterForm({
         action={action}
         className={`form-card${compact ? " compact-form" : ""}`}
         onSubmit={() => {
-          if (sourceType === "post" && postSlug) {
-            void trackPostCtaClick(postSlug);
-          }
           setTimedOut(false);
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -238,8 +215,8 @@ export function WaitlistForm({ projectName, pageSlug, sourcePage, postSlug }: Wa
           }, SUBMISSION_TIMEOUT_MS);
         }}
       >
-        <h3>Join the waitlist</h3>
-        <p className="form-intro">Tell us where your acquisition process feels stuck, and we will notify you when the workflow is ready.</p>
+        <h3>Request product access</h3>
+        <p className="form-intro">Tell us what you want to test so we can match trial access or co-build access to the right workflow.</p>
         <input type="hidden" name="project_name" value={projectName} />
         <input type="hidden" name="page_slug" value={pageSlug} />
         <input type="hidden" name="source_page" value={sourcePage ?? `/waitlist/${pageSlug}`} />
@@ -272,7 +249,7 @@ export function WaitlistForm({ projectName, pageSlug, sourcePage, postSlug }: Wa
         </label>
 
         <button type="submit" className="button primary" disabled={pending && !timedOut}>
-          {pending && !timedOut ? "Joining..." : "Join the waitlist"}
+          {pending && !timedOut ? "Requesting..." : "Request access"}
         </button>
         {(!state.success || timedOut) ? (
           <p className={`form-feedback${state.success ? " success" : ""}`}>
@@ -309,5 +286,191 @@ export function InlineCta({
       </div>
       {children}
     </section>
+  );
+}
+
+type ProductAccessFormProps = {
+  productSlug: ProductSlug;
+  sourcePage: string;
+  title?: string;
+  subtitle?: string;
+  defaultAccessType?: ProductAccessType;
+};
+
+export function ProductAccessForm({
+  productSlug,
+  sourcePage,
+  title = "Request product access",
+  subtitle = "Tell us what you want to test. Public trials are self-serve; partner preview and co-build access are arranged through collaboration.",
+  defaultAccessType = "co_build_access"
+}: ProductAccessFormProps) {
+  const [state, action, pending] = useActionState(requestProductAccess, initialState);
+  const lastTrackedEvent = useRef<string | undefined>(undefined);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  useEffect(() => {
+    if (state.success && state.eventName && state.eventName !== lastTrackedEvent.current) {
+      trackPlausibleEvent(state.eventName);
+      lastTrackedEvent.current = state.eventName;
+      setShowFeedbackModal(true);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (state.message) {
+      setShowFeedbackModal(true);
+    }
+  }, [state.message]);
+
+  return (
+    <>
+      <form action={action} className="form-card waitlist-card">
+        <h3>{title}</h3>
+        <p className="form-intro">{subtitle}</p>
+        <input type="hidden" name="product_slug" value={productSlug} />
+        <input type="hidden" name="source_page" value={sourcePage} />
+
+        <label className="field">
+          <span>Email address</span>
+          <input name="email" type="email" placeholder="you@example.com" required />
+        </label>
+
+        <label className="field">
+          <span>Access type</span>
+          <select name="access_type" defaultValue={defaultAccessType}>
+            <option value="co_build_access">Co-build access</option>
+            <option value="partner_preview">Partner preview</option>
+            <option value="trial_access">Public trial support</option>
+            <option value="product_access">Product access</option>
+            <option value="paid_pilot">Paid pilot</option>
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Company or workflow name</span>
+          <input name="company_name" placeholder="CNC shop, sourcing team, product lab..." />
+        </label>
+
+        <label className="field">
+          <span>Your role</span>
+          <input name="role" placeholder="Founder, sales, sourcing, operations..." />
+        </label>
+
+        <label className="field">
+          <span>What do you want to test?</span>
+          <textarea
+            name="use_case"
+            rows={4}
+            placeholder="Describe the signals, products, customers, or workflow you want to review."
+          />
+        </label>
+
+        <button type="submit" className="button primary" disabled={pending}>
+          {pending ? "Requesting..." : "Request access"}
+        </button>
+        {!state.success ? (
+          <p className="form-feedback">{state.message || "No spam. Product access is reviewed manually."}</p>
+        ) : null}
+      </form>
+
+      <FeedbackModal
+        open={showFeedbackModal}
+        title={state.success ? "Access request received" : "Notice"}
+        message={state.message}
+        tone={state.success ? "success" : "notice"}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+    </>
+  );
+}
+
+export function LeadRadarConfigForm({ sourcePage = "/products/leadradar" }: { sourcePage?: string }) {
+  const [state, action, pending] = useActionState(submitLeadRadarConfig, initialState);
+  const startedRef = useRef(false);
+  const lastTrackedEvent = useRef<string | undefined>(undefined);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  useEffect(() => {
+    if (state.success && state.eventName && state.eventName !== lastTrackedEvent.current) {
+      trackPlausibleEvent(state.eventName);
+      lastTrackedEvent.current = state.eventName;
+      setShowFeedbackModal(true);
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (state.message) {
+      setShowFeedbackModal(true);
+    }
+  }, [state.message]);
+
+  return (
+    <>
+      <form
+        action={action}
+        className="form-card waitlist-card"
+        onFocus={() => {
+          if (startedRef.current) return;
+          startedRef.current = true;
+          void sendProductEvent("radar_config_started", { source_page: sourcePage });
+        }}
+      >
+        <h3>Configure LeadRadar with us</h3>
+        <p className="form-intro">Share the signal rules your team would use first. This is the co-build configuration input, not a generic waitlist.</p>
+        <input type="hidden" name="source_page" value={sourcePage} />
+
+        <label className="field">
+          <span>Email address</span>
+          <input name="email" type="email" placeholder="you@example.com" required />
+        </label>
+        <label className="field">
+          <span>Company or team</span>
+          <input name="company_name" placeholder="Manufacturing team, sourcing agency, CNC shop..." />
+        </label>
+        <label className="field">
+          <span>Target market</span>
+          <input name="target_market" placeholder="CNC buyers in North America, custom parts importers..." />
+        </label>
+        <label className="field">
+          <span>Platforms to review</span>
+          <input name="platforms" placeholder="TikTok, YouTube Shorts, Instagram, Reddit..." />
+        </label>
+        <label className="field">
+          <span>Keywords or signal phrases</span>
+          <textarea name="keywords" rows={3} placeholder="MOQ, quote, sample, CNC machining, supplier, lead time" required />
+        </label>
+        <label className="field">
+          <span>Countries or regions</span>
+          <input name="countries" placeholder="US, Germany, Mexico, Canada..." />
+        </label>
+        <label className="field">
+          <span>Capabilities to match</span>
+          <textarea name="capabilities" rows={3} placeholder="CNC turning, aluminum parts, tolerances, finishing, packaging..." />
+        </label>
+        <label className="field">
+          <span>Lead types to keep</span>
+          <textarea name="lead_types" rows={3} placeholder="Quote requests, sample requests, supplier comparisons, capacity checks..." />
+        </label>
+        <label className="field">
+          <span>Calibration notes</span>
+          <textarea name="notes" rows={4} placeholder="What should be filtered out? What would make a signal worth review?" />
+        </label>
+
+        <button type="submit" className="button primary" disabled={pending}>
+          {pending ? "Submitting..." : "Submit configuration"}
+        </button>
+        {!state.success ? (
+          <p className="form-feedback">{state.message || "Configuration helps decide whether co-build access should unlock."}</p>
+        ) : null}
+      </form>
+
+      <FeedbackModal
+        open={showFeedbackModal}
+        title={state.success ? "Configuration received" : "Notice"}
+        message={state.message}
+        tone={state.success ? "success" : "notice"}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+    </>
   );
 }

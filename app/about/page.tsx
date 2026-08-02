@@ -5,9 +5,9 @@ import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "About SoloClientLab | Research Method and Focus",
+  title: "About SoloClientLab | Research + Product Lab",
   description:
-    "Learn how SoloClientLab researches client acquisition problems, validates workflow ideas, and decides what deserves a deeper experiment.",
+    "Learn how SoloClientLab connects Research, product experiments, and evidence-based workflow validation.",
   alternates: {
     canonical: "/about"
   }
@@ -23,19 +23,19 @@ export default async function AboutPage() {
         align="center"
         className="hero-copy-90"
         eyebrow="About SoloClientLab.com"
-        title="We study how solo service businesses get clients"
-        description={"SoloClientLab.com turns real-world research into clearer decisions on client acquisition, offer validation, and practical AI workflows.\nContact me: soloclientlab.com@gmail.com"}
+        title="A Research + Product Lab for real workflow signals"
+        description={"SoloClientLab.com turns public demand-signal research into focused products, then uses trial and calibration feedback to decide what deserves deeper investment.\nContact me: soloclientlab.com@gmail.com"}
       />
 
       <section className="container">
         <div className="grid-3">
           <div className="card">
-            <h2 style={{ fontSize: "2rem" }}>Who runs SoloClientLab.com</h2>
-            <p>SoloClientLab.com is run by an independent builder and researcher focused on how solo service businesses find clients, validate offers, and improve the workflows around those jobs.</p>
-            <p>It is an early-stage research project, not a consultancy ranking or a promise of business results. Contact: soloclientlab.com@gmail.com.</p>
+            <h2 style={{ fontSize: "2rem" }}>What SoloClientLab is</h2>
+            <p>SoloClientLab.com is an independent Research + Product Lab focused on public demand signals, client workflows, and practical product experiments.</p>
+            <p>It publishes research, builds focused tools, and separates genuine use from internal testing or weak attention signals. Contact: soloclientlab.com@gmail.com.</p>
           </div>
           <div className="card">
-            <h2 style={{ fontSize: "2rem" }}>What we study</h2>
+            <h2 style={{ fontSize: "2rem" }}>What we research</h2>
             <div className="activity-list">
               {aboutStudyAreas.map((item) => (
                 <div key={item.title}>
@@ -46,7 +46,7 @@ export default async function AboutPage() {
             </div>
           </div>
           <div className="card">
-            <h2 style={{ fontSize: "2rem" }}>Our research method</h2>
+            <h2 style={{ fontSize: "2rem" }}>How the lab works</h2>
             <div className="activity-list">
               {aboutMethodSteps.map((item) => (
                 <div key={item.step}>
@@ -80,8 +80,8 @@ export default async function AboutPage() {
               <p>Internal page views, test clicks, and operator checks are tracked separately from stronger signals such as external visits, replies, submissions, and repeat use.</p>
             </div>
             <div className="card">
-              <h3>Experiments stay labeled</h3>
-              <p>Tools such as LeadRadar are described as demos or MVPs until real-world testing supports a broader claim.</p>
+              <h3>Products stay calibrated</h3>
+              <p>Research can suggest a product direction, but trial use, configuration, review, export, and feedback determine what the product becomes.</p>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default async function AboutPage() {
           />
           <div className="about-featured-research-stack">
             <p>
-              We don’t just study market trends—we build clear, actionable paths to acquisition. If you're facing client acquisition hurdles, our latest research breaks down the exact workflows you need:
+              Research explains the problem and product pages explain the working path. Articles can link naturally to the relevant product or to the next useful research note.
             </p>
             <div className="post-grid">
               {featured.map((post) => (
