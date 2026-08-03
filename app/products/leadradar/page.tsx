@@ -12,9 +12,9 @@ import {
 } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
-  title: "LeadRadar for CNC / Manufacturing",
+  title: "LeadRadar for CNC: Find Manufacturing Lead Signals",
   description:
-    "LeadRadar helps CNC and manufacturing teams discover, review, and export high-intent sourcing signals from social conversations.",
+    "LeadRadar helps CNC and manufacturing teams review TikTok comments and public social conversations for sourcing, RFQ, MOQ, sample, and custom manufacturing signals.",
   alternates: {
     canonical: "/products/leadradar"
   }
