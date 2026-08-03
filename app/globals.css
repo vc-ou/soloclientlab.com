@@ -2530,6 +2530,34 @@ h3 {
   padding: 28px;
 }
 
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.segmented-control {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.segmented-control a {
+  padding: 8px 12px;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+
+.segmented-control a.is-active {
+  color: var(--ink);
+  background: var(--primary-soft);
+  border-color: rgba(24, 28, 54, 0.1);
+}
+
 .admin-route-loading-card {
   margin-top: 0;
 }
@@ -2558,6 +2586,30 @@ h3 {
 
 .admin-grid.insights {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-opt-out-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+
+.analytics-opt-out-card h2 {
+  text-align: left;
+}
+
+.analytics-opt-out-card > div:first-child p:last-child {
+  max-width: 720px;
+  margin-bottom: 0;
+}
+
+.analytics-opt-out-feedback {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .insight-card strong {
@@ -3123,6 +3175,7 @@ h3 {
   .feature-row,
   .stats-strip,
   .admin-grid.metrics,
+  .admin-two-column,
   .resource-bottom-note,
   .resource-hub-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3190,6 +3243,11 @@ h3 {
     padding: 22px 0 0;
   }
 
+  .analytics-opt-out-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .hero-product-rail .inline-report-link {
     white-space: normal;
   }
@@ -3205,6 +3263,7 @@ h3 {
   .feature-row,
   .stats-strip,
   .admin-grid.metrics,
+  .admin-two-column,
   .admin-fields-2,
   .resource-bottom-note,
   .resource-hub-grid,

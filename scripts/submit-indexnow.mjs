@@ -4,9 +4,13 @@ import path from "node:path";
 
 const DEFAULT_SITE_URL = "https://www.soloclientlab.com";
 const DEFAULT_ENDPOINT = "https://www.bing.com/indexnow";
+const FETCH_TIMEOUT_MS = 10000;
 const STATIC_PUBLIC_PATHS = [
   "/",
   "/about",
+  "/products",
+  "/products/leadradar",
+  "/products/needradar-workflow-lab",
   "/research",
   "/tools/leadradar"
 ];
@@ -100,7 +104,9 @@ function getChangedFiles(base, head) {
 }
 
 async function fetchSitemapUrls(siteUrl) {
-  const response = await fetch(`${siteUrl}/sitemap.xml`);
+  const response = await fetch(`${siteUrl}/sitemap.xml`, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch sitemap: ${response.status} ${response.statusText}`);
   }
@@ -135,6 +141,9 @@ async function inferUrlsFromChangedFiles(files, siteUrl) {
     if (file === "app/page.tsx") paths.add("/");
     if (file === "app/about/page.tsx") paths.add("/about");
     if (file === "app/newsletter/page.tsx") paths.add("/newsletter");
+    if (file === "app/products/page.tsx") paths.add("/products");
+    if (file === "app/products/leadradar/page.tsx") paths.add("/products/leadradar");
+    if (file === "app/products/needradar-workflow-lab/page.tsx") paths.add("/products/needradar-workflow-lab");
     if (file === "app/research/page.tsx") paths.add("/research");
     if (file === "app/resources/page.tsx") paths.add("/resources");
     if (file === "app/resources/client-acquisition-report/page.tsx") paths.add("/resources/client-acquisition-report");
@@ -196,7 +205,8 @@ async function submitUrls({ urls, key, siteUrl, dryRun }) {
     headers: {
       "Content-Type": "application/json; charset=utf-8"
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
   });
 
   const responseText = await response.text();

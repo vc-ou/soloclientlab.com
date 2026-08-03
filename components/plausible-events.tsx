@@ -1,5 +1,7 @@
 "use client";
 
+import { trackUmamiEvent } from "@/components/umami-events";
+
 type PlausibleEventName =
   | "newsletter_signup"
   | "resource_signup"
@@ -22,4 +24,5 @@ declare global {
 
 export function trackPlausibleEvent(eventName: PlausibleEventName) {
   window.plausible?.(eventName);
+  trackUmamiEvent(eventName);
 }

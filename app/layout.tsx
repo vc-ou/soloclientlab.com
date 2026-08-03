@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PlausibleScript } from "@/components/plausible-script";
+import { UmamiScript } from "@/components/umami-script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SiteFooter, SiteHeader } from "@/components/site";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
         />
         <PlausibleScript />
+        <UmamiScript />
         <div className="site-shell">
           <SiteHeader />
           <main className="main-content">{children}</main>

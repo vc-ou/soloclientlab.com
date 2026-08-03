@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { trackUmamiEvent } from "@/components/umami-events";
 import type { ProductSlug } from "@/lib/types";
 
 type ProductEventType =
@@ -27,6 +28,11 @@ export async function sendProductEvent(
   metadata?: Record<string, unknown>,
   productSlug: ProductSlug = "leadradar"
 ) {
+  trackUmamiEvent(eventType, {
+    product_slug: productSlug,
+    ...metadata
+  });
+
   try {
     await fetch("/api/tool-events", {
       method: "POST",
