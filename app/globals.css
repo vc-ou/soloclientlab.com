@@ -2538,6 +2538,12 @@ h3 {
   flex-wrap: wrap;
 }
 
+.admin-toolbar-copy {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
 .segmented-control {
   display: inline-flex;
   padding: 4px;
