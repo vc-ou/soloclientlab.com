@@ -8,10 +8,10 @@ const leadRadarProductHref = "/products/leadradar";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Client Acquisition Research + Products | SoloClientLab"
+    absolute: "Client Acquisition Research and LeadRadar Products | SoloClientLab"
   },
   description:
-    "Research on client acquisition for solo consultants and one-person service businesses, plus focused products such as LeadRadar for CNC and manufacturing teams.",
+    "SoloClientLab publishes client acquisition research and builds focused tools for turning public demand signals into reviewable client opportunities.",
   alternates: {
     canonical: "/"
   }
@@ -28,11 +28,11 @@ export default async function HomePage() {
         className="hero-copy-90 hero-home-wide"
         title={
           <span className="hero-title-lockup">
-            <span className="hero-title-line">Client acquisition research for solo consultants</span>
-            <span className="hero-title-line hero-title-accent">Focused products for manufacturing teams</span>
+            <span className="hero-title-line">Client acquisition research for solo consultants.</span>
+            <span className="hero-title-line hero-title-accent">Lead signal tools for manufacturing teams.</span>
           </span>
         }
-        description="SoloClientLab publishes research on how solo service businesses get clients without relying on referrals, then builds focused products such as LeadRadar for CNC and manufacturing teams."
+        description="SoloClientLab publishes client acquisition research and builds focused tools for turning public demand signals into reviewable client opportunities."
         aside={
           <div className="hero-showcase">
             <div className="hero-actions hero-primary-actions">
