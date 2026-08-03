@@ -769,6 +769,19 @@ h3 {
   color: var(--muted);
 }
 
+.product-card-actions {
+  flex: 0 0 220px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.product-card-actions .button {
+  width: 100%;
+  min-height: 54px;
+  text-align: center;
+}
+
 .card h3,
 .metric-card strong,
 .activity-card h2 {
@@ -3327,5 +3340,10 @@ h3 {
     align-items: flex-start;
     flex-direction: column;
     gap: 20px;
+  }
+
+  .product-card-actions {
+    width: 100%;
+    flex-basis: auto;
   }
 }

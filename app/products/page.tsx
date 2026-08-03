@@ -34,7 +34,7 @@ export default function ProductsPage() {
               </p>
               <p className="form-feedback">Microsoft Edge Add-ons listing is under review. Product access requests are open now.</p>
             </div>
-            <div className="hero-actions">
+            <div className="hero-actions product-card-actions">
               <Link href="/products/leadradar" className="button primary">
                 Request LeadRadar access
               </Link>
@@ -52,7 +52,7 @@ export default function ProductsPage() {
                 need clusters before a product is built.
               </p>
             </div>
-            <div className="hero-actions">
+            <div className="hero-actions product-card-actions">
               <Link href="/products/needradar-workflow-lab" className="button primary">
                 Explore NeedRadar
               </Link>
