@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy for SoloClientLab Research and Products",
+  title: "Privacy Policy",
   description:
     "Privacy policy for SoloClientLab.com, including how product access, trial feedback, analytics, and site operation data is handled.",
   alternates: {

@@ -4,6 +4,7 @@ import { PostDetail } from "@/components/post-detail";
 import { getPostBySlug, getRelatedPosts } from "@/lib/db";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
+const titleSuffix = " | SoloClientLab.com";
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;
@@ -17,14 +18,16 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     return {};
   }
 
+  const title = post.seo_title ?? post.title;
+
   return {
-    title: post.seo_title ?? post.title,
+    title: title.length + titleSuffix.length > 70 ? { absolute: title } : title,
     description: post.seo_description ?? post.summary,
     alternates: {
       canonical: `/research/${post.slug}`
     },
     openGraph: {
-      title: post.seo_title ?? post.title,
+      title,
       description: post.seo_description ?? post.summary,
       url: `${siteUrl}/research/${post.slug}`,
       type: "article",
@@ -34,7 +37,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     },
     twitter: {
       card: "summary",
-      title: post.seo_title ?? post.title,
+      title,
       description: post.seo_description ?? post.summary,
       images: post.cover_image_url ? [post.cover_image_url] : undefined
     }
