@@ -14,6 +14,10 @@ declare global {
   }
 }
 
+function isAdminPath() {
+  return window.location.pathname.startsWith("/admin");
+}
+
 export function isBrowserAnalyticsDisabled() {
   try {
     return (
@@ -22,6 +26,17 @@ export function isBrowserAnalyticsDisabled() {
     );
   } catch {
     return false;
+  }
+}
+
+export function disableUmamiRuntime() {
+  try {
+    window.umami = {
+      track: () => undefined
+    };
+    document.querySelectorAll<HTMLScriptElement>("script[src*='umami']").forEach((script) => script.remove());
+  } catch {
+    // The localStorage/cookie flags still prevent future loads.
   }
 }
 
@@ -41,11 +56,15 @@ export function setBrowserAnalyticsDisabled(disabled: boolean) {
     // The cookie still carries the preference when localStorage is unavailable.
   }
 
+  if (disabled) {
+    disableUmamiRuntime();
+  }
+
   window.dispatchEvent(new CustomEvent("analytics-preference-changed", { detail: { disabled } }));
 }
 
 export function trackUmamiEvent(eventName: string, eventData?: Record<string, unknown>) {
-  if (isBrowserAnalyticsDisabled()) {
+  if (isBrowserAnalyticsDisabled() || isAdminPath()) {
     return;
   }
 

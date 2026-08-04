@@ -1,8 +1,9 @@
 "use client";
 
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isBrowserAnalyticsDisabled } from "@/components/umami-events";
+import { disableUmamiRuntime, isBrowserAnalyticsDisabled } from "@/components/umami-events";
 
 const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
 const umamiScriptSrc = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_SRC ?? "https://cloud.umami.is/script.js";
@@ -10,13 +11,16 @@ const umamiHostUrl = process.env.NEXT_PUBLIC_UMAMI_HOST_URL;
 const umamiDomains = process.env.NEXT_PUBLIC_UMAMI_DOMAINS;
 
 export function UmamiScript() {
+  const pathname = usePathname();
   const [canTrack, setCanTrack] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    const excludedPath = pathname?.startsWith("/admin") ?? false;
 
     async function loadAnalyticsContext() {
-      if (isBrowserAnalyticsDisabled()) {
+      if (excludedPath || isBrowserAnalyticsDisabled()) {
+        disableUmamiRuntime();
         setCanTrack(false);
         return;
       }
@@ -29,11 +33,14 @@ export function UmamiScript() {
         if (!response.ok) return;
 
         const context = (await response.json()) as { umamiExcluded?: boolean };
-        if (!cancelled && !context.umamiExcluded) {
-          setCanTrack(true);
+        if (!cancelled) {
+          setCanTrack(!context.umamiExcluded);
         }
       } catch {
         // If the exclusion check is unavailable, skip tracking instead of adding noisy owner visits.
+        if (!cancelled) {
+          setCanTrack(false);
+        }
       }
     }
 
@@ -41,6 +48,7 @@ export function UmamiScript() {
 
     function handlePreferenceChange() {
       if (isBrowserAnalyticsDisabled()) {
+        disableUmamiRuntime();
         setCanTrack(false);
         return;
       }
@@ -54,7 +62,7 @@ export function UmamiScript() {
       cancelled = true;
       window.removeEventListener("analytics-preference-changed", handlePreferenceChange);
     };
-  }, []);
+  }, [pathname]);
 
   if (!umamiWebsiteId) {
     return null;
