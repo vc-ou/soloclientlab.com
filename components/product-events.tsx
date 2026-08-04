@@ -94,15 +94,17 @@ export function ProductEventLink({
   href,
   eventType,
   className,
-  children
+  children,
+  productSlug = "leadradar"
 }: {
   href: string;
   eventType: Exclude<ProductEventType, "product_page_view">;
   className: string;
   children: React.ReactNode;
+  productSlug?: ProductSlug;
 }) {
   return (
-    <Link href={href} className={className} onClick={() => void sendProductEvent(eventType)}>
+    <Link href={href} className={className} onClick={() => void sendProductEvent(eventType, undefined, productSlug)}>
       {children}
     </Link>
   );

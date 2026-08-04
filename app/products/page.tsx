@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ProductEventLink } from "@/components/product-events";
 import { PageHero, SectionHeading } from "@/components/site";
+import {
+  getNeedRadarExtensionCtaLabel,
+  getNeedRadarExtensionHref,
+  getNeedRadarExtensionSupportCopy,
+  hasNeedRadarEdgeAddonsListing
+} from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: "Products | SoloClientLab",
@@ -11,6 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default function ProductsPage() {
+  const needRadarHref = getNeedRadarExtensionHref();
+  const needRadarCtaLabel = getNeedRadarExtensionCtaLabel();
+  const needRadarSupportCopy = getNeedRadarExtensionSupportCopy();
+  const hasNeedRadarListing = hasNeedRadarEdgeAddonsListing();
+
   return (
     <>
       <PageHero
@@ -51,10 +63,19 @@ export default function ProductsPage() {
                 A lightweight workflow lab for turning public comments, search queries, and field notes into clearer
                 need clusters before a product is built.
               </p>
+              <p className="form-feedback">{needRadarSupportCopy}</p>
             </div>
             <div className="hero-actions product-card-actions">
-              <Link href="/products/needradar-workflow-lab" className="button primary">
-                Explore NeedRadar
+              <ProductEventLink
+                href={needRadarHref}
+                eventType={hasNeedRadarListing ? "install_clicked" : "trial_access_requested"}
+                className="button primary"
+                productSlug="needradar-workflow-lab"
+              >
+                {needRadarCtaLabel}
+              </ProductEventLink>
+              <Link href="/products/needradar-workflow-lab" className="button ghost">
+                View product details
               </Link>
             </div>
           </div>

@@ -2,6 +2,7 @@ const leadRadarExtensionUrl = process.env.NEXT_PUBLIC_LEADRADAR_EXTENSION_URL?.t
 const leadRadarEdgeAddonsUrl = process.env.NEXT_PUBLIC_LEADRADAR_EDGE_ADDONS_URL?.trim();
 const leadRadarChromeWebStoreUrl = process.env.NEXT_PUBLIC_LEADRADAR_CHROME_WEBSTORE_URL?.trim();
 const leadRadarTrialPackageUrl = process.env.NEXT_PUBLIC_LEADRADAR_TRIAL_PACKAGE_URL?.trim();
+const needRadarEdgeAddonsUrl = process.env.NEXT_PUBLIC_NEEDRADAR_EDGE_ADDONS_URL?.trim();
 
 function firstConfiguredUrl(...urls: Array<string | undefined>) {
   return urls.find((url) => Boolean(url)) ?? "";
@@ -45,4 +46,22 @@ export function getLeadRadarPublicTrialChannel() {
 
 export function getLeadRadarPartnerPreviewHref() {
   return "/products/leadradar#partner-preview";
+}
+
+export function hasNeedRadarEdgeAddonsListing() {
+  return Boolean(needRadarEdgeAddonsUrl);
+}
+
+export function getNeedRadarExtensionHref() {
+  return needRadarEdgeAddonsUrl || "/products/needradar-workflow-lab#product-access";
+}
+
+export function getNeedRadarExtensionCtaLabel() {
+  return needRadarEdgeAddonsUrl ? "Install from Microsoft Edge Add-ons" : "Request NeedRadar access";
+}
+
+export function getNeedRadarExtensionSupportCopy() {
+  return needRadarEdgeAddonsUrl
+    ? "Installs securely from the official Microsoft Edge Add-ons listing. Captured research stays in your browser until you export it."
+    : "The Microsoft Edge Add-ons listing is being prepared. Request access now and the official install button will appear here when the listing is live.";
 }
