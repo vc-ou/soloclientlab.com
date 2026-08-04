@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { unstable_cache, revalidateTag } from "next/cache";
+import { isInternalProductTrial, isInternalTrialEvent } from "@/lib/analytics-filters";
 import { seedDatabase } from "@/lib/seed";
 import { hasDatabaseUrl } from "@/lib/env";
 import { getReadSql, getWriteSql } from "@/lib/postgres";
@@ -554,9 +555,9 @@ async function readPostgresDb(): Promise<Database> {
     post_events: postEvents.map(mapPostEventRow),
     feedback: feedback.map(mapFeedbackRow),
     product_access_requests: productAccessRequests.map(mapProductAccessRequestRow),
-    product_trials: productTrials.map(mapProductTrialRow),
+    product_trials: productTrials.map(mapProductTrialRow).filter((trial) => !isInternalProductTrial(trial)),
     leadradar_configs: leadRadarConfigs.map(mapLeadRadarConfigRow),
-    trial_events: trialEvents.map(mapTrialEventRow)
+    trial_events: trialEvents.map(mapTrialEventRow).filter((event) => !isInternalTrialEvent(event))
   };
 }
 
@@ -791,6 +792,10 @@ export async function trackPostEvent(input: TrackPostEventInput) {
 }
 
 export async function trackTrialEvent(input: Omit<TrialEvent, "id" | "created_at"> & { createdAt?: string }) {
+  if (isInternalTrialEvent(input)) {
+    return;
+  }
+
   const createdAt = input.createdAt ?? new Date().toISOString();
   const safePath = input.path?.slice(0, 300);
   const safeReferrer = input.referrer?.slice(0, 500);
@@ -1985,7 +1990,7 @@ export async function getProductTrials(): Promise<ProductTrial[]> {
           order by created_at desc
         `, ADMIN_DB_TIMEOUT_MS)
       );
-      return rows.map(mapProductTrialRow);
+      return rows.map(mapProductTrialRow).filter((trial) => !isInternalProductTrial(trial));
     } catch (error) {
       if (isMissingOptionalTable(error, "product_trials")) return [];
       throw error;
@@ -1993,7 +1998,7 @@ export async function getProductTrials(): Promise<ProductTrial[]> {
   }
 
   const db = await readLocalDbSafe();
-  return db.product_trials;
+  return db.product_trials.filter((trial) => !isInternalProductTrial(trial));
 }
 
 export async function getLeadRadarConfigs(): Promise<LeadRadarConfig[]> {
@@ -2029,7 +2034,7 @@ export async function getTrialEvents(): Promise<TrialEvent[]> {
           order by created_at desc
         `, ADMIN_DB_TIMEOUT_MS)
       );
-      return rows.map(mapTrialEventRow);
+      return rows.map(mapTrialEventRow).filter((event) => !isInternalTrialEvent(event));
     } catch (error) {
       if (isMissingOptionalTable(error, "trial_events")) return [];
       throw error;
@@ -2037,7 +2042,7 @@ export async function getTrialEvents(): Promise<TrialEvent[]> {
   }
 
   const db = await readLocalDbSafe();
-  return db.trial_events;
+  return db.trial_events.filter((event) => !isInternalTrialEvent(event));
 }
 
 export async function getProductAdminMetrics() {

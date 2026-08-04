@@ -29,7 +29,8 @@ export default async function AdminTrialsPage() {
       </div>
 
       <section className="activity-card">
-        <h2>Latest trial events</h2>
+        <h2>Effective trial events</h2>
+        <p>Localhost, test referrers, ignored IPs, browser opt-out visits, and configured internal emails are excluded from this table.</p>
         <SimpleTable
           headers={["Created", "Product", "Event", "Email", "Path", "Referrer"]}
           rows={events.slice(0, 30).map((event) => [

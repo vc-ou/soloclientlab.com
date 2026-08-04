@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isInternalAnalyticsRequest } from "@/lib/analytics-filters";
 import { trackPostEvent, trackTrialEvent } from "@/lib/db";
 import type { ProductSlug, TrialEventType } from "@/lib/types";
 
@@ -50,6 +51,14 @@ export async function POST(request: Request) {
     ![...legacyEventTypes, ...v2EventTypes].includes(body.eventType)
   ) {
     return NextResponse.json({ success: false, message: "Missing required event fields." }, { status: 400 });
+  }
+
+  if (isInternalAnalyticsRequest(request, {
+    path: body.path,
+    referrer: body.referrer,
+    metadata: body.metadata
+  })) {
+    return NextResponse.json({ success: true, ignored: true });
   }
 
   if (v2EventTypes.includes(body.eventType as TrialEventType)) {

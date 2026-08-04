@@ -62,7 +62,9 @@ export function getVisitorIp(headers: Headers) {
 }
 
 export function getIgnoredIpRules() {
-  const configuredRules = (process.env.UMAMI_IGNORE_IPS ?? "")
+  const configuredRules = [process.env.UMAMI_IGNORE_IPS, process.env.INTERNAL_ANALYTICS_IPS]
+    .filter(Boolean)
+    .join(",")
     .split(",")
     .map((rule) => rule.trim())
     .filter(Boolean);

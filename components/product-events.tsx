@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { trackUmamiEvent } from "@/components/umami-events";
+import { isBrowserAnalyticsDisabled, trackUmamiEvent } from "@/components/umami-events";
 import type { ProductSlug } from "@/lib/types";
 
 type ProductEventType =
@@ -23,11 +23,35 @@ type ProductEventType =
   | "install_click"
   | "review_complete";
 
+const localHosts = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
+
+function isLocalUrl(value?: string) {
+  if (!value) return false;
+
+  try {
+    return localHosts.has(new URL(value).hostname);
+  } catch {
+    return value.includes("localhost") || value.includes("127.0.0.1");
+  }
+}
+
+function shouldSkipProductEvent() {
+  return (
+    isBrowserAnalyticsDisabled() ||
+    localHosts.has(window.location.hostname) ||
+    isLocalUrl(document.referrer)
+  );
+}
+
 export async function sendProductEvent(
   eventType: ProductEventType,
   metadata?: Record<string, unknown>,
   productSlug: ProductSlug = "leadradar"
 ) {
+  if (shouldSkipProductEvent()) {
+    return;
+  }
+
   trackUmamiEvent(eventType, {
     product_slug: productSlug,
     ...metadata
