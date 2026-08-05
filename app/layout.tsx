@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@fontsource/source-sans-3/400.css";
+import "@fontsource/source-sans-3/500.css";
+import "@fontsource/source-sans-3/600.css";
+import "@fontsource/source-sans-3/700.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import { PlausibleScript } from "@/components/plausible-script";
 import { UmamiScript } from "@/components/umami-script";
 import { Analytics } from "@vercel/analytics/next";
@@ -45,6 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" translate="no">
+      <head>
+        <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700&display=swap" rel="stylesheet" />
+      </head>
       <body>
         <script
           type="application/ld+json"

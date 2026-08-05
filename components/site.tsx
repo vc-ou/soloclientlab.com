@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { HeaderCta } from "@/components/header-cta";
 import { HeaderNav } from "@/components/header-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { labelForTopic, formatDate } from "@/lib/format";
 import type { Post } from "@/lib/types";
 
@@ -10,13 +10,14 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="container nav-shell">
         <Link href="/" className="brand-mark">
-          <span className="brand-title">
-            SoloClientLab<span className="footer-brand-accent">.com</span>
-          </span>
-          <span className="brand-subtitle">Research and products for turning public demand signals into client opportunities.</span>
+          <span className="brand-symbol">S</span>
+          <span className="brand-title">SoloClientLab</span>
         </Link>
         <HeaderNav />
-        <HeaderCta />
+        <ThemeToggle />
+        <Link href="/products" className="button primary header-explore">
+          Explore tools <span aria-hidden="true">→</span>
+        </Link>
       </div>
     </header>
   );
@@ -30,44 +31,32 @@ export function SiteFooter() {
       <div className="container footer-shell">
         <div className="footer-grid">
           <div className="footer-brand-block">
-            <Link href="/" className="footer-brand-link">
+            <Link href="/" className="brand-mark footer-brand-link">
+              <span className="brand-symbol">S</span>
               <span className="footer-brand">SoloClientLab</span>
-              <span className="footer-brand-accent">.com</span>
             </Link>
             <p className="footer-copy">
-              Research and practical products for discovering public demand signals and turning them into work that can be reviewed.
+              Focused tools that make independent work easier to run.
             </p>
           </div>
 
-          <div className="footer-nav-columns">
-            <div>
-              <h3 className="footer-heading">Explore</h3>
-              <div className="footer-links">
-                <Link href="/research">Research</Link>
-                <Link href="/products">Products</Link>
-                <Link href="/about">About</Link>
-              </div>
-            </div>
-            <div>
-              <h3 className="footer-heading">Legal</h3>
-              <div className="footer-links">
-                <Link href="/privacy">Privacy Policy</Link>
-                <Link href="/terms">Terms of Service</Link>
-              </div>
-            </div>
+          <div>
+            <h3 className="footer-heading">Tools</h3>
+            <div className="footer-links"><Link href="/products/leadradar">LeadRadar</Link><Link href="/products">All tools</Link></div>
           </div>
-
-          <div className="footer-principle">
-            <h4>Research + Product Lab</h4>
-            <p>
-              We study real workflow friction, publish the evidence, and build focused tools only where a repeated problem deserves a product loop.
-            </p>
+          <div>
+            <h3 className="footer-heading">Learn</h3>
+            <div className="footer-links"><Link href="/research">Guides</Link><Link href="/newsletter">Newsletter</Link></div>
+          </div>
+          <div>
+            <h3 className="footer-heading">Company</h3>
+            <div className="footer-links"><Link href="/about">About</Link><Link href="/privacy">Privacy</Link></div>
           </div>
         </div>
 
         <div className="footer-meta">
           <div>&copy; {currentYear} SoloClientLab.com. All rights reserved.</div>
-          <div>Built for Solo Consultants, Freelancers, and One-Person Service Agencies.</div>
+          <div>Focused tools for independent work.</div>
         </div>
       </div>
     </footer>
