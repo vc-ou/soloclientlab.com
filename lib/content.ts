@@ -2,7 +2,7 @@ import type { TopicTag } from "@/lib/types";
 
 export const siteName = "SoloClientLab.com";
 export const siteDescription =
-  "Research and products for solo consultants, service businesses, and manufacturing teams working on client acquisition and public demand signals.";
+  "Focused tools that help consultants, freelancers, creators, and one-person businesses find opportunities, organize client work, and reduce repetitive tasks.";
 
 export const publicSocialProof = {
   newsletterJoinCopy:
@@ -242,48 +242,48 @@ export const resourceFeatureCards = [
 
 export const aboutStudyAreas = [
   {
-    title: "Client acquisition problems",
-    body: "Identifying why independent consultants struggle to secure steady leads and why generic marketing advice fails to scale for solo professionals."
+    title: "Find useful opportunities",
+    body: "Turn scattered public conversations into clearer signals worth a closer look."
   },
   {
-    title: "Client acquisition patterns",
-    body: "Analyzing underserved market angles, emerging lead generation tactics, and repeatable growth frameworks worth testing."
+    title: "Keep client context together",
+    body: "Make it easier to keep decisions, files, and next steps where they can be found."
   },
   {
-    title: "Client Workflows & AI Automation",
-    body: "Building practical, automated workflows that help solo experts improve the real client workflows they already run - from finding demand signals and outreach to client conversations, onboarding, follow-up, and delivery."
+    title: "Follow up consistently",
+    body: "Reduce the small pieces of remembering and re-sorting that make good work harder to run."
   },
   {
-    title: "Idea validation",
-    body: "Transforming market pain points into validated business solutions before investing time and money into building."
+    title: "Automate the repetitive",
+    body: "Move recurring sorting and handoffs out of your head without adding a giant software suite."
   }
 ];
 
 export const aboutMethodSteps = [
   {
     step: "1",
-    title: "Discover",
-    body: "We collect public conversations from places like Reddit, X, LinkedIn, forums, and operator interviews when they reveal a concrete workflow problem."
+    title: "Start with a repeated problem",
+    body: "We look for a task that independent professionals already repeat and understand where the context gets lost."
   },
   {
     step: "2",
-    title: "Analyze",
-    body: "We preserve the original context, tag recurring pain points, and separate vague interest from clearer demand signals."
+    title: "Keep the useful context",
+    body: "We preserve the source language and the practical detail needed to decide whether a signal is worth acting on."
   },
   {
     step: "3",
-    title: "Validate",
-    body: "We compare research notes with GSC search data, product-page visits, workflow usage, direct replies, and user feedback while marking self-test activity separately."
+    title: "Try a small workflow",
+    body: "We test a focused tool or preview before adding more setup, automation, or product surface area."
   },
   {
     step: "4",
-    title: "Share",
-    body: "We publish research notes only when the pattern can help a solo service business make a clearer next decision."
+    title: "Make the next step clear",
+    body: "The result should help someone review, organize, follow up, or decide without needing a new methodology."
   },
   {
     step: "5",
-    title: "Build & Validate Workflows",
-    body: "When research uncovers a repeatable workflow gap, we build small demos or MVPs before claiming a broader product category.",
+    title: "Keep only what earns its place",
+    body: "When a workflow is useful, it becomes a small product with honest limits and a clear path to try it.",
     activeExperiment: "Current product: LeadRadar for CNC / Manufacturing →",
     activeExperimentHref: "/products/leadradar"
   }

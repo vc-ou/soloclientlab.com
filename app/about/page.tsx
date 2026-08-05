@@ -5,9 +5,9 @@ import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "About SoloClientLab | Research + Product Lab",
+  title: "About SoloClientLab",
   description:
-    "Learn how SoloClientLab connects Research, product experiments, and evidence-based workflow validation.",
+    "Learn how SoloClientLab builds focused tools for independent work.",
   alternates: {
     canonical: "/about"
   }
@@ -21,21 +21,21 @@ export default async function AboutPage() {
     <>
       <PageHero
         align="center"
-        className="hero-copy-90"
+        className="public-route-hero"
         eyebrow="About SoloClientLab.com"
-        title="A Research + Product Lab for real workflow signals"
-        description={"SoloClientLab.com turns public demand-signal research into focused products, then uses trial and calibration feedback to decide what deserves deeper investment.\nContact me: soloclientlab.com@gmail.com"}
+        title="Focused tools for the repetitive parts of solo work"
+        description={"SoloClientLab.com is an independent tool brand for consultants, freelancers, creators, and one-person businesses.\nContact: soloclientlab.com@gmail.com"}
       />
 
       <section className="container">
-        <div className="grid-3">
+        <div className="grid-3 about-principles-grid">
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>What SoloClientLab is</h2>
-            <p>SoloClientLab.com is an independent Research + Product Lab focused on public demand signals, client workflows, and practical product experiments.</p>
-            <p>It publishes research, builds focused tools, and separates genuine use from internal testing or weak attention signals. Contact: soloclientlab.com@gmail.com.</p>
+            <p>SoloClientLab.com is an independent brand making small tools for the work that gets repeated, forgotten, or scattered across too many places.</p>
+            <p>We keep the products focused, explain what they can and cannot do, and make it easy to try the workflow before committing. Contact: soloclientlab.com@gmail.com.</p>
           </div>
           <div className="card">
-            <h2 style={{ fontSize: "2rem" }}>What we research</h2>
+            <h2 style={{ fontSize: "2rem" }}>Problems we focus on</h2>
             <div className="activity-list">
               {aboutStudyAreas.map((item) => (
                 <div key={item.title}>
@@ -46,7 +46,7 @@ export default async function AboutPage() {
             </div>
           </div>
           <div className="card">
-            <h2 style={{ fontSize: "2rem" }}>How the lab works</h2>
+            <h2 style={{ fontSize: "2rem" }}>How tools earn a place</h2>
             <div className="activity-list">
               {aboutMethodSteps.map((item) => (
                 <div key={item.step}>
@@ -68,38 +68,38 @@ export default async function AboutPage() {
       </section>
 
       <section className="container">
-        <div className="section-panel">
-          <SectionHeading title="How we treat evidence" />
+        <div className="section-panel route-section">
+          <SectionHeading title="How we keep the work honest" />
           <div className="grid-3">
             <div className="card">
-              <h3>Source context first</h3>
-              <p>Research notes retain the public conversation, workflow context, and uncertainty behind a pattern instead of treating a single comment as market proof.</p>
+              <h3>Context first</h3>
+              <p>Keep the original language and workflow detail together instead of reducing a useful signal to a vague label.</p>
             </div>
             <div className="card">
-              <h3>Self-tests are not validation</h3>
-              <p>Internal page views, test clicks, and operator checks are tracked separately from stronger signals such as external visits, replies, submissions, and repeat use.</p>
+              <h3>Tests are not promises</h3>
+              <p>Internal checks and early previews stay separate from stronger signs such as repeat use, replies, and product feedback.</p>
             </div>
             <div className="card">
-              <h3>Products stay calibrated</h3>
-              <p>Research can suggest a product direction, but trial use, configuration, review, export, and feedback determine what the product becomes.</p>
+              <h3>Products stay focused</h3>
+              <p>Trial use, review, export, and feedback decide what stays in the product and what gets left out.</p>
             </div>
           </div>
         </div>
       </section>
 
       <section className="container">
-        <div className="section-panel about-featured-research-panel">
+        <div className="section-panel route-section about-featured-research-panel">
           <SectionHeading
-            title="Featured research"
+            title="Featured guides"
             action={
               <Link href="/research" className="button ghost">
-                View all research
+                Browse all guides
               </Link>
             }
           />
           <div className="about-featured-research-stack">
             <p>
-              Research explains the problem and product pages explain the working path. Articles can link naturally to the relevant product or to the next useful research note.
+              Practical notes explain a specific problem and point to the next useful action. Start with a guide, then try the workflow if it fits.
             </p>
             <div className="post-grid">
               {featured.map((post) => (

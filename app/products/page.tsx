@@ -10,8 +10,8 @@ import {
 } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
-  title: "Products | SoloClientLab",
-  description: "Focused products built from public demand-signal research and tested in real operator workflows.",
+  title: "Tools | SoloClientLab",
+  description: "Focused tools for finding opportunities, reviewing signals, and making independent work easier to run.",
   alternates: {
     canonical: "/products"
   }
@@ -27,18 +27,18 @@ export default function ProductsPage() {
     <>
       <PageHero
         align="center"
-        className="hero-copy-90"
-        eyebrow="Products"
-        title="Focused products for demand-signal workflows"
-        description="Each product begins with public research, then earns its place through real trial use, configuration, review, export, and feedback."
+        className="public-route-hero"
+        eyebrow="Tools"
+        title="Focused tools for recurring solo-work problems"
+        description="Each tool focuses on one clear workflow, with enough context to help you decide whether it deserves a place in your work."
       />
 
       <section className="container">
-        <div className="section-panel">
-          <SectionHeading title="Product index" />
+        <div className="section-panel route-section">
+          <SectionHeading title="Available tools" />
           <div className="product-card">
             <div>
-              <p className="eyebrow">Current product · Manufacturing social lead discovery</p>
+              <p className="eyebrow">Beta · Access requests open</p>
               <h2>LeadRadar for CNC / Manufacturing</h2>
               <p>
                 Find and review sourcing, quotation, sample, MOQ, and capacity signals from social conversations before
@@ -57,7 +57,7 @@ export default function ProductsPage() {
           </div>
           <div className="product-card" style={{ marginTop: 20 }}>
             <div>
-              <p className="eyebrow">Workflow lab · Need discovery</p>
+              <p className="eyebrow">Workflow lab · In progress</p>
               <h2>NeedRadar Workflow Lab</h2>
               <p>
                 A lightweight workflow lab for turning public comments, search queries, and field notes into clearer

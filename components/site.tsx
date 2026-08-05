@@ -50,7 +50,11 @@ export function SiteFooter() {
           </div>
           <div>
             <h3 className="footer-heading">Company</h3>
-            <div className="footer-links"><Link href="/about">About</Link><Link href="/privacy">Privacy</Link></div>
+            <div className="footer-links"><Link href="/about">About</Link><a href="mailto:soloclientlab.com@gmail.com">Contact</a></div>
+          </div>
+          <div>
+            <h3 className="footer-heading">Legal</h3>
+            <div className="footer-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></div>
           </div>
         </div>
 

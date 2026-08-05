@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/products", label: "Tools" },
@@ -17,10 +18,20 @@ function isActivePath(pathname: string, href: string) {
 export function HeaderNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  return (
-    <div className="header-nav">
-      <nav className="nav-links" aria-label="Primary navigation">
+  useEffect(() => {
+    document.body.classList.toggle("mobile-menu-open", isMenuOpen);
+    return () => document.body.classList.remove("mobile-menu-open");
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  function renderLinks(className?: string) {
+    return (
+      <nav className={className} aria-label="Primary navigation">
         {navItems.map((item) => {
           const active = isActivePath(pathname, item.href);
 
@@ -30,6 +41,7 @@ export function HeaderNav() {
               href={item.href}
               className={`nav-link${active ? " is-active" : ""}`}
               aria-current={active ? "page" : undefined}
+              onClick={() => setIsMenuOpen(false)}
               onFocus={() => router.prefetch(item.href)}
               onMouseEnter={() => router.prefetch(item.href)}
             >
@@ -38,6 +50,22 @@ export function HeaderNav() {
           );
         })}
       </nav>
+    );
+  }
+
+  return (
+    <div className="header-nav">
+      {renderLinks("nav-links desktop-nav-links")}
+      <button
+        className="mobile-menu-toggle"
+        type="button"
+        aria-expanded={isMenuOpen}
+        aria-controls="mobile-primary-navigation"
+        onClick={() => setIsMenuOpen((open) => !open)}
+      >
+        {isMenuOpen ? "Close" : "Menu"}
+      </button>
+      {isMenuOpen ? <div className="mobile-menu-panel" id="mobile-primary-navigation">{renderLinks("mobile-nav-links")}</div> : null}
     </div>
   );
 }

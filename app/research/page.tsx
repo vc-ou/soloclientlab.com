@@ -10,8 +10,8 @@ type ResearchPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Research on Demand Signals and Product Workflows",
-  description: "Research on manufacturing social lead discovery, workflow signals, and client acquisition for solo workers.",
+  title: "Practical Guides for Independent Work",
+  description: "Short, practical guides for finding opportunities, organizing client work, and reducing repetitive tasks.",
   alternates: {
     canonical: "/research"
   }
@@ -27,10 +27,10 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
     <>
       <PageHero
         align="center"
-        className="hero-copy-90"
-        eyebrow="Research"
-        title="Research for demand signals and product workflows"
-        description="Research on manufacturing social lead discovery, workflow signals, and client acquisition for solo workers."
+        className="public-route-hero"
+        eyebrow="Guides"
+        title="Practical guides for independent work"
+        description="Short explanations for finding opportunities, organizing client work, and deciding what to automate next."
       />
 
       <section className="container">
@@ -53,9 +53,9 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
               ) : (
                 <div className="empty-state-card">
                   <p className="eyebrow">Nothing here yet</p>
-                  <h2>No research has been published for {selectedTopicLabel} yet.</h2>
+                  <h2>No guide has been published for {selectedTopicLabel} yet.</h2>
                   <p>
-                    We&apos;re still building out this section. In the meantime, you can browse all research topics or try the live workflow preview.
+                    We&apos;re still building out this section. In the meantime, browse the available topics or try the live workflow preview.
                   </p>
                   <div className="empty-state-actions">
                     <Link href="/research" className="button primary">

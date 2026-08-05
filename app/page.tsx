@@ -93,7 +93,7 @@ export default async function HomePage() {
             <Link className="button primary" href="/products">Explore tools <span aria-hidden="true">→</span></Link>
             <Link className="button secondary" href={leadRadarProductHref}>See LeadRadar in action</Link>
           </div>
-          <div className="scl-microcopy">Focused workflows · Clear next steps · No bloated setup</div>
+          <div className="scl-microcopy">Focused workflows. Clear next steps. No bloated setup.</div>
         </div>
         <ProductWindow />
       </section>
@@ -106,7 +106,7 @@ export default async function HomePage() {
 
       <section className="scl-section container" id="leadradar">
         <div className="scl-section-heading">
-          <div><div className="scl-mono">Featured tool · Available now</div><h2>One focused tool for a recurring problem.</h2></div>
+          <div><div className="scl-mono">Featured tool · Beta · Access requests open</div><h2>One focused tool for a recurring problem.</h2></div>
           <p>Start with a real workflow. If it helps, keep it. If it doesn&apos;t, move on without a bloated setup.</p>
         </div>
         <div className="scl-featured">
@@ -144,16 +144,33 @@ export default async function HomePage() {
           <div><div className="scl-mono">Tool shelf</div><h2>Focused software, not a giant suite.</h2></div>
           <p>Every product should earn its place by making one part of independent work noticeably easier.</p>
         </div>
-        <div className="scl-guide-grid">
-          <Link className="scl-guide" href={leadRadarProductHref}><div className="scl-mono">Available now</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">CNC · MANUFACTURING · → VIEW TOOL</div></Link>
-          <Link className="scl-guide" href="/research"><div className="scl-mono">Guides</div><h3>Practical notes for solo work</h3><p>Short explanations for finding clients, organizing work, and deciding what to automate.</p><div className="scl-guide-meta">READ THE GUIDES →</div></Link>
-          <div className="scl-guide"><div className="scl-mono">In progress</div><h3>More focused tools</h3><p>New products will appear here when they solve a real, repeated bottleneck.</p><div className="scl-guide-meta">NO PRETEND LAUNCH DATES</div></div>
+        <div className="scl-tool-shelf">
+          <Link className="scl-guide scl-tool-card" href={leadRadarProductHref}><div className="scl-mono">Beta · Access requests open</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">CNC · MANUFACTURING · → VIEW TOOL</div></Link>
+          <div className="scl-tool-note"><div className="scl-mono">What we&apos;re working on</div><h3>More focused tools, only when they earn their place.</h3><p>New products will appear here when they solve a real, repeated bottleneck. No pretend launch dates.</p></div>
+        </div>
+      </section>
+
+      <section className="scl-section container" id="how-it-helps">
+        <div className="scl-section-heading">
+          <div><div className="scl-mono">How it helps</div><h2>Turn scattered conversations into a review queue.</h2></div>
+          <p>Find the signal, keep the context, and decide what deserves a follow-up without sorting the same information twice.</p>
+        </div>
+        <div className="scl-workflow">
+          <div className="scl-workflow-copy">
+            <ol className="scl-workflow-steps">
+              <li><b>01</b><span><strong>Find the signal</strong><small>Spot a relevant request inside a noisy public conversation.</small></span></li>
+              <li><b>02</b><span><strong>Review the context</strong><small>Keep the source language and buying detail together.</small></span></li>
+              <li><b>03</b><span><strong>Decide the next step</strong><small>Follow up when the opportunity actually makes sense.</small></span></li>
+            </ol>
+            <Link className="button primary" href={leadRadarProductHref}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
+          </div>
+          <ProductWindow compact />
         </div>
       </section>
 
       <section className="scl-section container" id="guides">
         <div className="scl-section-heading scl-guides-heading">
-          <div><div className="scl-mono">Guides</div><h2>Useful ideas for the work between the work.</h2></div>
+          <div><div className="scl-mono">Guides</div><h2>Practical guides for independent work.</h2></div>
           <Link className="button secondary" href="/research">Browse practical guides <span aria-hidden="true">→</span></Link>
         </div>
         <div className="scl-guide-grid">
