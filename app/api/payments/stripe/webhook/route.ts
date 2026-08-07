@@ -3,6 +3,7 @@ import "server-only";
 import Stripe from "stripe";
 import { fulfillPaidProductPayment, withDatabaseTimeout } from "@/lib/db";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import type { ProductAccessType, ProductSlug } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,10 @@ async function fulfillCheckoutSession(
   }
 
   const metadata = session.metadata ?? {};
-  if (metadata.product_slug !== "leadradar" || metadata.access_type !== "paid_pilot") {
+  if (
+    !["leadradar", "needradar-workflow-lab"].includes(metadata.product_slug ?? "") ||
+    !["paid_pilot", "monthly_subscription"].includes(metadata.access_type ?? "")
+  ) {
     return;
   }
 
@@ -35,12 +39,14 @@ async function fulfillCheckoutSession(
 
   await withDatabaseTimeout(
     fulfillPaidProductPayment({
-      product_slug: "leadradar",
+      product_slug: metadata.product_slug as ProductSlug,
+      access_type: metadata.access_type as ProductAccessType,
       email,
       access_request_id: metadata.access_request_id,
       provider_checkout_session_id: session.id,
       provider_payment_intent_id: getStripeObjectId(session.payment_intent),
       provider_customer_id: getStripeObjectId(session.customer),
+      provider_subscription_id: getStripeObjectId(session.subscription),
       currency: session.currency ?? undefined,
       amount_subtotal: session.amount_subtotal ?? undefined,
       amount_total: session.amount_total ?? undefined,

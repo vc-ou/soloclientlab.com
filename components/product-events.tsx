@@ -17,6 +17,7 @@ type ProductEventType =
   | "csv_exported"
   | "calibration_feedback_submitted"
   | "paid_pilot_requested"
+  | "monthly_subscription_checkout_started"
   | "demo_open"
   | "product_page_view"
   | "trial_access_click"

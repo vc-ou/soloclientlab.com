@@ -11,6 +11,7 @@ import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createPayPalPaidPilotOrder, getLeadRadarPaidPilotAmountCents, getLeadRadarPaidPilotCurrency } from "@/lib/paypal";
+import { getProductMonthlySubscriptionPriceId, getStripe } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/env";
 import type {
   ActionState,
@@ -55,12 +56,17 @@ const leadRadarFeedbackSchema = z.object({
 
 const productAccessSchema = z.object({
   product_slug: z.enum(["leadradar", "needradar-workflow-lab"]),
-  access_type: z.enum(["product_access", "trial_access", "co_build_access", "partner_preview", "paid_pilot"]),
+  access_type: z.enum(["product_access", "trial_access", "co_build_access", "partner_preview", "paid_pilot", "monthly_subscription"]),
   email: emailSchema,
   company_name: z.string().trim().max(160).optional(),
   role: z.string().trim().max(160).optional(),
   source_page: z.string().trim().max(300).optional(),
   use_case: z.string().trim().max(4000).optional()
+});
+
+const monthlySubscriptionCheckoutSchema = z.object({
+  product_slug: z.enum(["leadradar", "needradar-workflow-lab"]).default("leadradar"),
+  source_page: z.string().trim().max(300).optional()
 });
 
 const paidPilotCheckoutSchema = z.object({
@@ -329,11 +335,13 @@ export async function requestProductAccess(
     return { success: false, message: "Please complete the access request with a valid email." };
   }
 
-  const eventName = parsed.data.access_type === "paid_pilot"
-    ? "paid_pilot_requested"
-    : parsed.data.access_type === "partner_preview"
-      ? "partner_preview_requested"
-      : "trial_access_requested";
+  const eventName = parsed.data.access_type === "monthly_subscription"
+    ? "monthly_subscription_checkout_started"
+    : parsed.data.access_type === "paid_pilot"
+      ? "paid_pilot_requested"
+      : parsed.data.access_type === "partner_preview"
+        ? "partner_preview_requested"
+        : "trial_access_requested";
 
   try {
     await addProductAccessRequest({
@@ -379,13 +387,74 @@ export async function requestProductAccess(
 
   return {
     success: true,
-    message: parsed.data.access_type === "paid_pilot"
-      ? "Your paid pilot request has been received."
+    message: parsed.data.access_type === "paid_pilot" || parsed.data.access_type === "monthly_subscription"
+      ? "Your subscription request has been received."
       : parsed.data.access_type === "partner_preview"
         ? "Your partner preview request has been received. The evaluation window is arranged through the collaboration conversation."
-        : "Your product access request has been received. Public self-serve trials use a 7-day window; co-build access is reviewed separately.",
+        : "Your product access request has been received. We will follow up with the next subscription or setup step.",
     eventName
   };
+}
+
+export async function startMonthlySubscriptionCheckout(formData: FormData) {
+  const parsed = monthlySubscriptionCheckoutSchema.safeParse({
+    product_slug: getText(formData, "product_slug") || "leadradar",
+    source_page: getText(formData, "source_page") || undefined
+  });
+
+  if (!parsed.success) {
+    redirect("/checkout/cancel?reason=invalid_subscription_request");
+  }
+
+  const productSlug = parsed.data.product_slug as ProductSlug;
+  const siteUrl = getSiteUrl();
+  const metadata = {
+    product_slug: productSlug,
+    access_type: "monthly_subscription",
+    source_page: parsed.data.source_page ?? ""
+  };
+
+  let checkoutUrl: string | null = null;
+
+  try {
+    const session = await getStripe().checkout.sessions.create({
+      mode: "subscription",
+      line_items: [
+        {
+          price: getProductMonthlySubscriptionPriceId(productSlug),
+          quantity: 1
+        }
+      ],
+      success_url: `${siteUrl}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/checkout/cancel`,
+      allow_promotion_codes: true,
+      metadata,
+      subscription_data: {
+        metadata
+      }
+    });
+
+    checkoutUrl = session.url;
+
+    await trackTrialEvent({
+      product_slug: productSlug,
+      event_type: "monthly_subscription_checkout_started",
+      source_page: parsed.data.source_page,
+      metadata: {
+        stripe_checkout_session_id: session.id,
+        access_type: "monthly_subscription"
+      }
+    });
+  } catch (error) {
+    console.error("Failed to create monthly subscription checkout:", error);
+    redirect("/checkout/cancel?reason=subscription_checkout_failed");
+  }
+
+  if (!checkoutUrl) {
+    redirect("/checkout/cancel?reason=missing_checkout_url");
+  }
+
+  redirect(checkoutUrl);
 }
 
 export async function createPaidPilotCheckout(

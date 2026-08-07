@@ -5,12 +5,6 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { trackPlausibleEvent } from "@/components/plausible-events";
 import { sendProductEvent } from "@/components/product-events";
 import { submitLeadRadarFeedback } from "@/lib/actions";
-import {
-  getLeadRadarExtensionCtaLabel,
-  getLeadRadarExtensionHref,
-  getLeadRadarExtensionSupportCopy,
-  hasLeadRadarEdgeAddonsListing
-} from "@/lib/extension-links";
 import type { ActionState } from "@/lib/types";
 
 type DemoComment = {
@@ -159,11 +153,6 @@ export function LeadRadarDemo() {
   const reviewSectionRef = useRef<HTMLElement | null>(null);
   const feedListRef = useRef<HTMLDivElement | null>(null);
   const commentRefs = useRef<Array<HTMLElement | null>>([]);
-  const extensionHref = getLeadRadarExtensionHref();
-  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
-  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
-  const extensionAccessEvent = hasLeadRadarEdgeAddonsListing() ? "install_clicked" : "trial_access_requested";
-
   const capturedComments = useMemo(
     () => capturedIndexes.map((index) => sampleComments[index]),
     [capturedIndexes]
@@ -771,19 +760,23 @@ export function LeadRadarDemo() {
                 </div>
                 <div>
                   <strong>Step 2</strong>
-                  <p>Request product access while the Edge Add-ons listing is under review, then install from Edge after approval.</p>
+                  <p>Start monthly subscription checkout, then install from Edge after approval or follow the setup path provided after payment.</p>
                 </div>
                 <div>
                   <strong>Step 3</strong>
-                  <p>Leave contact details only if you want product access, setup support, or release timing.</p>
+                  <p>Use the paid subscription path for setup support, access, and release timing.</p>
                 </div>
               </div>
               <div className="leadradar-next-actions">
-                <Link href={extensionHref} className="button primary" onClick={() => void sendProductEvent(extensionAccessEvent)}>
-                  {extensionCtaLabel}
+                <Link
+                  href="/products/leadradar#subscription"
+                  className="button primary"
+                  onClick={() => void sendProductEvent("monthly_subscription_checkout_started")}
+                >
+                  Continue to monthly checkout
                 </Link>
               </div>
-              <p className="form-feedback">{extensionSupportCopy}</p>
+              <p className="form-feedback">Payment starts a monthly subscription immediately.</p>
             </div>
           </div>
         </section>

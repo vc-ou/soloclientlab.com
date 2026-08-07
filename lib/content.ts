@@ -106,7 +106,7 @@ export const waitlistProjects = {
     name: "LeadRadar",
     headline: "LeadRadar Product Access for Manufacturing Teams",
     subtitle:
-      "Trial access and co-build access for CNC and manufacturing teams that want to turn social comments into reviewable, exportable demand signals.",
+      "Subscription access and co-build access for CNC and manufacturing teams that want to turn social comments into reviewable, exportable demand signals.",
     fitItems: [
       {
         title: "You already scan comments for leads",

@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
 import { LeadRadarConfigForm, ProductAccessForm } from "@/components/forms";
-import { PaidPilotCheckoutForm } from "@/components/paid-pilot-checkout-form";
+import { MonthlySubscriptionCheckoutButton } from "@/components/monthly-subscription-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
-import {
-  getLeadRadarExtensionCtaLabel,
-  getLeadRadarExtensionHref,
-  getLeadRadarExtensionSupportCopy,
-  hasLeadRadarEdgeAddonsListing,
-  getLeadRadarPartnerPreviewHref,
-  getLeadRadarPublicTrialChannel
-} from "@/lib/extension-links";
+import { hasLeadRadarEdgeAddonsListing, getLeadRadarPartnerPreviewHref } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: "LeadRadar for CNC: Find Manufacturing Lead Signals",
@@ -29,13 +22,8 @@ const workflowSteps = [
 ] as const;
 
 export default function LeadRadarProductPage() {
-  const extensionHref = getLeadRadarExtensionHref();
-  const extensionCtaLabel = getLeadRadarExtensionCtaLabel();
-  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
-  const publicTrialChannel = getLeadRadarPublicTrialChannel();
   const partnerPreviewHref = getLeadRadarPartnerPreviewHref();
   const hasEdgeListing = hasLeadRadarEdgeAddonsListing();
-  const primaryAccessEvent = hasEdgeListing ? "install_clicked" : "trial_access_requested";
 
   return (
     <>
@@ -46,16 +34,16 @@ export default function LeadRadarProductPage() {
         description="LeadRadar helps manufacturing teams spot sourcing and buying signals in social comments, configure what matters to their business, and move qualified findings into a practical review workflow."
         aside={
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Start with the public trial" : "Microsoft Edge Add-ons is under review"}</h3>
+            <h3>{hasEdgeListing ? "Subscribe to LeadRadar" : "Microsoft Edge Add-ons is under review"}</h3>
             <p className="form-intro">
               {hasEdgeListing
-                ? "Install from Microsoft Edge Add-ons first, then evaluate LeadRadar in a real TikTok workflow. The default self-serve trial is 7 days."
-                : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for review. Public installation opens after approval; request product access now if you want release timing, setup support, or partner evaluation."}
+                ? "Start a monthly LeadRadar subscription and evaluate the workflow in a real manufacturing signal review process."
+                : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for review. Request product access now to start the monthly subscription checkout."}
             </p>
-            <ProductEventLink href={extensionHref} eventType={primaryAccessEvent} className="button primary">
-              {extensionCtaLabel}
-            </ProductEventLink>
-            <p className="form-feedback">{extensionSupportCopy}</p>
+            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#hero">
+              Request product access
+            </MonthlySubscriptionCheckoutButton>
+            <p className="form-feedback">Payment starts a monthly subscription immediately.</p>
             <div className="hero-actions">
               <ProductEventLink href="/tools/leadradar" eventType="demo_open" className="button ghost">
                 Try workflow demo
@@ -64,7 +52,7 @@ export default function LeadRadarProductPage() {
                 Partner preview
               </a>
             </div>
-            <p className="form-feedback">Current public channel: {publicTrialChannel}</p>
+            <p className="form-feedback">Current public channel: {hasEdgeListing ? "Edge Add-ons plus subscription checkout" : "Subscription checkout while Edge Add-ons is under review"}</p>
           </div>
         }
       />
@@ -104,28 +92,28 @@ export default function LeadRadarProductPage() {
       <section className="container">
         <div className="inline-cta">
           <div>
-            <h3>Two access paths, one LeadRadar core</h3>
+            <h3>One subscription path, one LeadRadar core</h3>
             <p>
-              Public users will install through Microsoft Edge Add-ons after approval and start a self-serve 7-day trial.
-              Until the listing is live, the public path is product access request first. Partner preview remains reserved for
-              offline collaboration, pilot conversations, and evaluation windows that follow the real sales process.
+              Public users start from monthly subscription checkout. After payment, LeadRadar access and setup guidance
+              are handled from the confirmed subscription. Partner preview remains reserved for offline collaboration and
+              customer-specific validation.
             </p>
           </div>
-          <ProductEventLink href={extensionHref} eventType={primaryAccessEvent} className="button primary">
-            {extensionCtaLabel}
-          </ProductEventLink>
+          <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#subscription-cta">
+            Request product access
+          </MonthlySubscriptionCheckoutButton>
         </div>
       </section>
 
       <section className="container" id="manual-install">
         <div className="section-panel">
-          <SectionHeading title={hasEdgeListing ? "Edge self-serve trial" : "Edge Add-ons review status"} />
+          <SectionHeading title={hasEdgeListing ? "Edge install and subscription" : "Edge Add-ons review status"} />
           <div className="grid-4">
             {[
-              ["Store status", hasEdgeListing ? "Use the Microsoft Edge Add-ons listing as the default public install path." : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for certification review."],
-              ["Start trial", hasEdgeListing ? "The public build starts a 7-day trial from first install or first launch, without requiring a Product Access form first." : "The public 7-day trial begins after the Edge listing is approved and the self-serve install path is live."],
+              ["Store status", hasEdgeListing ? "Use the Microsoft Edge Add-ons listing as the default public install path after checkout." : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for certification review."],
+              ["Subscribe", "Request access starts secure monthly subscription checkout immediately."],
               ["Use TikTok", "Open TikTok search, videos, comments, or users pages and let LeadRadar collect visible signals into a local review list."],
-              ["Access now", "Request product access if you want release timing, setup support, partner preview, or co-build evaluation before public launch."]
+              ["Access now", "Payment confirms the monthly subscription and unlocks the setup follow-up path."]
             ].map(([title, body]) => (
               <div key={title} className="card">
                 <h3>{title}</h3>
@@ -140,7 +128,7 @@ export default function LeadRadarProductPage() {
         <div className="two-column">
           <div className="resource-showcase">
             <p className="eyebrow">Partner preview</p>
-            <h2>Offline cooperation should not be forced into a 7-day clock</h2>
+            <h2>Offline cooperation follows the collaboration conversation</h2>
             <p>
               When LeadRadar is shared during direct customer conversations, the evaluation window follows the collaboration progress.
               This path is for private installs, pilot discussions, calibration calls, and customer-specific validation.
@@ -150,8 +138,9 @@ export default function LeadRadarProductPage() {
             productSlug="leadradar"
             sourcePage="/products/leadradar#partner-preview"
             title="Request partner preview"
-            subtitle="Use this for offline cooperation, private evaluation, co-build access, or paid pilot conversations. It is not the public 7-day self-serve trial."
+            subtitle="Use this for offline cooperation, private evaluation, co-build access, or subscription setup conversations."
             defaultAccessType="partner_preview"
+            buttonLabel="Request partner preview"
           />
         </div>
       </section>
@@ -160,38 +149,46 @@ export default function LeadRadarProductPage() {
         <div className="two-column">
           <div className="resource-showcase">
             <p className="eyebrow">Product access</p>
-            <h2>{hasEdgeListing ? "Need help installing or evaluating LeadRadar?" : "Get notified when the public Edge install is approved"}</h2>
+            <h2>{hasEdgeListing ? "Need help installing or evaluating LeadRadar?" : "Start the monthly subscription while Edge review is pending"}</h2>
             <p>
               {hasEdgeListing
-                ? "Use this request if you want setup support, calibration help, co-build access, or a partner evaluation path beyond the self-serve trial."
-                : "The public Edge Add-ons listing is in review. Leave your contact details if you want release timing, setup support, or early evaluation while the listing is pending."}
+                ? "Use this request if you want setup support, calibration help, co-build access, or a partner evaluation path."
+                : "The public Edge Add-ons listing is in review. The primary request path now starts monthly subscription checkout immediately."}
             </p>
           </div>
-          <ProductAccessForm
-            productSlug="leadradar"
-            sourcePage="/products/leadradar#product-access"
-            title={hasEdgeListing ? "Request LeadRadar support" : "Request LeadRadar product access"}
-            subtitle={
-              hasEdgeListing
-                ? "Use this for setup support, co-build access, partner preview, or paid pilot conversations after the public install path is live."
-                : "Use this while Microsoft Edge Add-ons is reviewing the listing. We will share release timing, setup notes, or partner preview options when relevant."
-            }
-            defaultAccessType="product_access"
-          />
+          <div className="form-card waitlist-card">
+            <h3>{hasEdgeListing ? "Start LeadRadar subscription" : "Request LeadRadar product access"}</h3>
+            <p className="form-intro">
+              Click once to enter secure monthly subscription checkout. Payment starts the subscription and replaces the old product-access request step.
+            </p>
+            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#product-access">
+              Request LeadRadar access
+            </MonthlySubscriptionCheckoutButton>
+            <p className="form-feedback">No separate access approval step before checkout.</p>
+          </div>
         </div>
       </section>
 
-      <section className="container" id="paid-pilot">
+      <section className="container" id="subscription">
         <div className="two-column">
           <div className="resource-showcase">
-            <p className="eyebrow">Paid pilot</p>
-            <h2>Move from a promising signal workflow to a focused customer test</h2>
+            <p className="eyebrow">Monthly subscription</p>
+            <h2>Move from a promising signal workflow to a paid customer test</h2>
             <p>
-              The paid pilot is the direct path for a manufacturing or sourcing team that wants to test LeadRadar against a real market, capability set, and review process.
-              Payment is collected by PayPal; access is activated after payment confirmation.
+              The subscription path is for a manufacturing or sourcing team that wants to test LeadRadar against a real market, capability set, and review process.
+              Payment starts a monthly subscription; access is activated after payment confirmation.
             </p>
           </div>
-          <PaidPilotCheckoutForm sourcePage="/products/leadradar#paid-pilot" />
+          <div className="form-card waitlist-card">
+            <h3>Start monthly subscription</h3>
+            <p className="form-intro">
+              Continue to secure Stripe checkout. Stripe collects the billing email during payment and confirms the subscription.
+            </p>
+            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#subscription">
+              Continue to monthly checkout
+            </MonthlySubscriptionCheckoutButton>
+            <p className="form-feedback">Payment activates subscription access immediately.</p>
+          </div>
         </div>
       </section>
 
@@ -202,7 +199,7 @@ export default function LeadRadarProductPage() {
             <h2>Tell LeadRadar what signal rules matter</h2>
             <p>
               The first configuration pass should include concrete keywords, markets, capabilities, and lead types.
-              This keeps trial access tied to a real manufacturing workflow instead of a vague product waitlist.
+              This keeps subscription setup tied to a real manufacturing workflow instead of a vague product waitlist.
             </p>
           </div>
           <LeadRadarConfigForm sourcePage="/products/leadradar" />

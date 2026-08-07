@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Privacy policy for SoloClientLab.com, including how product access, trial feedback, analytics, and site operation data is handled.",
+    "Privacy policy for SoloClientLab.com, including how product access, subscription feedback, analytics, and site operation data is handled.",
   alternates: {
     canonical: "/privacy"
   }
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <p className="eyebrow">Legal</p>
         <h1>Privacy Policy</h1>
         <p>
-          SoloClientLab.com collects limited contact information you voluntarily submit for product access, trial access, co-build access, or other requests. We use this information to deliver the requested access, support product calibration, and improve the site experience.
+          SoloClientLab.com collects limited contact information you voluntarily submit for product access, subscription access, co-build access, or other requests. We use this information to deliver the requested access, support product calibration, and improve the site experience.
         </p>
         <p>
           We do not sell personal data. We may use privacy-respecting analytics and trusted infrastructure providers to run the site, store submissions, and deliver emails.

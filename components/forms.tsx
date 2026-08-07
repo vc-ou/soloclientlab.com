@@ -216,7 +216,7 @@ export function WaitlistForm({ projectName, pageSlug, sourcePage, postSlug }: Wa
         }}
       >
         <h3>Request product access</h3>
-        <p className="form-intro">Tell us what you want to test so we can match trial access or co-build access to the right workflow.</p>
+        <p className="form-intro">Tell us what you want to test so we can match product access or co-build access to the right workflow.</p>
         <input type="hidden" name="project_name" value={projectName} />
         <input type="hidden" name="page_slug" value={pageSlug} />
         <input type="hidden" name="source_page" value={sourcePage ?? `/waitlist/${pageSlug}`} />
@@ -295,14 +295,16 @@ type ProductAccessFormProps = {
   title?: string;
   subtitle?: string;
   defaultAccessType?: ProductAccessType;
+  buttonLabel?: string;
 };
 
 export function ProductAccessForm({
   productSlug,
   sourcePage,
   title = "Request product access",
-  subtitle = "Tell us what you want to test. Public trials are self-serve; partner preview and co-build access are arranged through collaboration.",
-  defaultAccessType = "co_build_access"
+  subtitle = "Tell us what you want to test. Subscription checkout is self-serve; partner preview and co-build access are arranged through collaboration.",
+  defaultAccessType = "co_build_access",
+  buttonLabel = "Submit request"
 }: ProductAccessFormProps) {
   const [state, action, pending] = useActionState(requestProductAccess, initialState);
   const lastTrackedEvent = useRef<string | undefined>(undefined);
@@ -340,9 +342,8 @@ export function ProductAccessForm({
           <select name="access_type" defaultValue={defaultAccessType}>
             <option value="co_build_access">Co-build access</option>
             <option value="partner_preview">Partner preview</option>
-            <option value="trial_access">Public trial support</option>
             <option value="product_access">Product access</option>
-            <option value="paid_pilot">Paid pilot</option>
+            <option value="monthly_subscription">Monthly subscription</option>
           </select>
         </label>
 
@@ -366,7 +367,7 @@ export function ProductAccessForm({
         </label>
 
         <button type="submit" className="button primary" disabled={pending}>
-          {pending ? "Requesting..." : "Request access"}
+          {pending ? "Submitting..." : buttonLabel}
         </button>
         {!state.success ? (
           <p className="form-feedback">{state.message || "No spam. Product access is reviewed manually."}</p>

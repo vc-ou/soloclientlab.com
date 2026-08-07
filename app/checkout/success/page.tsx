@@ -10,9 +10,9 @@ export default async function CheckoutSuccessPage() {
     <section className="container page-section">
       <div className="section-panel narrow-panel">
         <p className="eyebrow">Payment received</p>
-        <h1>Your LeadRadar paid pilot is being activated</h1>
+        <h1>Your subscription is being activated</h1>
         <p>
-          PayPal has confirmed the checkout return. The pilot entitlement is activated from the payment confirmation, then we will use your request details to follow up on setup.
+          Checkout has confirmed the payment. Subscription access is activated from the payment confirmation, then setup follow-up can continue from the billing email.
         </p>
         <p>
           You can return to the product page while the webhook finishes processing.

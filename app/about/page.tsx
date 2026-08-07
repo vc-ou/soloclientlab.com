@@ -81,7 +81,7 @@ export default async function AboutPage() {
             </div>
             <div className="card">
               <h3>Products stay focused</h3>
-              <p>Trial use, review, export, and feedback decide what stays in the product and what gets left out.</p>
+              <p>Paid use, review, export, and feedback decide what stays in the product and what gets left out.</p>
             </div>
           </div>
         </div>

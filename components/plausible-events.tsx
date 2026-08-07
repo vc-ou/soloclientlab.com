@@ -14,6 +14,7 @@ type PlausibleEventName =
   | "partner_preview_requested"
   | "radar_config_completed"
   | "paid_pilot_requested"
+  | "monthly_subscription_checkout_started"
   | "csv_exported";
 
 declare global {

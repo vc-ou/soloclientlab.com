@@ -1,7 +1,8 @@
 import "server-only";
 
 import Stripe from "stripe";
-import { getRequiredEnv } from "@/lib/env";
+import { getOptionalEnv, getRequiredEnv } from "@/lib/env";
+import type { ProductSlug } from "@/lib/types";
 
 declare global {
   var __soloClientLabStripe: Stripe | undefined;
@@ -21,4 +22,14 @@ export function getStripeWebhookSecret() {
 
 export function getLeadRadarPaidPilotPriceId() {
   return getRequiredEnv("STRIPE_LEADRADAR_PAID_PILOT_PRICE_ID");
+}
+
+export function getProductMonthlySubscriptionPriceId(productSlug: ProductSlug) {
+  if (productSlug === "needradar-workflow-lab") {
+    return getOptionalEnv("STRIPE_NEEDRADAR_MONTHLY_PRICE_ID")
+      ?? getOptionalEnv("STRIPE_LEADRADAR_MONTHLY_PRICE_ID")
+      ?? getLeadRadarPaidPilotPriceId();
+  }
+
+  return getOptionalEnv("STRIPE_LEADRADAR_MONTHLY_PRICE_ID") ?? getLeadRadarPaidPilotPriceId();
 }

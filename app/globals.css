@@ -164,6 +164,19 @@ button {
   transform: none;
 }
 
+.checkout-button-form {
+  display: block;
+  margin: 0;
+}
+
+.checkout-button-form .button {
+  width: 100%;
+}
+
+.product-card-actions .checkout-button-form {
+  width: 100%;
+}
+
 .button-spinner {
   width: 12px;
   height: 12px;
@@ -1210,10 +1223,15 @@ h3 {
   margin-left: 0;
 }
 
-.inline-cta > .button {
+.inline-cta > .button,
+.inline-cta > .checkout-button-form {
   justify-self: center;
   align-self: center;
   width: auto;
+}
+
+.inline-cta > .button,
+.inline-cta > .checkout-button-form .button {
   min-width: 220px;
   padding: 14px 32px;
 }

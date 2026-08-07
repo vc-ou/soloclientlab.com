@@ -14,7 +14,13 @@ export type PostEventType =
   | "demo_open"
   | "review_complete";
 export type ProductSlug = "leadradar" | "needradar-workflow-lab";
-export type ProductAccessType = "product_access" | "trial_access" | "co_build_access" | "partner_preview" | "paid_pilot";
+export type ProductAccessType =
+  | "product_access"
+  | "trial_access"
+  | "co_build_access"
+  | "partner_preview"
+  | "paid_pilot"
+  | "monthly_subscription";
 export type ProductAccessStatus = "new" | "reviewing" | "invited" | "declined" | "paid";
 export type ProductTrialStatus = "requested" | "active" | "completed" | "expired" | "paid_pilot_requested";
 export type LeadRadarConfigStatus = "started" | "completed";
@@ -33,6 +39,7 @@ export type TrialEventType =
   | "csv_exported"
   | "calibration_feedback_submitted"
   | "paid_pilot_requested"
+  | "monthly_subscription_checkout_started"
   | "demo_open";
 export type DemandStatus =
   | "raw"
@@ -293,5 +300,6 @@ export type ActionState = {
     | "trial_access_requested"
     | "partner_preview_requested"
     | "radar_config_completed"
-    | "paid_pilot_requested";
+    | "paid_pilot_requested"
+    | "monthly_subscription_checkout_started";
 };

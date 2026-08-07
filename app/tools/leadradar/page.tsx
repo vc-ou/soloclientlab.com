@@ -24,7 +24,7 @@ export default function LeadRadarDemoPage() {
         align="center"
         className="hero-copy-90"
         eyebrow="Workflow demo"
-        title="Try the LeadRadar workflow before you request access"
+        title="Try the LeadRadar workflow before monthly checkout"
         description="This is an illustrative bridge page. The formal product is LeadRadar for CNC and manufacturing teams; this demo shows how visible social comments can move into a review workflow."
         aside={
           <div className="hero-actions">

@@ -15,6 +15,7 @@ import type {
   PostEvent,
   PostPerformance,
   ProductAccessRequest,
+  ProductAccessType,
   ProductEntitlement,
   ProductPayment,
   ProductTrial,
@@ -1238,6 +1239,7 @@ export async function addPendingProductPayment(
 export async function fulfillPaidProductPayment(input: {
   provider?: ProductPayment["provider"];
   product_slug: ProductPayment["product_slug"];
+  access_type?: ProductAccessType;
   email: string;
   access_request_id?: string;
   provider_checkout_session_id: string;
@@ -1255,6 +1257,11 @@ export async function fulfillPaidProductPayment(input: {
   const paidAt = input.paid_at ?? nowIso;
   const provider = input.provider ?? "stripe";
   const providerLabel = provider === "paypal" ? "PayPal" : "Stripe";
+  const entitlementAccessType = input.access_type ?? "paid_pilot";
+  const isMonthlySubscription = entitlementAccessType === "monthly_subscription";
+  const entitlementNotes = isMonthlySubscription
+    ? `${providerLabel} monthly subscription checkout completed.`
+    : `${providerLabel} paid pilot checkout completed.`;
   const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
 
   if (hasDatabaseUrl()) {
@@ -1312,9 +1319,9 @@ export async function fulfillPaidProductPayment(input: {
           id, product_slug, access_type, email, status, source_payment_id,
           access_request_id, starts_at, ends_at, notes, metadata, created_at, updated_at
         ) values (
-          ${randomUUID()}, ${input.product_slug}, 'paid_pilot', ${email}, 'active',
-          ${paymentId}, ${accessRequestId ?? null}, ${paidAt}, ${addDaysIso(new Date(paidAt), 30)},
-          ${`${providerLabel} paid pilot checkout completed.`}, ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
+          ${randomUUID()}, ${input.product_slug}, ${entitlementAccessType}, ${email}, 'active',
+          ${paymentId}, ${accessRequestId ?? null}, ${paidAt}, ${isMonthlySubscription ? null : addDaysIso(new Date(paidAt), 30)},
+          ${entitlementNotes}, ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
         )
         on conflict (source_payment_id) where source_payment_id is not null do nothing
       `;
@@ -1365,14 +1372,14 @@ export async function fulfillPaidProductPayment(input: {
     db.product_entitlements.unshift({
       id: randomUUID(),
       product_slug: input.product_slug,
-      access_type: "paid_pilot",
+      access_type: entitlementAccessType,
       email,
       status: "active",
       source_payment_id: payment.id,
       access_request_id: payment.access_request_id,
       starts_at: paidAt,
-      ends_at: addDaysIso(new Date(paidAt), 30),
-      notes: `${providerLabel} paid pilot checkout completed.`,
+      ends_at: isMonthlySubscription ? undefined : addDaysIso(new Date(paidAt), 30),
+      notes: entitlementNotes,
       metadata: metadataJson,
       created_at: nowIso,
       updated_at: nowIso

@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ProductEventLink } from "@/components/product-events";
+import { MonthlySubscriptionCheckoutButton } from "@/components/monthly-subscription-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
-import {
-  getNeedRadarExtensionCtaLabel,
-  getNeedRadarExtensionHref,
-  getNeedRadarExtensionSupportCopy,
-  hasNeedRadarEdgeAddonsListing
-} from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: "Tools | SoloClientLab",
@@ -18,11 +12,6 @@ export const metadata: Metadata = {
 };
 
 export default function ProductsPage() {
-  const needRadarHref = getNeedRadarExtensionHref();
-  const needRadarCtaLabel = getNeedRadarExtensionCtaLabel();
-  const needRadarSupportCopy = getNeedRadarExtensionSupportCopy();
-  const hasNeedRadarListing = hasNeedRadarEdgeAddonsListing();
-
   return (
     <>
       <PageHero
@@ -44,12 +33,12 @@ export default function ProductsPage() {
                 Find and review sourcing, quotation, sample, MOQ, and capacity signals from social conversations before
                 they disappear into manual scanning.
               </p>
-              <p className="form-feedback">Microsoft Edge Add-ons listing is under review. Product access requests are open now.</p>
+              <p className="form-feedback">Microsoft Edge Add-ons listing is under review. Monthly subscription checkout is open now.</p>
             </div>
             <div className="hero-actions product-card-actions">
-              <Link href="/products/leadradar" className="button primary">
+              <MonthlySubscriptionCheckoutButton sourcePage="/products#leadradar">
                 Request LeadRadar access
-              </Link>
+              </MonthlySubscriptionCheckoutButton>
               <Link href="/tools/leadradar" className="button ghost">
                 Open the demo
               </Link>
@@ -63,17 +52,12 @@ export default function ProductsPage() {
                 A lightweight workflow lab for turning public comments, search queries, and field notes into clearer
                 need clusters before a product is built.
               </p>
-              <p className="form-feedback">{needRadarSupportCopy}</p>
+              <p className="form-feedback">Monthly subscription checkout is open now. The official install path will appear here when the listing is live.</p>
             </div>
             <div className="hero-actions product-card-actions">
-              <ProductEventLink
-                href={needRadarHref}
-                eventType={hasNeedRadarListing ? "install_clicked" : "trial_access_requested"}
-                className="button primary"
-                productSlug="needradar-workflow-lab"
-              >
-                {needRadarCtaLabel}
-              </ProductEventLink>
+              <MonthlySubscriptionCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab">
+                Request NeedRadar access
+              </MonthlySubscriptionCheckoutButton>
               <Link href="/products/needradar-workflow-lab" className="button ghost">
                 View product details
               </Link>
