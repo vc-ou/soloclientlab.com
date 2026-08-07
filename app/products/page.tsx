@@ -16,7 +16,7 @@ export default function ProductsPage() {
     <>
       <PageHero
         align="center"
-        className="public-route-hero"
+        className="public-route-hero products-route-hero"
         eyebrow="Tools"
         title="Focused tools for recurring solo-work problems"
         description="Each tool focuses on one clear workflow, with enough context to help you decide whether it deserves a place in your work."

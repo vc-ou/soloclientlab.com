@@ -3938,6 +3938,20 @@ a.scl-guide:hover {
   font-size: 1.2rem;
 }
 
+.main-content .products-route-hero.hero-center .hero-copy {
+  width: 100%;
+  max-width: none;
+}
+
+.main-content .products-route-hero.hero-center .hero-copy h1 {
+  max-width: 100%;
+  font-size: clamp(2.8rem, 5vw, 4.2rem);
+}
+
+.main-content .products-route-hero.hero-center .hero-description {
+  max-width: 920px;
+}
+
 .main-content .route-section {
   padding: 0;
   border: 0;
