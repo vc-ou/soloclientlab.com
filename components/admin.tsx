@@ -42,7 +42,7 @@ export function MetricCard({
   hint
 }: {
   label: string;
-  value: number;
+  value: React.ReactNode;
   hint?: string;
 }) {
   return (

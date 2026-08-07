@@ -164,6 +164,44 @@ create table if not exists product_trials (
   updated_at timestamptz not null
 );
 
+create table if not exists product_payments (
+  id text primary key,
+  product_slug text not null,
+  provider text not null,
+  status text not null,
+  access_request_id text references product_access_requests(id) on delete set null,
+  email text not null,
+  currency text,
+  amount_subtotal integer,
+  amount_total integer,
+  provider_checkout_session_id text,
+  provider_payment_intent_id text,
+  provider_customer_id text,
+  provider_subscription_id text,
+  checkout_url text,
+  paid_at timestamptz,
+  refunded_at timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists product_entitlements (
+  id text primary key,
+  product_slug text not null,
+  access_type text not null,
+  email text not null,
+  status text not null,
+  source_payment_id text references product_payments(id) on delete set null,
+  access_request_id text references product_access_requests(id) on delete set null,
+  starts_at timestamptz not null,
+  ends_at timestamptz,
+  notes text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
 create table if not exists leadradar_configs (
   id text primary key,
   email text not null,
@@ -208,6 +246,13 @@ create index if not exists idx_product_access_requests_product_slug on product_a
 create index if not exists idx_product_access_requests_email on product_access_requests (email);
 create index if not exists idx_product_trials_product_slug on product_trials (product_slug);
 create index if not exists idx_product_trials_status on product_trials (status);
+create index if not exists idx_product_payments_product_slug on product_payments (product_slug);
+create index if not exists idx_product_payments_status on product_payments (status);
+create unique index if not exists idx_product_payments_checkout_session on product_payments (provider_checkout_session_id) where provider_checkout_session_id is not null;
+create index if not exists idx_product_entitlements_product_slug on product_entitlements (product_slug);
+create index if not exists idx_product_entitlements_status on product_entitlements (status);
+create index if not exists idx_product_entitlements_email on product_entitlements (email);
+create unique index if not exists idx_product_entitlements_source_payment on product_entitlements (source_payment_id) where source_payment_id is not null;
 create index if not exists idx_leadradar_configs_email on leadradar_configs (email);
 create index if not exists idx_trial_events_product_slug on trial_events (product_slug);
 create index if not exists idx_trial_events_event_type on trial_events (event_type);

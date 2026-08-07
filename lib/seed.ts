@@ -117,6 +117,8 @@ export const seedDatabase: Database = {
   feedback: [],
   product_access_requests: [],
   product_trials: [],
+  product_payments: [],
+  product_entitlements: [],
   leadradar_configs: [],
   trial_events: [],
   posts: [

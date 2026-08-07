@@ -15,6 +15,8 @@ import type {
   PostEvent,
   PostPerformance,
   ProductAccessRequest,
+  ProductEntitlement,
+  ProductPayment,
   ProductTrial,
   Resource,
   Subscriber,
@@ -35,6 +37,12 @@ type PostEventRow = PostEvent;
 type FeedbackRow = FeedbackEntry;
 type ProductAccessRequestRow = ProductAccessRequest;
 type ProductTrialRow = ProductTrial;
+type ProductPaymentRow = Omit<ProductPayment, "metadata"> & {
+  metadata: Record<string, unknown> | null;
+};
+type ProductEntitlementRow = Omit<ProductEntitlement, "metadata"> & {
+  metadata: Record<string, unknown> | null;
+};
 type LeadRadarConfigRow = Omit<LeadRadarConfig, "keywords"> & {
   keywords: string[] | null;
 };
@@ -123,6 +131,14 @@ async function readLocalDb(): Promise<Database> {
     feedback: parsed.feedback ?? [],
     product_access_requests: parsed.product_access_requests ?? [],
     product_trials: parsed.product_trials ?? [],
+    product_payments: (parsed.product_payments ?? []).map((payment) => ({
+      ...payment,
+      metadata: payment.metadata ?? {}
+    })),
+    product_entitlements: (parsed.product_entitlements ?? []).map((entitlement) => ({
+      ...entitlement,
+      metadata: entitlement.metadata ?? {}
+    })),
     leadradar_configs: (parsed.leadradar_configs ?? []).map((config) => ({
       ...config,
       keywords: config.keywords ?? []
@@ -158,6 +174,8 @@ function createInMemoryFallbackDb(): Database {
     feedback: [],
     product_access_requests: [],
     product_trials: [],
+    product_payments: [],
+    product_entitlements: [],
     leadradar_configs: [],
     trial_events: []
   };
@@ -342,6 +360,28 @@ function mapProductTrialRow(row: ProductTrialRow): ProductTrial {
   };
 }
 
+function mapProductPaymentRow(row: ProductPaymentRow): ProductPayment {
+  return {
+    ...row,
+    paid_at: toIsoString(row.paid_at),
+    refunded_at: toIsoString(row.refunded_at),
+    metadata: row.metadata ?? {},
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapProductEntitlementRow(row: ProductEntitlementRow): ProductEntitlement {
+  return {
+    ...row,
+    starts_at: new Date(row.starts_at).toISOString(),
+    ends_at: toIsoString(row.ends_at),
+    metadata: row.metadata ?? {},
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
 function mapLeadRadarConfigRow(row: LeadRadarConfigRow): LeadRadarConfig {
   return {
     ...row,
@@ -495,6 +535,28 @@ async function readPostgresDb(): Promise<Database> {
 
     throw error;
   });
+  const productPaymentsPromise = withTimeout(
+    sql<ProductPaymentRow[]>`select * from product_payments order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "product_payments")) {
+      console.warn("product_payments table is not available yet, using empty payment data.");
+      return [] as ProductPaymentRow[];
+    }
+
+    throw error;
+  });
+  const productEntitlementsPromise = withTimeout(
+    sql<ProductEntitlementRow[]>`select * from product_entitlements order by created_at desc`,
+    4000
+  ).catch((error: unknown) => {
+    if (isMissingOptionalTable(error, "product_entitlements")) {
+      console.warn("product_entitlements table is not available yet, using empty entitlement data.");
+      return [] as ProductEntitlementRow[];
+    }
+
+    throw error;
+  });
   const leadRadarConfigsPromise = withTimeout(
     sql<LeadRadarConfigRow[]>`select * from leadradar_configs order by created_at desc`,
     4000
@@ -528,6 +590,8 @@ async function readPostgresDb(): Promise<Database> {
     feedback,
     productAccessRequests,
     productTrials,
+    productPayments,
+    productEntitlements,
     leadRadarConfigs,
     trialEvents
   ] = await withTimeout(
@@ -541,6 +605,8 @@ async function readPostgresDb(): Promise<Database> {
       feedbackPromise,
       productAccessRequestsPromise,
       productTrialsPromise,
+      productPaymentsPromise,
+      productEntitlementsPromise,
       leadRadarConfigsPromise,
       trialEventsPromise
     ])
@@ -556,6 +622,8 @@ async function readPostgresDb(): Promise<Database> {
     feedback: feedback.map(mapFeedbackRow),
     product_access_requests: productAccessRequests.map(mapProductAccessRequestRow),
     product_trials: productTrials.map(mapProductTrialRow).filter((trial) => !isInternalProductTrial(trial)),
+    product_payments: productPayments.map(mapProductPaymentRow),
+    product_entitlements: productEntitlements.map(mapProductEntitlementRow),
     leadradar_configs: leadRadarConfigs.map(mapLeadRadarConfigRow),
     trial_events: trialEvents.map(mapTrialEventRow).filter((event) => !isInternalTrialEvent(event))
   };
@@ -1080,6 +1148,264 @@ export async function addProductAccessRequest(
   }
   await writeLocalDb(db);
   return accessRequestId;
+}
+
+export async function addPendingProductPayment(
+  input: Omit<ProductPayment, "id" | "status" | "provider" | "created_at" | "updated_at"> & {
+    provider?: ProductPayment["provider"];
+  }
+) {
+  const nowIso = new Date().toISOString();
+  const paymentId = randomUUID();
+  const email = input.email.toLowerCase();
+  const provider = input.provider ?? "stripe";
+  const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    await writeSql`
+      insert into product_payments (
+        id, product_slug, provider, status, access_request_id, email, currency,
+        amount_subtotal, amount_total, provider_checkout_session_id,
+        provider_payment_intent_id, provider_customer_id, provider_subscription_id,
+        checkout_url, paid_at, refunded_at, metadata, created_at, updated_at
+      ) values (
+        ${paymentId}, ${input.product_slug}, ${provider}, 'pending',
+        ${input.access_request_id ?? null}, ${email}, ${input.currency ?? null},
+        ${input.amount_subtotal ?? null}, ${input.amount_total ?? null},
+        ${input.provider_checkout_session_id ?? null}, ${input.provider_payment_intent_id ?? null},
+        ${input.provider_customer_id ?? null}, ${input.provider_subscription_id ?? null},
+        ${input.checkout_url ?? null}, ${input.paid_at ?? null}, ${input.refunded_at ?? null},
+        ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
+      )
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const localDb = await readLocalDb();
+      localDb.product_payments.unshift({
+        id: paymentId,
+        product_slug: input.product_slug,
+        provider,
+        status: "pending",
+        access_request_id: input.access_request_id,
+        email,
+        currency: input.currency,
+        amount_subtotal: input.amount_subtotal,
+        amount_total: input.amount_total,
+        provider_checkout_session_id: input.provider_checkout_session_id,
+        provider_payment_intent_id: input.provider_payment_intent_id,
+        provider_customer_id: input.provider_customer_id,
+        provider_subscription_id: input.provider_subscription_id,
+        checkout_url: input.checkout_url,
+        paid_at: input.paid_at,
+        refunded_at: input.refunded_at,
+        metadata: metadataJson,
+        created_at: nowIso,
+        updated_at: nowIso
+      });
+      await writeLocalDb(localDb);
+    }
+
+    return paymentId;
+  }
+
+  const db = await readLocalDb();
+  db.product_payments.unshift({
+    id: paymentId,
+    product_slug: input.product_slug,
+    provider,
+    status: "pending",
+    access_request_id: input.access_request_id,
+    email,
+    currency: input.currency,
+    amount_subtotal: input.amount_subtotal,
+    amount_total: input.amount_total,
+    provider_checkout_session_id: input.provider_checkout_session_id,
+    provider_payment_intent_id: input.provider_payment_intent_id,
+    provider_customer_id: input.provider_customer_id,
+    provider_subscription_id: input.provider_subscription_id,
+    checkout_url: input.checkout_url,
+    paid_at: input.paid_at,
+    refunded_at: input.refunded_at,
+    metadata: metadataJson,
+    created_at: nowIso,
+    updated_at: nowIso
+  });
+  await writeLocalDb(db);
+  return paymentId;
+}
+
+export async function fulfillPaidProductPayment(input: {
+  provider?: ProductPayment["provider"];
+  product_slug: ProductPayment["product_slug"];
+  email: string;
+  access_request_id?: string;
+  provider_checkout_session_id: string;
+  provider_payment_intent_id?: string;
+  provider_customer_id?: string;
+  provider_subscription_id?: string;
+  currency?: string;
+  amount_subtotal?: number;
+  amount_total?: number;
+  paid_at?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const nowIso = new Date().toISOString();
+  const email = input.email.toLowerCase();
+  const paidAt = input.paid_at ?? nowIso;
+  const provider = input.provider ?? "stripe";
+  const providerLabel = provider === "paypal" ? "PayPal" : "Stripe";
+  const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
+
+  if (hasDatabaseUrl()) {
+    const writeSql = getWriteSql();
+    const existingPayments = await writeSql<ProductPaymentRow[]>`
+      select * from product_payments
+      where provider_checkout_session_id = ${input.provider_checkout_session_id}
+      limit 1
+    `;
+    const paymentId = existingPayments[0]?.id ?? randomUUID();
+    const accessRequestId = input.access_request_id ?? existingPayments[0]?.access_request_id;
+
+    if (existingPayments[0]) {
+      await writeSql`
+        update product_payments
+        set status = 'paid',
+          email = ${email},
+          currency = ${input.currency ?? existingPayments[0].currency ?? null},
+          amount_subtotal = ${input.amount_subtotal ?? existingPayments[0].amount_subtotal ?? null},
+          amount_total = ${input.amount_total ?? existingPayments[0].amount_total ?? null},
+          provider_payment_intent_id = ${input.provider_payment_intent_id ?? existingPayments[0].provider_payment_intent_id ?? null},
+          provider_customer_id = ${input.provider_customer_id ?? existingPayments[0].provider_customer_id ?? null},
+          provider_subscription_id = ${input.provider_subscription_id ?? existingPayments[0].provider_subscription_id ?? null},
+          paid_at = ${paidAt},
+          metadata = ${writeSql.json({ ...(existingPayments[0].metadata ?? {}), ...metadataJson })},
+          updated_at = ${nowIso}
+        where id = ${paymentId}
+      `;
+    } else {
+      await writeSql`
+        insert into product_payments (
+          id, product_slug, provider, status, access_request_id, email, currency,
+          amount_subtotal, amount_total, provider_checkout_session_id,
+          provider_payment_intent_id, provider_customer_id, provider_subscription_id,
+          paid_at, metadata, created_at, updated_at
+        ) values (
+          ${paymentId}, ${input.product_slug}, ${provider}, 'paid',
+          ${accessRequestId ?? null}, ${email}, ${input.currency ?? null},
+          ${input.amount_subtotal ?? null}, ${input.amount_total ?? null},
+          ${input.provider_checkout_session_id}, ${input.provider_payment_intent_id ?? null},
+          ${input.provider_customer_id ?? null}, ${input.provider_subscription_id ?? null},
+          ${paidAt}, ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
+        )
+      `;
+    }
+
+    const existingEntitlements = await writeSql<ProductEntitlementRow[]>`
+      select * from product_entitlements
+      where source_payment_id = ${paymentId}
+      limit 1
+    `;
+    if (!existingEntitlements[0]) {
+      await writeSql`
+        insert into product_entitlements (
+          id, product_slug, access_type, email, status, source_payment_id,
+          access_request_id, starts_at, ends_at, notes, metadata, created_at, updated_at
+        ) values (
+          ${randomUUID()}, ${input.product_slug}, 'paid_pilot', ${email}, 'active',
+          ${paymentId}, ${accessRequestId ?? null}, ${paidAt}, ${addDaysIso(new Date(paidAt), 30)},
+          ${`${providerLabel} paid pilot checkout completed.`}, ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
+        )
+        on conflict (source_payment_id) where source_payment_id is not null do nothing
+      `;
+    }
+
+    if (accessRequestId) {
+      await writeSql`
+        update product_access_requests
+        set status = 'paid', updated_at = ${nowIso}
+        where id = ${accessRequestId}
+      `;
+    }
+
+    return paymentId;
+  }
+
+  const db = await readLocalDb();
+  let payment = db.product_payments.find((item) => item.provider_checkout_session_id === input.provider_checkout_session_id);
+  if (!payment) {
+    payment = {
+      id: randomUUID(),
+      product_slug: input.product_slug,
+      provider,
+      status: "paid",
+      email,
+      access_request_id: input.access_request_id,
+      provider_checkout_session_id: input.provider_checkout_session_id,
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+    db.product_payments.unshift(payment);
+  }
+
+  payment.status = "paid";
+  payment.email = email;
+  payment.access_request_id = input.access_request_id ?? payment.access_request_id;
+  payment.currency = input.currency ?? payment.currency;
+  payment.amount_subtotal = input.amount_subtotal ?? payment.amount_subtotal;
+  payment.amount_total = input.amount_total ?? payment.amount_total;
+  payment.provider_payment_intent_id = input.provider_payment_intent_id ?? payment.provider_payment_intent_id;
+  payment.provider_customer_id = input.provider_customer_id ?? payment.provider_customer_id;
+  payment.provider_subscription_id = input.provider_subscription_id ?? payment.provider_subscription_id;
+  payment.paid_at = paidAt;
+  payment.metadata = { ...(payment.metadata ?? {}), ...metadataJson };
+  payment.updated_at = nowIso;
+
+  if (!db.product_entitlements.some((item) => item.source_payment_id === payment.id)) {
+    db.product_entitlements.unshift({
+      id: randomUUID(),
+      product_slug: input.product_slug,
+      access_type: "paid_pilot",
+      email,
+      status: "active",
+      source_payment_id: payment.id,
+      access_request_id: payment.access_request_id,
+      starts_at: paidAt,
+      ends_at: addDaysIso(new Date(paidAt), 30),
+      notes: `${providerLabel} paid pilot checkout completed.`,
+      metadata: metadataJson,
+      created_at: nowIso,
+      updated_at: nowIso
+    });
+  }
+
+  if (payment.access_request_id) {
+    const request = db.product_access_requests.find((item) => item.id === payment.access_request_id);
+    if (request) {
+      request.status = "paid";
+      request.updated_at = nowIso;
+    }
+  }
+
+  await writeLocalDb(db);
+  return payment.id;
+}
+
+export async function getProductPaymentByProviderCheckoutSessionId(
+  providerCheckoutSessionId: string
+): Promise<ProductPayment | null> {
+  if (hasDatabaseUrl()) {
+    const sql = getReadSql();
+    const rows = await sql<ProductPaymentRow[]>`
+      select * from product_payments
+      where provider_checkout_session_id = ${providerCheckoutSessionId}
+      limit 1
+    `;
+    return rows[0] ? mapProductPaymentRow(rows[0]) : null;
+  }
+
+  const db = await readLocalDbSafe();
+  return db.product_payments.find((payment) => payment.provider_checkout_session_id === providerCheckoutSessionId) ?? null;
 }
 
 export async function addLeadRadarConfig(
@@ -2001,6 +2327,50 @@ export async function getProductTrials(): Promise<ProductTrial[]> {
   return db.product_trials.filter((trial) => !isInternalProductTrial(trial));
 }
 
+export async function getProductPayments(): Promise<ProductPayment[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Product payments read",
+        () => withTimeout(sql<ProductPaymentRow[]>`
+          select * from product_payments
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapProductPaymentRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "product_payments")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.product_payments;
+}
+
+export async function getProductEntitlements(): Promise<ProductEntitlement[]> {
+  if (shouldReadLiveAdminDb()) {
+    try {
+      const sql = getReadSql();
+      const rows = await readWithRetry(
+        "Product entitlements read",
+        () => withTimeout(sql<ProductEntitlementRow[]>`
+          select * from product_entitlements
+          order by created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+      return rows.map(mapProductEntitlementRow);
+    } catch (error) {
+      if (isMissingOptionalTable(error, "product_entitlements")) return [];
+      throw error;
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.product_entitlements;
+}
+
 export async function getLeadRadarConfigs(): Promise<LeadRadarConfig[]> {
   if (shouldReadLiveAdminDb()) {
     try {
@@ -2046,18 +2416,25 @@ export async function getTrialEvents(): Promise<TrialEvent[]> {
 }
 
 export async function getProductAdminMetrics() {
-  const [accessRequests, trials, configs, events] = await Promise.all([
+  const [accessRequests, trials, configs, events, payments, entitlements] = await Promise.all([
     getProductAccessRequests(),
     getProductTrials(),
     getLeadRadarConfigs(),
-    getTrialEvents()
+    getTrialEvents(),
+    getProductPayments(),
+    getProductEntitlements()
   ]);
 
   const eventCount = (eventType: TrialEvent["event_type"]) => events.filter((event) => event.event_type === eventType).length;
+  const paidPayments = payments.filter((payment) => payment.status === "paid");
+  const paidRevenueCents = paidPayments.reduce((total, payment) => total + (payment.amount_total ?? 0), 0);
 
   return {
     accessRequests: accessRequests.length,
     activeTrials: trials.filter((trial) => trial.status === "active" || trial.status === "requested").length,
+    paidPayments: paidPayments.length,
+    paidRevenueCents,
+    activeEntitlements: entitlements.filter((entitlement) => entitlement.status === "active").length,
     completedConfigs: configs.filter((config) => config.status === "completed").length,
     productPageVisits: eventCount("product_page_visit"),
     trialAccessRequested: eventCount("trial_access_requested"),

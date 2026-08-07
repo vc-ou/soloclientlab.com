@@ -1,9 +1,22 @@
 import Link from "next/link";
 import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
-import { getProductAdminMetrics } from "@/lib/db";
+import { getProductAdminMetrics, getProductEntitlements, getProductPayments } from "@/lib/db";
+
+function formatUsd(cents?: number) {
+  if (cents === undefined) return "-";
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(cents / 100);
+}
 
 export default async function AdminProductsPage() {
-  const metrics = await getProductAdminMetrics();
+  const [metrics, payments, entitlements] = await Promise.all([
+    getProductAdminMetrics(),
+    getProductPayments(),
+    getProductEntitlements()
+  ]);
 
   return (
     <AdminShell title="Products">
@@ -13,6 +26,47 @@ export default async function AdminProductsPage() {
         <MetricCard label="Partner previews" value={metrics.partnerPreviewRequested} />
         <MetricCard label="Completed configs" value={metrics.completedConfigs} />
         <MetricCard label="Paid pilot requests" value={metrics.paidPilotRequested} />
+        <MetricCard label="Paid payments" value={metrics.paidPayments} />
+        <MetricCard label="Paid revenue" value={formatUsd(metrics.paidRevenueCents)} />
+        <MetricCard label="Active entitlements" value={metrics.activeEntitlements} />
+      </div>
+
+      <div className="admin-grid" style={{ marginTop: 24 }}>
+        <section className="activity-card">
+          <h2>Payments</h2>
+          <SimpleTable
+            headers={["Created", "Provider", "Product", "Email", "Status", "Amount", "Paid at", "Payment reference"]}
+            rows={payments.map((payment) => [
+              payment.created_at.slice(0, 16).replace("T", " "),
+              payment.provider,
+              payment.product_slug,
+              payment.email,
+              payment.status,
+              formatUsd(payment.amount_total),
+              payment.paid_at?.slice(0, 16).replace("T", " ") ?? "-",
+              payment.provider_checkout_session_id ?? "-"
+            ])}
+          />
+        </section>
+      </div>
+
+      <div className="admin-grid" style={{ marginTop: 24 }}>
+        <section className="activity-card">
+          <h2>Entitlements</h2>
+          <SimpleTable
+            headers={["Created", "Product", "Email", "Access", "Status", "Starts", "Ends", "Source payment"]}
+            rows={entitlements.map((entitlement) => [
+              entitlement.created_at.slice(0, 16).replace("T", " "),
+              entitlement.product_slug,
+              entitlement.email,
+              entitlement.access_type,
+              entitlement.status,
+              entitlement.starts_at.slice(0, 10),
+              entitlement.ends_at?.slice(0, 10) ?? "-",
+              entitlement.source_payment_id ?? "-"
+            ])}
+          />
+        </section>
       </div>
 
       <div className="admin-grid" style={{ marginTop: 24 }}>

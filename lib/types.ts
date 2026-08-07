@@ -15,9 +15,12 @@ export type PostEventType =
   | "review_complete";
 export type ProductSlug = "leadradar" | "needradar-workflow-lab";
 export type ProductAccessType = "product_access" | "trial_access" | "co_build_access" | "partner_preview" | "paid_pilot";
-export type ProductAccessStatus = "new" | "reviewing" | "invited" | "declined";
+export type ProductAccessStatus = "new" | "reviewing" | "invited" | "declined" | "paid";
 export type ProductTrialStatus = "requested" | "active" | "completed" | "expired" | "paid_pilot_requested";
 export type LeadRadarConfigStatus = "started" | "completed";
+export type PaymentProvider = "stripe" | "paypal";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded" | "canceled";
+export type EntitlementStatus = "pending" | "active" | "expired" | "revoked";
 export type TrialEventType =
   | "product_page_visit"
   | "trial_access_requested"
@@ -190,6 +193,44 @@ export type LeadRadarConfig = {
   updated_at: string;
 };
 
+export type ProductPayment = {
+  id: string;
+  product_slug: ProductSlug;
+  provider: PaymentProvider;
+  status: PaymentStatus;
+  access_request_id?: string;
+  email: string;
+  currency?: string;
+  amount_subtotal?: number;
+  amount_total?: number;
+  provider_checkout_session_id?: string;
+  provider_payment_intent_id?: string;
+  provider_customer_id?: string;
+  provider_subscription_id?: string;
+  checkout_url?: string;
+  paid_at?: string;
+  refunded_at?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductEntitlement = {
+  id: string;
+  product_slug: ProductSlug;
+  access_type: ProductAccessType;
+  email: string;
+  status: EntitlementStatus;
+  source_payment_id?: string;
+  access_request_id?: string;
+  starts_at: string;
+  ends_at?: string;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TrialEvent = {
   id: string;
   product_slug: ProductSlug;
@@ -234,6 +275,8 @@ export type Database = {
   product_access_requests: ProductAccessRequest[];
   product_trials: ProductTrial[];
   leadradar_configs: LeadRadarConfig[];
+  product_payments: ProductPayment[];
+  product_entitlements: ProductEntitlement[];
   trial_events: TrialEvent[];
 };
 

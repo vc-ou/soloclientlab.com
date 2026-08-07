@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
 import { LeadRadarConfigForm, ProductAccessForm } from "@/components/forms";
+import { PaidPilotCheckoutForm } from "@/components/paid-pilot-checkout-form";
 import { PageHero, SectionHeading } from "@/components/site";
 import {
   getLeadRadarExtensionCtaLabel,
@@ -177,6 +178,20 @@ export default function LeadRadarProductPage() {
             }
             defaultAccessType="product_access"
           />
+        </div>
+      </section>
+
+      <section className="container" id="paid-pilot">
+        <div className="two-column">
+          <div className="resource-showcase">
+            <p className="eyebrow">Paid pilot</p>
+            <h2>Move from a promising signal workflow to a focused customer test</h2>
+            <p>
+              The paid pilot is the direct path for a manufacturing or sourcing team that wants to test LeadRadar against a real market, capability set, and review process.
+              Payment is collected by PayPal; access is activated after payment confirmation.
+            </p>
+          </div>
+          <PaidPilotCheckoutForm sourcePage="/products/leadradar#paid-pilot" />
         </div>
       </section>
 

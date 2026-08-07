@@ -3152,6 +3152,16 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
+.page-section {
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+.narrow-panel {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
 .about-featured-research-panel .section-heading {
   margin-bottom: 32px;
 }

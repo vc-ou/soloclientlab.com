@@ -6,10 +6,12 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addFeedbackEntry, addLeadRadarConfig, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createPayPalPaidPilotOrder, getLeadRadarPaidPilotAmountCents, getLeadRadarPaidPilotCurrency } from "@/lib/paypal";
+import { getSiteUrl } from "@/lib/env";
 import type {
   ActionState,
   DemandStatus,
@@ -59,6 +61,14 @@ const productAccessSchema = z.object({
   role: z.string().trim().max(160).optional(),
   source_page: z.string().trim().max(300).optional(),
   use_case: z.string().trim().max(4000).optional()
+});
+
+const paidPilotCheckoutSchema = z.object({
+  email: emailSchema,
+  company_name: z.string().trim().min(1).max(160),
+  role: z.string().trim().max(160).optional(),
+  use_case: z.string().trim().min(1).max(4000),
+  source_page: z.string().trim().max(300).optional()
 });
 
 const leadRadarConfigSchema = z.object({
@@ -375,6 +385,117 @@ export async function requestProductAccess(
         ? "Your partner preview request has been received. The evaluation window is arranged through the collaboration conversation."
         : "Your product access request has been received. Public self-serve trials use a 7-day window; co-build access is reviewed separately.",
     eventName
+  };
+}
+
+export async function createPaidPilotCheckout(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = paidPilotCheckoutSchema.safeParse({
+    email: getText(formData, "email").toLowerCase(),
+    company_name: getText(formData, "company_name"),
+    role: getText(formData, "role") || undefined,
+    use_case: getText(formData, "use_case"),
+    source_page: getText(formData, "source_page") || undefined
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Please add a valid email, company or workflow name, and paid pilot use case."
+    };
+  }
+
+  let accessRequestId: string;
+  let checkoutUrl: string;
+
+  try {
+    const amountCents = getLeadRadarPaidPilotAmountCents();
+    const currency = getLeadRadarPaidPilotCurrency();
+
+    accessRequestId = await addProductAccessRequest({
+      product_slug: "leadradar",
+      access_type: "paid_pilot",
+      email: parsed.data.email,
+      company_name: parsed.data.company_name,
+      role: parsed.data.role,
+      source_page: parsed.data.source_page,
+      use_case: parsed.data.use_case
+    });
+
+    const paypalOrder = await createPayPalPaidPilotOrder({
+      accessRequestId,
+      returnUrl: `${getSiteUrl()}/api/payments/paypal/return`,
+      cancelUrl: `${getSiteUrl()}/checkout/cancel`
+    });
+
+    if (!paypalOrder.approveUrl) {
+      throw new Error("PayPal did not return an approval URL.");
+    }
+    checkoutUrl = paypalOrder.approveUrl;
+
+    await addPendingProductPayment({
+      provider: "paypal",
+      product_slug: "leadradar",
+      access_request_id: accessRequestId,
+      email: parsed.data.email,
+      currency,
+      amount_subtotal: amountCents,
+      amount_total: amountCents,
+      provider_checkout_session_id: paypalOrder.id,
+      checkout_url: paypalOrder.approveUrl,
+      metadata: {
+        access_type: "paid_pilot",
+        company_name: parsed.data.company_name,
+        role: parsed.data.role,
+        use_case: parsed.data.use_case,
+        source_page: parsed.data.source_page
+      }
+    });
+
+    const secondaryWrites = await Promise.allSettled([
+      saveSubscriber({
+        email: parsed.data.email,
+        source_page: parsed.data.source_page,
+        source_type: "product_access",
+        topic_tag: "manufacturing_social_lead_discovery",
+        note: parsed.data.use_case
+      }),
+      trackTrialEvent({
+        product_slug: "leadradar",
+        event_type: "paid_pilot_requested",
+        email: parsed.data.email,
+        source_page: parsed.data.source_page,
+        metadata: {
+          access_request_id: accessRequestId,
+          paypal_order_id: paypalOrder.id,
+          company_name: parsed.data.company_name
+        }
+      })
+    ]);
+    secondaryWrites.forEach((result) => {
+      if (result.status === "rejected") {
+        console.error("Paid pilot checkout secondary write failed:", result.reason);
+      }
+    });
+  } catch (error) {
+    console.error("Failed to create paid pilot checkout:", error);
+    return {
+      success: false,
+      message: "Checkout could not be started just now. Please email soloclientlab.com@gmail.com."
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/product-access");
+
+  return {
+    success: true,
+    message: "Redirecting to secure checkout...",
+    redirectUrl: checkoutUrl,
+    eventName: "paid_pilot_requested"
   };
 }
 

@@ -17,3 +17,11 @@ export function hasDatabaseUrl() {
 export function getDatabaseUrl() {
   return getRequiredEnv("DATABASE_URL");
 }
+
+export function getOptionalEnv(name: string) {
+  return process.env[name];
+}
+
+export function getSiteUrl() {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com").replace(/\/+$/, "");
+}
