@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
 import { getProductAdminMetrics, getProductEntitlements, getProductPayments } from "@/lib/db";
+import type { ProductEntitlement, ProductPayment } from "@/lib/types";
 
 function formatUsd(cents?: number) {
   if (cents === undefined) return "-";
@@ -12,20 +13,54 @@ function formatUsd(cents?: number) {
 }
 
 export default async function AdminProductsPage() {
-  const [metrics, payments, entitlements] = await Promise.all([
+  const [metricsResult, paymentsResult, entitlementsResult] = await Promise.allSettled([
     getProductAdminMetrics(),
     getProductPayments(),
     getProductEntitlements()
   ]);
+  const loadErrors = [metricsResult, paymentsResult, entitlementsResult]
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason instanceof Error ? result.reason.message : "Unknown admin data error");
+  const metrics = metricsResult.status === "fulfilled"
+    ? metricsResult.value
+    : {
+        accessRequests: 0,
+        activeTrials: 0,
+        paidPayments: 0,
+        paidRevenueCents: 0,
+        activeEntitlements: 0,
+        completedConfigs: 0,
+        productPageVisits: 0,
+        trialAccessRequested: 0,
+        paypalAccessStarted: 0,
+        partnerPreviewRequested: 0,
+        installClicked: 0,
+        configStarted: 0,
+        configCompleted: 0,
+        keywordsAdded: 0,
+        reviewCompleted: 0,
+        csvExported: 0,
+        calibrationFeedbackSubmitted: 0,
+        paidPilotRequested: 0,
+        latestEvents: []
+      };
+  const payments: ProductPayment[] = paymentsResult.status === "fulfilled" ? paymentsResult.value : [];
+  const entitlements: ProductEntitlement[] = entitlementsResult.status === "fulfilled" ? entitlementsResult.value : [];
 
   return (
     <AdminShell title="Products">
+      {loadErrors.length ? (
+        <section className="admin-card" style={{ marginBottom: 24 }}>
+          <h2>Live product data partially unavailable</h2>
+          <p>Some product admin data could not be loaded. Retry after the database connection settles.</p>
+        </section>
+      ) : null}
       <div className="admin-grid metrics">
         <MetricCard label="Product visits" value={metrics.productPageVisits} />
         <MetricCard label="Access requests" value={metrics.accessRequests} />
         <MetricCard label="Partner previews" value={metrics.partnerPreviewRequested} />
         <MetricCard label="Completed configs" value={metrics.completedConfigs} />
-        <MetricCard label="Paid pilot requests" value={metrics.paidPilotRequested} />
+        <MetricCard label="PayPal checkout starts" value={metrics.paypalAccessStarted} />
         <MetricCard label="Paid payments" value={metrics.paidPayments} />
         <MetricCard label="Paid revenue" value={formatUsd(metrics.paidRevenueCents)} />
         <MetricCard label="Active entitlements" value={metrics.activeEntitlements} />
@@ -85,7 +120,7 @@ export default async function AdminProductsPage() {
               ["Review", "review_completed", metrics.reviewCompleted.toString()],
               ["Export", "csv_exported", metrics.csvExported.toString()],
               ["Feedback", "calibration_feedback_submitted", metrics.calibrationFeedbackSubmitted.toString()],
-              ["Paid pilot", "paid_pilot_requested", metrics.paidPilotRequested.toString()]
+              ["PayPal access", "paypal_access_started", metrics.paypalAccessStarted.toString()]
             ]}
           />
         </section>

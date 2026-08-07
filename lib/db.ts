@@ -2448,6 +2448,7 @@ export async function getProductAdminMetrics() {
     completedConfigs: configs.filter((config) => config.status === "completed").length,
     productPageVisits: eventCount("product_page_visit"),
     trialAccessRequested: eventCount("trial_access_requested"),
+    paypalAccessStarted: eventCount("paypal_access_started"),
     partnerPreviewRequested: eventCount("partner_preview_requested"),
     installClicked: eventCount("install_clicked"),
     configStarted: eventCount("radar_config_started"),
