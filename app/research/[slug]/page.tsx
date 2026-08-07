@@ -10,6 +10,19 @@ type PostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function getSeoDescription(post: { seo_description?: string | null; summary?: string; title: string }) {
+  const description =
+    post.seo_description?.trim() ||
+    post.summary?.trim() ||
+    `Practical guide: ${post.title}.`;
+
+  if (description.length >= 120) {
+    return description;
+  }
+
+  return `${description} Includes practical examples and next steps for consultants, freelancers, and solo service businesses.`;
+}
+
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
@@ -19,16 +32,17 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   }
 
   const title = post.seo_title ?? post.title;
+  const description = getSeoDescription(post);
 
   return {
     title: title.length + titleSuffix.length > 70 ? { absolute: title } : title,
-    description: post.seo_description ?? post.summary,
+    description,
     alternates: {
       canonical: `/research/${post.slug}`
     },
     openGraph: {
       title,
-      description: post.seo_description ?? post.summary,
+      description,
       url: `${siteUrl}/research/${post.slug}`,
       type: "article",
       publishedTime: post.published_at,
@@ -38,7 +52,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     twitter: {
       card: "summary",
       title,
-      description: post.seo_description ?? post.summary,
+      description,
       images: post.cover_image_url ? [post.cover_image_url] : undefined
     }
   };
@@ -60,7 +74,7 @@ export default async function PostPage({ params }: PostPageProps) {
     "@id": `${siteUrl}/research/${post.slug}#article`,
     mainEntityOfPage: `${siteUrl}/research/${post.slug}`,
     headline: post.title,
-    description: post.seo_description ?? post.summary,
+    description: getSeoDescription(post),
     datePublished: post.published_at,
     dateModified: post.updated_at ?? post.published_at,
     author: {

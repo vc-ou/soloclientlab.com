@@ -11,7 +11,8 @@ type ResearchPageProps = {
 
 export const metadata: Metadata = {
   title: "Practical Guides for Independent Work",
-  description: "Short, practical guides for finding opportunities, organizing client work, and reducing repetitive tasks.",
+  description:
+    "Practical guides for independent consultants, freelancers, and solo service businesses on finding client opportunities, validating demand, organizing workflows, and choosing useful automation.",
   alternates: {
     canonical: "/research"
   }

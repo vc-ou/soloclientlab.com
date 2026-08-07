@@ -4,8 +4,9 @@ import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
 
 export const metadata: Metadata = {
-  title: "Tools | SoloClientLab",
-  description: "Focused tools for finding opportunities, reviewing signals, and making independent work easier to run.",
+  title: "Solo Work Tools",
+  description:
+    "Explore SoloClientLab tools for finding client opportunities, reviewing public demand signals, and turning scattered research into repeatable workflows for independent work.",
   alternates: {
     canonical: "/products"
   }

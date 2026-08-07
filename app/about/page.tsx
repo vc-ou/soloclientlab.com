@@ -7,7 +7,7 @@ import { getPublicPosts } from "@/lib/db";
 export const metadata: Metadata = {
   title: "About SoloClientLab",
   description:
-    "Learn how SoloClientLab builds focused tools for independent work.",
+    "Learn how SoloClientLab researches client acquisition problems, tests small workflow tools, and builds practical software for consultants, freelancers, creators, and one-person businesses.",
   alternates: {
     canonical: "/about"
   }
