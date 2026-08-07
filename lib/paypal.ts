@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getOptionalEnv, getRequiredEnv } from "@/lib/env";
+import type { ProductSlug } from "@/lib/types";
 
 type PayPalLink = {
   href: string;
@@ -154,21 +155,36 @@ export async function createPayPalPaidPilotOrder(input: {
   returnUrl: string;
   cancelUrl: string;
 }) {
+  return createPayPalProductOrder({
+    checkoutId: input.accessRequestId,
+    productSlug: "leadradar",
+    returnUrl: input.returnUrl,
+    cancelUrl: input.cancelUrl
+  });
+}
+
+export async function createPayPalProductOrder(input: {
+  checkoutId: string;
+  productSlug: ProductSlug;
+  returnUrl: string;
+  cancelUrl: string;
+}) {
   const amountCents = getLeadRadarPaidPilotAmountCents();
   const currency = getLeadRadarPaidPilotCurrency();
+  const productName = input.productSlug === "leadradar" ? "LeadRadar" : "NeedRadar Workflow Lab";
   const order = await paypalRequest<PayPalOrder>("/v2/checkout/orders", {
     method: "POST",
     headers: {
-      "PayPal-Request-Id": input.accessRequestId
+      "PayPal-Request-Id": input.checkoutId
     },
     body: JSON.stringify({
       intent: "CAPTURE",
       purchase_units: [
         {
-          reference_id: "leadradar-paid-pilot",
-          custom_id: input.accessRequestId,
-          invoice_id: input.accessRequestId,
-          description: "LeadRadar 30-day paid pilot",
+          reference_id: `${input.productSlug}-access-payment`,
+          custom_id: input.checkoutId,
+          invoice_id: input.checkoutId,
+          description: `${productName} lifetime access payment`,
           amount: {
             currency_code: currency,
             value: centsToPayPalAmount(amountCents)
@@ -209,8 +225,12 @@ export function getPayPalCapturedOrderDetails(order: PayPalCapturedOrder) {
   const purchaseUnit = order.purchase_units?.[0];
   const capture = purchaseUnit?.payments?.captures?.[0];
   const amount = capture?.amount ?? purchaseUnit?.amount;
+  const productSlug = purchaseUnit?.reference_id?.startsWith("needradar-workflow-lab")
+    ? "needradar-workflow-lab"
+    : "leadradar";
 
   return {
+    productSlug: productSlug as ProductSlug,
     payerEmail: order.payer?.email_address,
     payerId: order.payer?.payer_id,
     accessRequestId: purchaseUnit?.custom_id,

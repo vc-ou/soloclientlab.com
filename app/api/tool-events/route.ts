@@ -33,6 +33,7 @@ const v2EventTypes = [
   "calibration_feedback_submitted",
   "paid_pilot_requested",
   "monthly_subscription_checkout_started",
+  "paypal_access_started",
   "demo_open"
 ] as const;
 

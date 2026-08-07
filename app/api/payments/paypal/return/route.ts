@@ -29,9 +29,10 @@ export async function GET(request: Request) {
     await withDatabaseTimeout(
       fulfillPaidProductPayment({
         provider: "paypal",
-        product_slug: pendingPayment?.product_slug ?? "leadradar",
+        product_slug: pendingPayment?.product_slug ?? details.productSlug,
+        access_type: pendingPayment?.metadata?.access_type === "paid_pilot" ? "paid_pilot" : "lifetime_access",
         email,
-        access_request_id: pendingPayment?.access_request_id ?? details.accessRequestId,
+        access_request_id: pendingPayment?.access_request_id,
         provider_checkout_session_id: orderId,
         provider_payment_intent_id: details.captureId,
         provider_customer_id: details.payerId,

@@ -20,7 +20,8 @@ export type ProductAccessType =
   | "co_build_access"
   | "partner_preview"
   | "paid_pilot"
-  | "monthly_subscription";
+  | "monthly_subscription"
+  | "lifetime_access";
 export type ProductAccessStatus = "new" | "reviewing" | "invited" | "declined" | "paid";
 export type ProductTrialStatus = "requested" | "active" | "completed" | "expired" | "paid_pilot_requested";
 export type LeadRadarConfigStatus = "started" | "completed";
@@ -40,6 +41,7 @@ export type TrialEventType =
   | "calibration_feedback_submitted"
   | "paid_pilot_requested"
   | "monthly_subscription_checkout_started"
+  | "paypal_access_started"
   | "demo_open";
 export type DemandStatus =
   | "raw"

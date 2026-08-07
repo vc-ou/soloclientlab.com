@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
 import { LeadRadarConfigForm, ProductAccessForm } from "@/components/forms";
-import { MonthlySubscriptionCheckoutButton } from "@/components/monthly-subscription-checkout-button";
+import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
 import { hasLeadRadarEdgeAddonsListing, getLeadRadarPartnerPreviewHref } from "@/lib/extension-links";
 
@@ -37,13 +37,13 @@ export default function LeadRadarProductPage() {
             <h3>{hasEdgeListing ? "Subscribe to LeadRadar" : "Microsoft Edge Add-ons is under review"}</h3>
             <p className="form-intro">
               {hasEdgeListing
-                ? "Start a monthly LeadRadar subscription and evaluate the workflow in a real manufacturing signal review process."
-                : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for review. Request product access now to start the monthly subscription checkout."}
+                ? "Make a one-time LeadRadar payment and evaluate the workflow in a real manufacturing signal review process."
+                : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for review. Request product access now to start PayPal checkout."}
             </p>
-            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#hero">
+            <PayPalCheckoutButton sourcePage="/products/leadradar#hero">
               Request product access
-            </MonthlySubscriptionCheckoutButton>
-            <p className="form-feedback">Payment starts a monthly subscription immediately.</p>
+            </PayPalCheckoutButton>
+            <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
             <div className="hero-actions">
               <ProductEventLink href="/tools/leadradar" eventType="demo_open" className="button ghost">
                 Try workflow demo
@@ -52,7 +52,7 @@ export default function LeadRadarProductPage() {
                 Partner preview
               </a>
             </div>
-            <p className="form-feedback">Current public channel: {hasEdgeListing ? "Edge Add-ons plus subscription checkout" : "Subscription checkout while Edge Add-ons is under review"}</p>
+            <p className="form-feedback">Current payment channel: PayPal{hasEdgeListing ? " plus Edge Add-ons" : " while Edge Add-ons is under review"}</p>
           </div>
         }
       />
@@ -92,28 +92,28 @@ export default function LeadRadarProductPage() {
       <section className="container">
         <div className="inline-cta">
           <div>
-            <h3>One subscription path, one LeadRadar core</h3>
+            <h3>One PayPal access path, one LeadRadar core</h3>
             <p>
-              Public users start from monthly subscription checkout. After payment, LeadRadar access and setup guidance
-              are handled from the confirmed subscription. Partner preview remains reserved for offline collaboration and
-              customer-specific validation.
+              Public users start from PayPal checkout. After payment, LeadRadar access and setup guidance are handled
+              from the confirmed payment. Partner preview remains reserved for offline collaboration and customer-specific
+              validation.
             </p>
           </div>
-          <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#subscription-cta">
+          <PayPalCheckoutButton sourcePage="/products/leadradar#subscription-cta">
             Request product access
-          </MonthlySubscriptionCheckoutButton>
+          </PayPalCheckoutButton>
         </div>
       </section>
 
       <section className="container" id="manual-install">
         <div className="section-panel">
-          <SectionHeading title={hasEdgeListing ? "Edge install and subscription" : "Edge Add-ons review status"} />
+          <SectionHeading title={hasEdgeListing ? "Edge install and paid access" : "Edge Add-ons review status"} />
           <div className="grid-4">
             {[
               ["Store status", hasEdgeListing ? "Use the Microsoft Edge Add-ons listing as the default public install path after checkout." : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for certification review."],
-              ["Subscribe", "Request access starts secure monthly subscription checkout immediately."],
+              ["Pay with PayPal", "Request access starts secure PayPal checkout immediately."],
               ["Use TikTok", "Open TikTok search, videos, comments, or users pages and let LeadRadar collect visible signals into a local review list."],
-              ["Access now", "Payment confirms the monthly subscription and unlocks the setup follow-up path."]
+              ["Access now", "Payment confirms access and unlocks the setup follow-up path."]
             ].map(([title, body]) => (
               <div key={title} className="card">
                 <h3>{title}</h3>
@@ -149,21 +149,21 @@ export default function LeadRadarProductPage() {
         <div className="two-column">
           <div className="resource-showcase">
             <p className="eyebrow">Product access</p>
-            <h2>{hasEdgeListing ? "Need help installing or evaluating LeadRadar?" : "Start the monthly subscription while Edge review is pending"}</h2>
+            <h2>{hasEdgeListing ? "Need help installing or evaluating LeadRadar?" : "Start PayPal access while Edge review is pending"}</h2>
             <p>
               {hasEdgeListing
                 ? "Use this request if you want setup support, calibration help, co-build access, or a partner evaluation path."
-                : "The public Edge Add-ons listing is in review. The primary request path now starts monthly subscription checkout immediately."}
+                : "The public Edge Add-ons listing is in review. The primary request path now starts PayPal checkout immediately."}
             </p>
           </div>
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Start LeadRadar subscription" : "Request LeadRadar product access"}</h3>
+            <h3>{hasEdgeListing ? "Start LeadRadar access" : "Request LeadRadar product access"}</h3>
             <p className="form-intro">
-              Click once to enter secure monthly subscription checkout. Payment starts the subscription and replaces the old product-access request step.
+              Click once to enter secure PayPal checkout. Payment confirms access and replaces the old product-access request step.
             </p>
-            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#product-access">
+            <PayPalCheckoutButton sourcePage="/products/leadradar#product-access">
               Request LeadRadar access
-            </MonthlySubscriptionCheckoutButton>
+            </PayPalCheckoutButton>
             <p className="form-feedback">No separate access approval step before checkout.</p>
           </div>
         </div>
@@ -172,22 +172,22 @@ export default function LeadRadarProductPage() {
       <section className="container" id="subscription">
         <div className="two-column">
           <div className="resource-showcase">
-            <p className="eyebrow">Monthly subscription</p>
+            <p className="eyebrow">PayPal access payment</p>
             <h2>Move from a promising signal workflow to a paid customer test</h2>
             <p>
-              The subscription path is for a manufacturing or sourcing team that wants to test LeadRadar against a real market, capability set, and review process.
-              Payment starts a monthly subscription; access is activated after payment confirmation.
+              PayPal is the temporary payment path for a manufacturing or sourcing team that wants to test LeadRadar
+              against a real market, capability set, and review process. Access is activated after payment confirmation.
             </p>
           </div>
           <div className="form-card waitlist-card">
-            <h3>Start monthly subscription</h3>
+            <h3>Pay with PayPal</h3>
             <p className="form-intro">
-              Continue to secure Stripe checkout. Stripe collects the billing email during payment and confirms the subscription.
+              Continue to secure PayPal checkout. One payment gives you lifetime access to the product.
             </p>
-            <MonthlySubscriptionCheckoutButton sourcePage="/products/leadradar#subscription">
-              Continue to monthly checkout
-            </MonthlySubscriptionCheckoutButton>
-            <p className="form-feedback">Payment activates subscription access immediately.</p>
+            <PayPalCheckoutButton sourcePage="/products/leadradar#subscription">
+              Continue to PayPal checkout
+            </PayPalCheckoutButton>
+            <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
           </div>
         </div>
       </section>
@@ -199,7 +199,7 @@ export default function LeadRadarProductPage() {
             <h2>Tell LeadRadar what signal rules matter</h2>
             <p>
               The first configuration pass should include concrete keywords, markets, capabilities, and lead types.
-              This keeps subscription setup tied to a real manufacturing workflow instead of a vague product waitlist.
+              This keeps paid access setup tied to a real manufacturing workflow instead of a vague product waitlist.
             </p>
           </div>
           <LeadRadarConfigForm sourcePage="/products/leadradar" />

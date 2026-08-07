@@ -10,7 +10,7 @@ import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProd
 import { signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createPayPalPaidPilotOrder, getLeadRadarPaidPilotAmountCents, getLeadRadarPaidPilotCurrency } from "@/lib/paypal";
+import { createPayPalPaidPilotOrder, createPayPalProductOrder, getLeadRadarPaidPilotAmountCents, getLeadRadarPaidPilotCurrency } from "@/lib/paypal";
 import { getProductMonthlySubscriptionPriceId, getStripe } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/env";
 import type {
@@ -455,6 +455,58 @@ export async function startMonthlySubscriptionCheckout(formData: FormData) {
   }
 
   redirect(checkoutUrl);
+}
+
+export async function startPayPalCheckout(formData: FormData) {
+  const parsed = monthlySubscriptionCheckoutSchema.safeParse({
+    product_slug: getText(formData, "product_slug") || "leadradar",
+    source_page: getText(formData, "source_page") || undefined
+  });
+
+  if (!parsed.success) {
+    redirect("/checkout/cancel?reason=invalid_paypal_request");
+  }
+
+  const productSlug = parsed.data.product_slug as ProductSlug;
+  const checkoutId = randomUUID();
+  let approveUrl: string | undefined;
+
+  try {
+    const order = await createPayPalProductOrder({
+      checkoutId,
+      productSlug,
+      returnUrl: `${getSiteUrl()}/api/payments/paypal/return`,
+      cancelUrl: `${getSiteUrl()}/checkout/cancel`
+    });
+
+    if (!order.approveUrl) {
+      throw new Error("PayPal did not return an approval URL.");
+    }
+    approveUrl = order.approveUrl;
+
+    try {
+      await trackTrialEvent({
+        product_slug: productSlug,
+        event_type: "paypal_access_started",
+        source_page: parsed.data.source_page,
+        metadata: {
+          paypal_order_id: order.id,
+          access_type: "lifetime_access"
+        }
+      });
+    } catch (error) {
+      console.error("PayPal checkout analytics write failed:", error);
+    }
+  } catch (error) {
+    console.error("Failed to create PayPal checkout:", error);
+    redirect("/checkout/cancel?reason=paypal_checkout_failed");
+  }
+
+  if (!approveUrl) {
+    redirect("/checkout/cancel?reason=missing_paypal_approval_url");
+  }
+
+  redirect(approveUrl);
 }
 
 export async function createPaidPilotCheckout(

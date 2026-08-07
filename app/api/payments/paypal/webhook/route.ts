@@ -36,7 +36,8 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
 
   const pendingPayment = await getProductPaymentByProviderCheckoutSessionId(orderId);
   if (!pendingPayment) {
-    throw new Error(`PayPal webhook ${event.id ?? "unknown"} could not find pending payment for order ${orderId}.`);
+    console.warn(`PayPal webhook ${event.id ?? "unknown"} could not find pending payment for order ${orderId}; waiting for the return route.`);
+    return;
   }
 
   const amountCents = resource?.amount?.value ? amountStringToCents(resource.amount.value) : pendingPayment.amount_total;
@@ -45,6 +46,7 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
     fulfillPaidProductPayment({
       provider: "paypal",
       product_slug: pendingPayment.product_slug,
+      access_type: pendingPayment.metadata?.access_type === "paid_pilot" ? "paid_pilot" : "lifetime_access",
       email: pendingPayment.email,
       access_request_id: pendingPayment.access_request_id,
       provider_checkout_session_id: orderId,

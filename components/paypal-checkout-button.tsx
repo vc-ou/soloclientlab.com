@@ -1,8 +1,8 @@
-import { startMonthlySubscriptionCheckout } from "@/lib/actions";
+import { startPayPalCheckout } from "@/lib/actions";
 import type { ProductSlug } from "@/lib/types";
 import type { ReactNode } from "react";
 
-type MonthlySubscriptionCheckoutButtonProps = {
+type PayPalCheckoutButtonProps = {
   productSlug?: ProductSlug;
   sourcePage: string;
   children?: ReactNode;
@@ -10,15 +10,15 @@ type MonthlySubscriptionCheckoutButtonProps = {
   buttonClassName?: string;
 };
 
-export function MonthlySubscriptionCheckoutButton({
+export function PayPalCheckoutButton({
   productSlug = "leadradar",
   sourcePage,
   children = "Request product access",
   className,
   buttonClassName = "button primary"
-}: MonthlySubscriptionCheckoutButtonProps) {
+}: PayPalCheckoutButtonProps) {
   return (
-    <form action={startMonthlySubscriptionCheckout} className={["checkout-button-form", className].filter(Boolean).join(" ")}>
+    <form action={startPayPalCheckout} className={["checkout-button-form", className].filter(Boolean).join(" ")}>
       <input type="hidden" name="product_slug" value={productSlug} />
       <input type="hidden" name="source_page" value={sourcePage} />
       <button type="submit" className={buttonClassName}>

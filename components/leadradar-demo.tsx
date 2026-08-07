@@ -760,23 +760,23 @@ export function LeadRadarDemo() {
                 </div>
                 <div>
                   <strong>Step 2</strong>
-                  <p>Start monthly subscription checkout, then install from Edge after approval or follow the setup path provided after payment.</p>
+                  <p>Start PayPal checkout, then install from Edge after approval or follow the setup path provided after payment.</p>
                 </div>
                 <div>
                   <strong>Step 3</strong>
-                  <p>Use the paid subscription path for setup support, access, and release timing.</p>
+                  <p>Use the paid access path for setup support, access, and release timing.</p>
                 </div>
               </div>
               <div className="leadradar-next-actions">
                 <Link
                   href="/products/leadradar#subscription"
                   className="button primary"
-                  onClick={() => void sendProductEvent("monthly_subscription_checkout_started")}
+                  onClick={() => void sendProductEvent("paypal_access_started")}
                 >
-                  Continue to monthly checkout
+                  Continue to PayPal checkout
                 </Link>
               </div>
-              <p className="form-feedback">Payment starts a monthly subscription immediately.</p>
+              <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
             </div>
           </div>
         </section>

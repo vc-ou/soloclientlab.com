@@ -1258,10 +1258,13 @@ export async function fulfillPaidProductPayment(input: {
   const provider = input.provider ?? "stripe";
   const providerLabel = provider === "paypal" ? "PayPal" : "Stripe";
   const entitlementAccessType = input.access_type ?? "paid_pilot";
-  const isMonthlySubscription = entitlementAccessType === "monthly_subscription";
-  const entitlementNotes = isMonthlySubscription
-    ? `${providerLabel} monthly subscription checkout completed.`
-    : `${providerLabel} paid pilot checkout completed.`;
+  const isLifetimeAccess = entitlementAccessType === "lifetime_access";
+  const isMonthlySubscription = entitlementAccessType === "monthly_subscription" && Boolean(input.provider_subscription_id);
+  const entitlementNotes = isLifetimeAccess
+    ? `${providerLabel} lifetime access payment completed.`
+    : isMonthlySubscription
+      ? `${providerLabel} monthly subscription checkout completed.`
+      : `${providerLabel} paid pilot checkout completed.`;
   const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
 
   if (hasDatabaseUrl()) {
@@ -1320,7 +1323,7 @@ export async function fulfillPaidProductPayment(input: {
           access_request_id, starts_at, ends_at, notes, metadata, created_at, updated_at
         ) values (
           ${randomUUID()}, ${input.product_slug}, ${entitlementAccessType}, ${email}, 'active',
-          ${paymentId}, ${accessRequestId ?? null}, ${paidAt}, ${isMonthlySubscription ? null : addDaysIso(new Date(paidAt), 30)},
+          ${paymentId}, ${accessRequestId ?? null}, ${paidAt}, ${isLifetimeAccess || isMonthlySubscription ? null : addDaysIso(new Date(paidAt), 30)},
           ${entitlementNotes}, ${writeSql.json(metadataJson)}, ${nowIso}, ${nowIso}
         )
         on conflict (source_payment_id) where source_payment_id is not null do nothing
@@ -1378,7 +1381,7 @@ export async function fulfillPaidProductPayment(input: {
       source_payment_id: payment.id,
       access_request_id: payment.access_request_id,
       starts_at: paidAt,
-      ends_at: isMonthlySubscription ? undefined : addDaysIso(new Date(paidAt), 30),
+      ends_at: isLifetimeAccess || isMonthlySubscription ? undefined : addDaysIso(new Date(paidAt), 30),
       notes: entitlementNotes,
       metadata: metadataJson,
       created_at: nowIso,

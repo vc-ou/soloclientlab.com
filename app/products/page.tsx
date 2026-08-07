@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MonthlySubscriptionCheckoutButton } from "@/components/monthly-subscription-checkout-button";
+import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
 
 export const metadata: Metadata = {
@@ -33,12 +33,12 @@ export default function ProductsPage() {
                 Find and review sourcing, quotation, sample, MOQ, and capacity signals from social conversations before
                 they disappear into manual scanning.
               </p>
-              <p className="form-feedback">Microsoft Edge Add-ons listing is under review. Monthly subscription checkout is open now.</p>
+              <p className="form-feedback">Microsoft Edge Add-ons listing is under review. PayPal checkout is open now.</p>
             </div>
             <div className="hero-actions product-card-actions">
-              <MonthlySubscriptionCheckoutButton sourcePage="/products#leadradar">
+              <PayPalCheckoutButton sourcePage="/products#leadradar">
                 Request LeadRadar access
-              </MonthlySubscriptionCheckoutButton>
+              </PayPalCheckoutButton>
               <Link href="/tools/leadradar" className="button ghost">
                 Open the demo
               </Link>
@@ -52,12 +52,12 @@ export default function ProductsPage() {
                 A lightweight workflow lab for turning public comments, search queries, and field notes into clearer
                 need clusters before a product is built.
               </p>
-              <p className="form-feedback">Monthly subscription checkout is open now. The official install path will appear here when the listing is live.</p>
+              <p className="form-feedback">PayPal checkout is open now. The official install path will appear here when the listing is live.</p>
             </div>
             <div className="hero-actions product-card-actions">
-              <MonthlySubscriptionCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab">
+              <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab">
                 Request NeedRadar access
-              </MonthlySubscriptionCheckoutButton>
+              </PayPalCheckoutButton>
               <Link href="/products/needradar-workflow-lab" className="button ghost">
                 View product details
               </Link>

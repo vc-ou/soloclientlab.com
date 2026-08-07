@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MonthlySubscriptionCheckoutButton } from "@/components/monthly-subscription-checkout-button";
+import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { TrackProductPageView } from "@/components/product-events";
 import { PageHero, SectionHeading } from "@/components/site";
 import {
@@ -39,12 +39,12 @@ export default function NeedRadarWorkflowLabPage() {
             <p className="form-intro">
               {hasEdgeListing
                 ? "Add the extension from Microsoft Edge Add-ons, then review visible Reddit or Xiaohongshu workflow signals in the Edge side panel."
-                : "The official Edge Add-ons listing is being prepared. Request access now to start the monthly subscription checkout."}
+                : "The official Edge Add-ons listing is being prepared. Request access now to start PayPal checkout."}
             </p>
-            <MonthlySubscriptionCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#hero">
+            <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#hero">
               Request NeedRadar access
-            </MonthlySubscriptionCheckoutButton>
-            <p className="form-feedback">Payment starts a monthly subscription immediately.</p>
+            </PayPalCheckoutButton>
+            <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
           </div>
         }
       />
@@ -56,9 +56,9 @@ export default function NeedRadarWorkflowLabPage() {
             <h3>{hasEdgeListing ? "Install from the official Edge Add-ons listing" : "Public Edge installation is not live yet"}</h3>
             <p>{extensionSupportCopy}</p>
           </div>
-          <MonthlySubscriptionCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#install">
+          <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#install">
             Request NeedRadar access
-          </MonthlySubscriptionCheckoutButton>
+          </PayPalCheckoutButton>
         </div>
       </section>
 
@@ -82,7 +82,7 @@ export default function NeedRadarWorkflowLabPage() {
           <SectionHeading title="Install and use NeedRadar" />
           <div className="grid-4">
             {[
-              ["Subscribe", "Request access starts secure monthly subscription checkout immediately."],
+              ["Pay with PayPal", "Request access starts secure PayPal checkout immediately."],
               ["Open a source", "Visit a Reddit post or Xiaohongshu note whose visible comments you want to review."],
               ["Review locally", "Open the NeedRadar side panel, select useful excerpts, and organize them into workflow signals."],
               ["Export", "Download your saved research as Markdown or CSV. Captured page content is not sent to SoloClientLab."]
@@ -103,18 +103,18 @@ export default function NeedRadarWorkflowLabPage() {
             <h2>{hasEdgeListing ? "Need help with your NeedRadar workflow?" : "Get the Edge release link when it is ready"}</h2>
             <p>
               {hasEdgeListing
-                ? "The public install is self-serve after subscription checkout. Use this path for setup support or research workflow design."
-                : "Request access now to start monthly subscription checkout while the public listing is being prepared."}
+                ? "The public install is self-serve after PayPal checkout. Use this path for setup support or research workflow design."
+                : "Request access now to start PayPal checkout while the public listing is being prepared."}
             </p>
           </div>
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Start NeedRadar subscription" : "Request NeedRadar access"}</h3>
+            <h3>{hasEdgeListing ? "Start NeedRadar access" : "Request NeedRadar access"}</h3>
             <p className="form-intro">
-              Click once to enter secure monthly subscription checkout. Payment starts subscription access and replaces the old request step.
+              Click once to enter secure PayPal checkout. Payment confirms access and replaces the old request step.
             </p>
-            <MonthlySubscriptionCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access">
+            <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access">
               Request NeedRadar access
-            </MonthlySubscriptionCheckoutButton>
+            </PayPalCheckoutButton>
             <p className="form-feedback">No separate access approval step before checkout.</p>
           </div>
         </div>

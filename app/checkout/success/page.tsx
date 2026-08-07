@@ -10,9 +10,9 @@ export default async function CheckoutSuccessPage() {
     <section className="container page-section">
       <div className="section-panel narrow-panel">
         <p className="eyebrow">Payment received</p>
-        <h1>Your subscription is being activated</h1>
+        <h1>Your PayPal payment is being confirmed</h1>
         <p>
-          Checkout has confirmed the payment. Subscription access is activated from the payment confirmation, then setup follow-up can continue from the billing email.
+          PayPal has confirmed the checkout return. Access is activated from the payment confirmation, then setup follow-up can continue from the billing email.
         </p>
         <p>
           You can return to the product page while the webhook finishes processing.
