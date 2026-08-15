@@ -11,9 +11,11 @@ import {
 } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
-  title: "Solo Work Tools",
+  title: {
+    absolute: "Client Acquisition Tools for Solo Consultants | SoloClientLab"
+  },
   description:
-    "Explore SoloClientLab tools for finding client opportunities, reviewing public demand signals, and turning scattered research into repeatable workflows for independent work.",
+    "Explore lightweight tools that help solo consultants and small service businesses find public demand signals, research client needs, and turn scattered conversations into repeatable lead workflows.",
   alternates: {
     canonical: "/products"
   }
@@ -29,7 +31,7 @@ export default function ProductsPage() {
         align="center"
         className="public-route-hero products-route-hero"
         eyebrow="Tools"
-        title="Focused tools for recurring solo-work problems"
+        title="Client acquisition tools for solo consultants and small service businesses"
         description="Each tool focuses on one clear workflow, with enough context to help you decide whether it deserves a place in your work."
       />
 

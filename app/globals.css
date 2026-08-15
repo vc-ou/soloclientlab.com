@@ -601,24 +601,19 @@ h3 {
 
 .hero-center .hero-copy {
   justify-items: center;
-  width: min(70%, 860px);
-  max-width: 860px;
 }
 
 .hero-center .hero-copy h1 {
-  max-width: min(70%, 15ch);
   font-size: clamp(2.6rem, 4.6vw, 4rem);
   line-height: 1.05;
 }
 
 .hero-center .hero-description {
-  max-width: min(70%, 44rem);
   font-size: 1.06rem;
   line-height: 1.5;
 }
 
 .hero-center.hero-copy-90 .hero-copy {
-  width: min(90%, 1100px);
   max-width: 1100px;
 }
 
@@ -3920,7 +3915,7 @@ a.scl-guide:hover {
 }
 
 .main-content .hero-grid.public-route-hero {
-  padding: 76px 0 56px;
+  padding: 44px 0 32px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -3931,18 +3926,19 @@ a.scl-guide:hover {
 
 .main-content .public-route-hero.hero-center .hero-copy {
   justify-items: start;
-  width: min(100%, 900px);
-  max-width: 900px;
+
 }
 
 .main-content .public-route-hero.hero-center .hero-copy h1 {
-  max-width: 15ch;
-  font-size: clamp(2.8rem, 5.4vw, 4.6rem);
+
+  font-size: 64px;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 
 .main-content .public-route-hero.hero-center .hero-description {
-  max-width: 680px;
-  font-size: 1.2rem;
+
+  font-size: 20px;
 }
 
 .main-content .products-route-hero.hero-center .hero-copy {
@@ -3957,6 +3953,21 @@ a.scl-guide:hover {
 
 .main-content .products-route-hero.hero-center .hero-description {
   max-width: 920px;
+}
+
+@media (max-width: 720px) {
+  .main-content .public-route-hero.hero-center {
+    padding: 38px 0 24px;
+  }
+
+
+  .main-content .public-route-hero.hero-center .hero-copy h1 {
+    font-size: 50px;
+  }
+
+  .main-content .public-route-hero.hero-center .hero-description {
+    font-size: 18px;
+  }
 }
 
 .main-content .route-section {

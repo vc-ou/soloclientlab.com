@@ -302,7 +302,7 @@ export function ProductAccessForm({
   productSlug,
   sourcePage,
   title = "Request product access",
-  subtitle = "Tell us what you want to test. Subscription checkout is self-serve; partner preview and co-build access are arranged through collaboration.",
+  subtitle = "Tell us what you want to test. Subscription checkout is self-serve, and co-build access is arranged through product setup conversations.",
   defaultAccessType = "co_build_access",
   buttonLabel = "Submit request"
 }: ProductAccessFormProps) {
@@ -341,7 +341,6 @@ export function ProductAccessForm({
           <span>Access type</span>
           <select name="access_type" defaultValue={defaultAccessType}>
             <option value="co_build_access">Co-build access</option>
-            <option value="partner_preview">Partner preview</option>
             <option value="product_access">Product access</option>
             <option value="monthly_subscription">Monthly subscription</option>
           </select>

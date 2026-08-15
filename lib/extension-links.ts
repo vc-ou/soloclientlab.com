@@ -44,10 +44,6 @@ export function getLeadRadarPublicTrialChannel() {
   return "Edge Add-ons under review";
 }
 
-export function getLeadRadarPartnerPreviewHref() {
-  return "/products/leadradar#partner-preview";
-}
-
 export function hasNeedRadarEdgeAddonsListing() {
   return Boolean(needRadarEdgeAddonsUrl);
 }

@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { ExtensionInstallLink } from "@/components/extension-install-link";
 import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
-import { LeadRadarConfigForm, ProductAccessForm } from "@/components/forms";
+import { LeadRadarConfigForm } from "@/components/forms";
 import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
 import {
   getLeadRadarExtensionSupportCopy,
-  hasLeadRadarEdgeAddonsListing,
-  getLeadRadarPartnerPreviewHref
+  hasLeadRadarEdgeAddonsListing
 } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
-  title: "LeadRadar for CNC: Find Manufacturing Lead Signals",
+  title: {
+    absolute: "Manufacturing Lead Generation Tool for CNC Teams | LeadRadar"
+  },
   description:
     "LeadRadar helps CNC and manufacturing teams review TikTok comments and public social conversations for sourcing, RFQ, MOQ, sample, and custom manufacturing signals.",
   alternates: {
@@ -27,7 +28,6 @@ const workflowSteps = [
 ] as const;
 
 export default function LeadRadarProductPage() {
-  const partnerPreviewHref = getLeadRadarPartnerPreviewHref();
   const hasEdgeListing = hasLeadRadarEdgeAddonsListing();
   const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
@@ -36,7 +36,7 @@ export default function LeadRadarProductPage() {
       <TrackProductPageView />
       <PageHero
         eyebrow="LeadRadar for CNC / Manufacturing"
-        title="Turn social manufacturing conversations into reviewable lead signals"
+        title="Find CNC and manufacturing lead signals from public conversations"
         description="LeadRadar helps manufacturing teams spot sourcing and buying signals in social comments, configure what matters to their business, and move qualified findings into a practical review workflow."
         aside={
           <div className="form-card waitlist-card">
@@ -65,9 +65,6 @@ export default function LeadRadarProductPage() {
                   Pay for access
                 </PayPalCheckoutButton>
               ) : null}
-              <a href={partnerPreviewHref} className="button ghost">
-                Partner preview
-              </a>
             </div>
             <p className="form-feedback">
               {hasEdgeListing ? extensionSupportCopy : "Current payment channel: PayPal while Edge Add-ons is under review"}
@@ -135,7 +132,7 @@ export default function LeadRadarProductPage() {
               ["Store status", hasEdgeListing ? "Use the Microsoft Edge Add-ons listing as the default public install path after checkout." : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for certification review."],
               ["Pay with PayPal", "Request access starts secure PayPal checkout immediately."],
               ["Use TikTok", "Open TikTok search, videos, comments, or users pages and let LeadRadar collect visible signals into a local review list."],
-              ["Access now", hasEdgeListing ? "Install from Edge first, then use PayPal or partner preview when you need paid support and calibration." : "Payment confirms access and unlocks the setup follow-up path."]
+              ["Access now", hasEdgeListing ? "Install from Edge first, then use PayPal when you need paid support and calibration." : "Payment confirms access and unlocks the setup follow-up path."]
             ].map(([title, body]) => (
               <div key={title} className="card">
                 <h3>{title}</h3>
@@ -143,27 +140,6 @@ export default function LeadRadarProductPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="container" id="partner-preview">
-        <div className="two-column">
-          <div className="resource-showcase">
-            <p className="eyebrow">Partner preview</p>
-            <h2>Offline cooperation follows the collaboration conversation</h2>
-            <p>
-              When LeadRadar is shared during direct customer conversations, the evaluation window follows the collaboration progress.
-              This path is for private installs, pilot discussions, calibration calls, and customer-specific validation.
-            </p>
-          </div>
-          <ProductAccessForm
-            productSlug="leadradar"
-            sourcePage="/products/leadradar#partner-preview"
-            title="Request partner preview"
-            subtitle="Use this for offline cooperation, private evaluation, co-build access, or subscription setup conversations."
-            defaultAccessType="partner_preview"
-            buttonLabel="Request partner preview"
-          />
         </div>
       </section>
 

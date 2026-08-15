@@ -9,7 +9,9 @@ import {
 } from "@/lib/extension-links";
 
 export const metadata: Metadata = {
-  title: "NeedRadar Workflow Lab",
+  title: {
+    absolute: "Demand Research Tool for Public Comments and Search Queries | NeedRadar"
+  },
   description:
     "NeedRadar Workflow Lab turns public comments, search queries, and field notes into structured need clusters before a product workflow is built.",
   alternates: {
@@ -32,7 +34,7 @@ export default function NeedRadarWorkflowLabPage() {
       <TrackProductPageView productSlug="needradar-workflow-lab" />
       <PageHero
         eyebrow="NeedRadar Workflow Lab"
-        title="Turn scattered public demand into clearer need clusters"
+        title="Turn public comments and search queries into client need clusters"
         description="NeedRadar Workflow Lab is a lightweight product lab for deciding which public signals deserve research, product configuration, or a small workflow test."
         aside={
           <div className="form-card waitlist-card">
