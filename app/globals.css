@@ -3933,7 +3933,6 @@ a.scl-guide:hover {
 
   font-size: 64px;
   letter-spacing: 0;
-  text-wrap: balance;
 }
 
 .main-content .public-route-hero.hero-center .hero-description {
@@ -3951,9 +3950,6 @@ a.scl-guide:hover {
   font-size: clamp(2.8rem, 5vw, 4.2rem);
 }
 
-.main-content .products-route-hero.hero-center .hero-description {
-  max-width: 920px;
-}
 
 @media (max-width: 720px) {
   .main-content .public-route-hero.hero-center {
