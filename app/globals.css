@@ -640,10 +640,6 @@ h3 {
   margin: 0 auto;
 }
 
-.hero-center.hero-home-wide .hero-description {
-  max-width: min(90%, 70rem);
-  text-wrap: balance;
-}
 
 .hero-home-wide .hero-aside {
   width: 100%;
