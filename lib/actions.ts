@@ -397,13 +397,15 @@ export async function requestProductAccess(
 }
 
 export async function startMonthlySubscriptionCheckout(formData: FormData) {
+  const requestedProductSlug: ProductSlug =
+    getText(formData, "product_slug") === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
   const parsed = monthlySubscriptionCheckoutSchema.safeParse({
-    product_slug: getText(formData, "product_slug") || "leadradar",
+    product_slug: requestedProductSlug,
     source_page: getText(formData, "source_page") || undefined
   });
 
   if (!parsed.success) {
-    redirect("/checkout/cancel?reason=invalid_subscription_request");
+    redirect(`/checkout/cancel?reason=invalid_subscription_request&product=${encodeURIComponent(requestedProductSlug)}`);
   }
 
   const productSlug = parsed.data.product_slug as ProductSlug;
@@ -425,8 +427,8 @@ export async function startMonthlySubscriptionCheckout(formData: FormData) {
           quantity: 1
         }
       ],
-      success_url: `${siteUrl}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/checkout/cancel`,
+      success_url: `${siteUrl}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}&product=${encodeURIComponent(productSlug)}`,
+      cancel_url: `${siteUrl}/checkout/cancel?product=${encodeURIComponent(productSlug)}`,
       allow_promotion_codes: true,
       metadata,
       subscription_data: {
@@ -447,24 +449,26 @@ export async function startMonthlySubscriptionCheckout(formData: FormData) {
     });
   } catch (error) {
     console.error("Failed to create monthly subscription checkout:", error);
-    redirect("/checkout/cancel?reason=subscription_checkout_failed");
+    redirect(`/checkout/cancel?reason=subscription_checkout_failed&product=${encodeURIComponent(productSlug)}`);
   }
 
   if (!checkoutUrl) {
-    redirect("/checkout/cancel?reason=missing_checkout_url");
+    redirect(`/checkout/cancel?reason=missing_checkout_url&product=${encodeURIComponent(productSlug)}`);
   }
 
   redirect(checkoutUrl);
 }
 
 export async function startPayPalCheckout(formData: FormData) {
+  const requestedProductSlug: ProductSlug =
+    getText(formData, "product_slug") === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
   const parsed = monthlySubscriptionCheckoutSchema.safeParse({
-    product_slug: getText(formData, "product_slug") || "leadradar",
+    product_slug: requestedProductSlug,
     source_page: getText(formData, "source_page") || undefined
   });
 
   if (!parsed.success) {
-    redirect("/checkout/cancel?reason=invalid_paypal_request");
+    redirect(`/checkout/cancel?reason=invalid_paypal_request&product=${encodeURIComponent(requestedProductSlug)}`);
   }
 
   const productSlug = parsed.data.product_slug as ProductSlug;
@@ -476,7 +480,7 @@ export async function startPayPalCheckout(formData: FormData) {
       checkoutId,
       productSlug,
       returnUrl: `${getSiteUrl()}/api/payments/paypal/return`,
-      cancelUrl: `${getSiteUrl()}/checkout/cancel`
+      cancelUrl: `${getSiteUrl()}/checkout/cancel?product=${encodeURIComponent(productSlug)}`
     });
 
     if (!order.approveUrl) {
@@ -499,11 +503,11 @@ export async function startPayPalCheckout(formData: FormData) {
     }
   } catch (error) {
     console.error("Failed to create PayPal checkout:", error);
-    redirect("/checkout/cancel?reason=paypal_checkout_failed");
+    redirect(`/checkout/cancel?reason=paypal_checkout_failed&product=${encodeURIComponent(productSlug)}`);
   }
 
   if (!approveUrl) {
-    redirect("/checkout/cancel?reason=missing_paypal_approval_url");
+    redirect(`/checkout/cancel?reason=missing_paypal_approval_url&product=${encodeURIComponent(productSlug)}`);
   }
 
   redirect(approveUrl);
@@ -548,7 +552,7 @@ export async function createPaidPilotCheckout(
     const paypalOrder = await createPayPalPaidPilotOrder({
       accessRequestId,
       returnUrl: `${getSiteUrl()}/api/payments/paypal/return`,
-      cancelUrl: `${getSiteUrl()}/checkout/cancel`
+      cancelUrl: `${getSiteUrl()}/checkout/cancel?product=leadradar`
     });
 
     if (!paypalOrder.approveUrl) {

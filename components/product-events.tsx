@@ -37,6 +37,10 @@ function isLocalUrl(value?: string) {
   }
 }
 
+function isInternalHref(value: string) {
+  return value.startsWith("/") || value.startsWith("#");
+}
+
 function shouldSkipProductEvent() {
   return (
     isBrowserAnalyticsDisabled() ||
@@ -105,6 +109,14 @@ export function ProductEventLink({
   children: React.ReactNode;
   productSlug?: ProductSlug;
 }) {
+  if (!isInternalHref(href)) {
+    return (
+      <a href={href} className={className} onClick={() => void sendProductEvent(eventType, undefined, productSlug)}>
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Link href={href} className={className} onClick={() => void sendProductEvent(eventType, undefined, productSlug)}>
       {children}

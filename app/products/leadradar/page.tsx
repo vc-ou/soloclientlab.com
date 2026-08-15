@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { ExtensionInstallLink } from "@/components/extension-install-link";
 import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
 import { LeadRadarConfigForm, ProductAccessForm } from "@/components/forms";
 import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
-import { hasLeadRadarEdgeAddonsListing, getLeadRadarPartnerPreviewHref } from "@/lib/extension-links";
+import {
+  getLeadRadarExtensionSupportCopy,
+  hasLeadRadarEdgeAddonsListing,
+  getLeadRadarPartnerPreviewHref
+} from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: "LeadRadar for CNC: Find Manufacturing Lead Signals",
@@ -24,6 +29,7 @@ const workflowSteps = [
 export default function LeadRadarProductPage() {
   const partnerPreviewHref = getLeadRadarPartnerPreviewHref();
   const hasEdgeListing = hasLeadRadarEdgeAddonsListing();
+  const extensionSupportCopy = getLeadRadarExtensionSupportCopy();
 
   return (
     <>
@@ -34,25 +40,38 @@ export default function LeadRadarProductPage() {
         description="LeadRadar helps manufacturing teams spot sourcing and buying signals in social comments, configure what matters to their business, and move qualified findings into a practical review workflow."
         aside={
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Subscribe to LeadRadar" : "Microsoft Edge Add-ons is under review"}</h3>
+            <h3>{hasEdgeListing ? "Install LeadRadar for Microsoft Edge" : "Microsoft Edge Add-ons is under review"}</h3>
             <p className="form-intro">
               {hasEdgeListing
-                ? "Make a one-time LeadRadar payment and evaluate the workflow in a real manufacturing signal review process."
+                ? "Install the official Edge extension, then use the product page for paid access, setup support, and workflow calibration."
                 : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for review. Request product access now to start PayPal checkout."}
             </p>
-            <PayPalCheckoutButton sourcePage="/products/leadradar#hero">
-              Request product access
-            </PayPalCheckoutButton>
-            <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
+            {hasEdgeListing ? (
+              <ExtensionInstallLink productSlug="leadradar" sourcePage="/products/leadradar#hero" />
+            ) : (
+              <PayPalCheckoutButton sourcePage="/products/leadradar#hero">
+                Request product access
+              </PayPalCheckoutButton>
+            )}
+            <p className="form-feedback">
+              {hasEdgeListing ? "Official Edge install is live. PayPal remains available for paid setup." : "Payment opens PayPal checkout immediately."}
+            </p>
             <div className="hero-actions">
               <ProductEventLink href="/tools/leadradar" eventType="demo_open" className="button ghost">
                 Try workflow demo
               </ProductEventLink>
+              {hasEdgeListing ? (
+                <PayPalCheckoutButton sourcePage="/products/leadradar#hero-secondary" buttonClassName="button ghost">
+                  Pay for access
+                </PayPalCheckoutButton>
+              ) : null}
               <a href={partnerPreviewHref} className="button ghost">
                 Partner preview
               </a>
             </div>
-            <p className="form-feedback">Current payment channel: PayPal{hasEdgeListing ? " plus Edge Add-ons" : " while Edge Add-ons is under review"}</p>
+            <p className="form-feedback">
+              {hasEdgeListing ? extensionSupportCopy : "Current payment channel: PayPal while Edge Add-ons is under review"}
+            </p>
           </div>
         }
       />
@@ -94,14 +113,17 @@ export default function LeadRadarProductPage() {
           <div>
             <h3>One PayPal access path, one LeadRadar core</h3>
             <p>
-              Public users start from PayPal checkout. After payment, LeadRadar access and setup guidance are handled
-              from the confirmed payment. Partner preview remains reserved for offline collaboration and customer-specific
-              validation.
+              Public users can install from Microsoft Edge Add-ons once the listing is live. PayPal remains the access
+              and setup path for paid evaluation, support, and customer-specific workflow calibration.
             </p>
           </div>
-          <PayPalCheckoutButton sourcePage="/products/leadradar#subscription-cta">
-            Request product access
-          </PayPalCheckoutButton>
+          {hasEdgeListing ? (
+            <ExtensionInstallLink productSlug="leadradar" sourcePage="/products/leadradar#subscription-cta" />
+          ) : (
+            <PayPalCheckoutButton sourcePage="/products/leadradar#subscription-cta">
+              Request product access
+            </PayPalCheckoutButton>
+          )}
         </div>
       </section>
 
@@ -113,7 +135,7 @@ export default function LeadRadarProductPage() {
               ["Store status", hasEdgeListing ? "Use the Microsoft Edge Add-ons listing as the default public install path after checkout." : "LeadRadar has been submitted to Microsoft Edge Add-ons and is waiting for certification review."],
               ["Pay with PayPal", "Request access starts secure PayPal checkout immediately."],
               ["Use TikTok", "Open TikTok search, videos, comments, or users pages and let LeadRadar collect visible signals into a local review list."],
-              ["Access now", "Payment confirms access and unlocks the setup follow-up path."]
+              ["Access now", hasEdgeListing ? "Install from Edge first, then use PayPal or partner preview when you need paid support and calibration." : "Payment confirms access and unlocks the setup follow-up path."]
             ].map(([title, body]) => (
               <div key={title} className="card">
                 <h3>{title}</h3>
@@ -159,12 +181,23 @@ export default function LeadRadarProductPage() {
           <div className="form-card waitlist-card">
             <h3>{hasEdgeListing ? "Start LeadRadar access" : "Request LeadRadar product access"}</h3>
             <p className="form-intro">
-              Click once to enter secure PayPal checkout. Payment confirms access and replaces the old product-access request step.
+              {hasEdgeListing
+                ? "Install the Edge extension for the public workflow, or use PayPal when you want paid setup and evaluation support."
+                : "Click once to enter secure PayPal checkout. Payment confirms access and replaces the old product-access request step."}
             </p>
-            <PayPalCheckoutButton sourcePage="/products/leadradar#product-access">
-              Request LeadRadar access
-            </PayPalCheckoutButton>
-            <p className="form-feedback">No separate access approval step before checkout.</p>
+            {hasEdgeListing ? (
+              <div className="hero-actions">
+                <ExtensionInstallLink productSlug="leadradar" sourcePage="/products/leadradar#product-access" />
+                <PayPalCheckoutButton sourcePage="/products/leadradar#product-access" buttonClassName="button ghost">
+                  Pay for setup
+                </PayPalCheckoutButton>
+              </div>
+            ) : (
+              <PayPalCheckoutButton sourcePage="/products/leadradar#product-access">
+                Request LeadRadar access
+              </PayPalCheckoutButton>
+            )}
+            <p className="form-feedback">{hasEdgeListing ? extensionSupportCopy : "No separate access approval step before checkout."}</p>
           </div>
         </div>
       </section>

@@ -20,6 +20,7 @@ export async function GET(request: Request) {
       getProductPaymentByProviderCheckoutSessionId(orderId)
     ]);
     const details = getPayPalCapturedOrderDetails(capturedOrder);
+    const productSlug = pendingPayment?.product_slug ?? details.productSlug;
     const email = pendingPayment?.email ?? details.payerEmail;
 
     if (!email) {
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     await withDatabaseTimeout(
       fulfillPaidProductPayment({
         provider: "paypal",
-        product_slug: pendingPayment?.product_slug ?? details.productSlug,
+        product_slug: productSlug,
         access_type: pendingPayment?.metadata?.access_type === "paid_pilot" ? "paid_pilot" : "lifetime_access",
         email,
         access_request_id: pendingPayment?.access_request_id,
@@ -53,7 +54,12 @@ export async function GET(request: Request) {
       8000
     );
 
-    return NextResponse.redirect(new URL(`/checkout/success?provider=paypal&order_id=${encodeURIComponent(orderId)}`, requestUrl.origin));
+    return NextResponse.redirect(
+      new URL(
+        `/checkout/success?provider=paypal&order_id=${encodeURIComponent(orderId)}&product=${encodeURIComponent(productSlug)}`,
+        requestUrl.origin
+      )
+    );
   } catch (error) {
     console.error(`PayPal checkout return failed for order ${orderId}:`, error);
     return NextResponse.redirect(new URL("/checkout/cancel?reason=paypal_capture_failed", requestUrl.origin));

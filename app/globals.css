@@ -173,6 +173,13 @@ button {
   width: 100%;
 }
 
+.paypal-country-note {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .product-card-actions .checkout-button-form {
   width: 100%;
 }

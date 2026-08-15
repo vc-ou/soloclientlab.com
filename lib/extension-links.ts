@@ -35,7 +35,7 @@ export function getLeadRadarExtensionCtaLabel() {
 }
 
 export function getLeadRadarExtensionSupportCopy() {
-  if (leadRadarEdgeAddonsUrl) return "Install through Microsoft Edge Add-ons after PayPal checkout.";
+  if (leadRadarEdgeAddonsUrl) return "Installs from the official Microsoft Edge Add-ons listing. PayPal remains available for paid setup and workflow support.";
   return "Microsoft Edge Add-ons submission is currently under review. PayPal checkout is open now.";
 }
 
