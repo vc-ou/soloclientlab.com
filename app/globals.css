@@ -640,10 +640,6 @@ h3 {
   margin: 0 auto;
 }
 
-.hero-center.hero-home-wide .hero-description {
-  max-width: min(90%, 70rem);
-  text-wrap: balance;
-}
 
 .hero-home-wide .hero-aside {
   width: 100%;
@@ -1154,6 +1150,32 @@ h3 {
 .form-feedback.success {
   color: var(--primary);
   font-weight: 700;
+}
+
+.license-key-panel {
+  margin: 22px 0 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 86%, white);
+}
+
+.license-key-panel code {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.license-key-panel p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
 }
 
 .success-modal-backdrop {
@@ -3933,7 +3955,6 @@ a.scl-guide:hover {
 
   font-size: 64px;
   letter-spacing: 0;
-  text-wrap: balance;
 }
 
 .main-content .public-route-hero.hero-center .hero-description {
@@ -3951,9 +3972,6 @@ a.scl-guide:hover {
   font-size: clamp(2.8rem, 5vw, 4.2rem);
 }
 
-.main-content .products-route-hero.hero-center .hero-description {
-  max-width: 920px;
-}
 
 @media (max-width: 720px) {
   .main-content .public-route-hero.hero-center {

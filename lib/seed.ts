@@ -114,13 +114,6 @@ export const seedDatabase: Database = {
       updated_at: now
     }
   ],
-  feedback: [],
-  product_access_requests: [],
-  product_trials: [],
-  product_payments: [],
-  product_entitlements: [],
-  leadradar_configs: [],
-  trial_events: [],
   posts: [
     {
       id: "post-1",
@@ -303,5 +296,14 @@ Validation reduces the risk of spending months building something nobody wants.
   ],
   subscribers: [],
   waitlists: [],
-  post_events: []
+  post_events: [],
+  feedback: [],
+  product_access_requests: [],
+  product_trials: [],
+  leadradar_configs: [],
+  product_payments: [],
+  product_entitlements: [],
+  product_license_keys: [],
+  product_license_activations: [],
+  trial_events: []
 };

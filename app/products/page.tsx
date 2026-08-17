@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExtensionInstallLink } from "@/components/extension-install-link";
 import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { PageHero, SectionHeading } from "@/components/site";
-import {
-  getLeadRadarExtensionSupportCopy,
-  getNeedRadarExtensionSupportCopy,
-  hasLeadRadarEdgeAddonsListing,
-  hasNeedRadarEdgeAddonsListing
-} from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: {
@@ -22,9 +15,6 @@ export const metadata: Metadata = {
 };
 
 export default function ProductsPage() {
-  const hasLeadRadarListing = hasLeadRadarEdgeAddonsListing();
-  const hasNeedRadarListing = hasNeedRadarEdgeAddonsListing();
-
   return (
     <>
       <PageHero
@@ -40,26 +30,20 @@ export default function ProductsPage() {
           <SectionHeading title="Available tools" />
           <div className="product-card">
             <div>
-              <p className="eyebrow">{hasLeadRadarListing ? "Edge extension · Live" : "Beta · Access requests open"}</p>
+              <p className="eyebrow">Paid Edge extension access</p>
               <h2>LeadRadar for CNC / Manufacturing</h2>
               <p>
                 Find and review sourcing, quotation, sample, MOQ, and capacity signals from social conversations before
                 they disappear into manual scanning.
               </p>
               <p className="form-feedback">
-                {hasLeadRadarListing
-                  ? getLeadRadarExtensionSupportCopy()
-                  : "Microsoft Edge Add-ons listing is under review. PayPal checkout is open now."}
+                PayPal checkout is required before the install link is shown.
               </p>
             </div>
             <div className="hero-actions product-card-actions">
-              {hasLeadRadarListing ? (
-                <ExtensionInstallLink productSlug="leadradar" sourcePage="/products#leadradar" />
-              ) : (
-                <PayPalCheckoutButton sourcePage="/products#leadradar">
-                  Request LeadRadar access
-                </PayPalCheckoutButton>
-              )}
+              <PayPalCheckoutButton sourcePage="/products#leadradar">
+                Pay for LeadRadar access
+              </PayPalCheckoutButton>
               <Link href="/tools/leadradar" className="button ghost">
                 Open the demo
               </Link>
@@ -67,26 +51,20 @@ export default function ProductsPage() {
           </div>
           <div className="product-card" style={{ marginTop: 20 }}>
             <div>
-              <p className="eyebrow">{hasNeedRadarListing ? "Edge extension · Live" : "Workflow lab · In progress"}</p>
+              <p className="eyebrow">Paid Edge extension access</p>
               <h2>NeedRadar Workflow Lab</h2>
               <p>
                 A lightweight workflow lab for turning public comments, search queries, and field notes into clearer
                 need clusters before a product is built.
               </p>
               <p className="form-feedback">
-                {hasNeedRadarListing
-                  ? getNeedRadarExtensionSupportCopy()
-                  : "PayPal checkout is open now. The official install path will appear here when the listing is live."}
+                PayPal checkout is required before the install link is shown.
               </p>
             </div>
             <div className="hero-actions product-card-actions">
-              {hasNeedRadarListing ? (
-                <ExtensionInstallLink productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab" />
-              ) : (
-                <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab">
-                  Request NeedRadar access
-                </PayPalCheckoutButton>
-              )}
+              <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products#needradar-workflow-lab">
+                Pay for NeedRadar access
+              </PayPalCheckoutButton>
               <Link href="/products/needradar-workflow-lab" className="button ghost">
                 View product details
               </Link>

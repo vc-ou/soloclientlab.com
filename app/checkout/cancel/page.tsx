@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExtensionInstallLink } from "@/components/extension-install-link";
-import {
-  hasLeadRadarEdgeAddonsListing,
-  hasNeedRadarEdgeAddonsListing
-} from "@/lib/extension-links";
 import type { ProductSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -23,7 +18,6 @@ export default async function CheckoutCancelPage({
   const params = await searchParams;
   const productSlug = parseProductSlug(params.product);
   const isNeedRadar = productSlug === "needradar-workflow-lab";
-  const hasEdgeListing = isNeedRadar ? hasNeedRadarEdgeAddonsListing() : hasLeadRadarEdgeAddonsListing();
   const productPath = isNeedRadar ? "/products/needradar-workflow-lab#product-access" : "/products/leadradar#subscription";
   const productName = isNeedRadar ? "NeedRadar" : "LeadRadar";
 
@@ -33,13 +27,10 @@ export default async function CheckoutCancelPage({
         <p className="eyebrow">Checkout canceled</p>
         <h1>No payment was taken</h1>
         <p>
-          Your payment was not completed. You can return to the product page or install the extension if the store listing is live.
+          Your payment was not completed. Return to the product page to restart checkout; the install link appears only after payment confirmation.
         </p>
         <div className="hero-actions">
-          {hasEdgeListing ? (
-            <ExtensionInstallLink productSlug={productSlug} sourcePage="/checkout/cancel" />
-          ) : null}
-          <Link href={productPath} className={hasEdgeListing ? "button ghost" : "button primary"}>
+          <Link href={productPath} className="button primary">
             Return to {productName}
           </Link>
         </div>

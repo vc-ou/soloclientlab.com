@@ -28,6 +28,8 @@ export type LeadRadarConfigStatus = "started" | "completed";
 export type PaymentProvider = "stripe" | "paypal";
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded" | "canceled";
 export type EntitlementStatus = "pending" | "active" | "expired" | "revoked";
+export type ProductLicenseStatus = "active" | "revoked";
+export type ProductLicenseActivationStatus = "active" | "revoked";
 export type TrialEventType =
   | "product_page_visit"
   | "trial_access_requested"
@@ -240,6 +242,34 @@ export type ProductEntitlement = {
   updated_at: string;
 };
 
+export type ProductLicenseKey = {
+  id: string;
+  product_slug: ProductSlug;
+  entitlement_id: string;
+  source_payment_id?: string;
+  key_hash: string;
+  key_suffix: string;
+  status: ProductLicenseStatus;
+  max_activations: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductLicenseActivation = {
+  id: string;
+  license_key_id: string;
+  product_slug: ProductSlug;
+  device_id_hash: string;
+  token_hash: string;
+  status: ProductLicenseActivationStatus;
+  activated_at: string;
+  last_verified_at?: string;
+  revoked_at?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TrialEvent = {
   id: string;
   product_slug: ProductSlug;
@@ -286,6 +316,8 @@ export type Database = {
   leadradar_configs: LeadRadarConfig[];
   product_payments: ProductPayment[];
   product_entitlements: ProductEntitlement[];
+  product_license_keys: ProductLicenseKey[];
+  product_license_activations: ProductLicenseActivation[];
   trial_events: TrialEvent[];
 };
 

@@ -202,6 +202,34 @@ create table if not exists product_entitlements (
   updated_at timestamptz not null
 );
 
+create table if not exists product_license_keys (
+  id text primary key,
+  product_slug text not null,
+  entitlement_id text not null references product_entitlements(id) on delete cascade,
+  source_payment_id text references product_payments(id) on delete set null,
+  key_hash text not null unique,
+  key_suffix text not null,
+  status text not null,
+  max_activations integer not null default 1,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists product_license_activations (
+  id text primary key,
+  license_key_id text not null references product_license_keys(id) on delete cascade,
+  product_slug text not null,
+  device_id_hash text not null,
+  token_hash text not null unique,
+  status text not null,
+  activated_at timestamptz not null,
+  last_verified_at timestamptz,
+  revoked_at timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
 create table if not exists leadradar_configs (
   id text primary key,
   email text not null,
@@ -253,6 +281,14 @@ create index if not exists idx_product_entitlements_product_slug on product_enti
 create index if not exists idx_product_entitlements_status on product_entitlements (status);
 create index if not exists idx_product_entitlements_email on product_entitlements (email);
 create unique index if not exists idx_product_entitlements_source_payment on product_entitlements (source_payment_id) where source_payment_id is not null;
+create index if not exists idx_product_license_keys_product_slug on product_license_keys (product_slug);
+create index if not exists idx_product_license_keys_entitlement on product_license_keys (entitlement_id);
+create index if not exists idx_product_license_keys_source_payment on product_license_keys (source_payment_id);
+create index if not exists idx_product_license_keys_status on product_license_keys (status);
+create index if not exists idx_product_license_activations_license_key on product_license_activations (license_key_id);
+create index if not exists idx_product_license_activations_product_slug on product_license_activations (product_slug);
+create index if not exists idx_product_license_activations_device on product_license_activations (device_id_hash);
+create index if not exists idx_product_license_activations_status on product_license_activations (status);
 create index if not exists idx_leadradar_configs_email on leadradar_configs (email);
 create index if not exists idx_trial_events_product_slug on trial_events (product_slug);
 create index if not exists idx_trial_events_event_type on trial_events (event_type);
