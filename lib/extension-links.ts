@@ -35,7 +35,7 @@ export function getLeadRadarExtensionCtaLabel() {
 }
 
 export function getLeadRadarExtensionSupportCopy() {
-  if (leadRadarEdgeAddonsUrl) return "Installs from the official Microsoft Edge Add-ons listing. PayPal remains available for paid setup and workflow support.";
+  if (leadRadarEdgeAddonsUrl) return "PayPal payment confirms access first, then the official Microsoft Edge Add-ons install link is shown.";
   return "Microsoft Edge Add-ons submission is currently under review. PayPal checkout is open now.";
 }
 
@@ -58,6 +58,6 @@ export function getNeedRadarExtensionCtaLabel() {
 
 export function getNeedRadarExtensionSupportCopy() {
   return needRadarEdgeAddonsUrl
-    ? "Installs securely from the official Microsoft Edge Add-ons listing. Captured research stays in your browser until you export it."
+    ? "PayPal payment confirms access first, then the official Microsoft Edge Add-ons install link is shown."
     : "The Microsoft Edge Add-ons listing is being prepared. PayPal checkout is open now, with the official install path added after publication.";
 }

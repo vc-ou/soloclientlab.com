@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import { ExtensionInstallLink } from "@/components/extension-install-link";
 import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
 import { TrackProductPageView } from "@/components/product-events";
 import { PageHero, SectionHeading } from "@/components/site";
-import {
-  getNeedRadarExtensionSupportCopy,
-  hasNeedRadarEdgeAddonsListing
-} from "@/lib/extension-links";
 
 export const metadata: Metadata = {
   title: {
@@ -26,9 +21,6 @@ const labSteps = [
 ] as const;
 
 export default function NeedRadarWorkflowLabPage() {
-  const extensionSupportCopy = getNeedRadarExtensionSupportCopy();
-  const hasEdgeListing = hasNeedRadarEdgeAddonsListing();
-
   return (
     <>
       <TrackProductPageView productSlug="needradar-workflow-lab" />
@@ -38,21 +30,15 @@ export default function NeedRadarWorkflowLabPage() {
         description="NeedRadar Workflow Lab is a lightweight product lab for deciding which public signals deserve research, product configuration, or a small workflow test."
         aside={
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Install NeedRadar for Microsoft Edge" : "NeedRadar for Microsoft Edge"}</h3>
+            <h3>Pay for NeedRadar access</h3>
             <p className="form-intro">
-              {hasEdgeListing
-                ? "Add the extension from Microsoft Edge Add-ons, then review visible Reddit or Xiaohongshu workflow signals in the Edge side panel."
-                : "The official Edge Add-ons listing is being prepared. Request access now to start PayPal checkout."}
+              PayPal checkout is required before the Microsoft Edge install link is shown.
             </p>
-            {hasEdgeListing ? (
-              <ExtensionInstallLink productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#hero" />
-            ) : (
-              <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#hero">
-                Request NeedRadar access
-              </PayPalCheckoutButton>
-            )}
+            <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#hero">
+              Continue to PayPal checkout
+            </PayPalCheckoutButton>
             <p className="form-feedback">
-              {hasEdgeListing ? extensionSupportCopy : "Payment opens PayPal checkout immediately."}
+              Payment opens PayPal checkout immediately. Install appears after payment confirmation.
             </p>
           </div>
         }
@@ -62,16 +48,12 @@ export default function NeedRadarWorkflowLabPage() {
         <div className="inline-cta">
           <div>
             <p className="eyebrow">Microsoft Edge extension</p>
-            <h3>{hasEdgeListing ? "Install from the official Edge Add-ons listing" : "Public Edge installation is not live yet"}</h3>
-            <p>{extensionSupportCopy}</p>
+            <h3>Paid access before Edge install</h3>
+            <p>PayPal checkout is required first. The install link appears after payment confirmation.</p>
           </div>
-          {hasEdgeListing ? (
-            <ExtensionInstallLink productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#install" />
-          ) : (
-            <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#install">
-              Request NeedRadar access
-            </PayPalCheckoutButton>
-          )}
+          <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#install">
+            Request NeedRadar access
+          </PayPalCheckoutButton>
         </div>
       </section>
 
@@ -113,34 +95,21 @@ export default function NeedRadarWorkflowLabPage() {
         <div className="two-column">
           <div className="resource-showcase">
             <p className="eyebrow">Access and support</p>
-            <h2>{hasEdgeListing ? "Need help with your NeedRadar workflow?" : "Get the Edge release link when it is ready"}</h2>
+            <h2>Start PayPal access before installing NeedRadar</h2>
             <p>
-              {hasEdgeListing
-                ? "The public install is self-serve after PayPal checkout. Use this path for setup support or research workflow design."
-                : "Request access now to start PayPal checkout while the public listing is being prepared."}
+              Request access now to start PayPal checkout. Payment confirms access and unlocks the install and setup follow-up path.
             </p>
           </div>
           <div className="form-card waitlist-card">
-            <h3>{hasEdgeListing ? "Start NeedRadar access" : "Request NeedRadar access"}</h3>
+            <h3>Request NeedRadar access</h3>
             <p className="form-intro">
-              {hasEdgeListing
-                ? "Install the Edge extension for the public workflow, or use PayPal when you want setup and research workflow support."
-                : "Click once to enter secure PayPal checkout. Payment confirms access and replaces the old request step."}
+              Click once to enter secure PayPal checkout. Payment confirms access and replaces the old request step.
             </p>
-            {hasEdgeListing ? (
-              <div className="hero-actions">
-                <ExtensionInstallLink productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access" />
-                <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access" buttonClassName="button ghost">
-                  Pay for setup
-                </PayPalCheckoutButton>
-              </div>
-            ) : (
-              <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access">
-                Request NeedRadar access
-              </PayPalCheckoutButton>
-            )}
+            <PayPalCheckoutButton productSlug="needradar-workflow-lab" sourcePage="/products/needradar-workflow-lab#product-access">
+              Request NeedRadar access
+            </PayPalCheckoutButton>
             <p className="form-feedback">
-              {hasEdgeListing ? extensionSupportCopy : "No separate access approval step before checkout."}
+              No separate access approval step before checkout.
             </p>
           </div>
         </div>
