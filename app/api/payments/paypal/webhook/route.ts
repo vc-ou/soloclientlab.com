@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, withDatabaseTimeout } from "@/lib/db";
+import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/db";
 import { amountStringToCents, verifyPayPalWebhookSignature } from "@/lib/paypal";
 
 export const runtime = "nodejs";
@@ -18,11 +18,12 @@ type PayPalWebhookEvent = {
     };
     create_time?: string;
     update_time?: string;
-    supplementary_data?: {
-      related_ids?: {
-        order_id?: string;
+      supplementary_data?: {
+        related_ids?: {
+          capture_id?: string;
+          order_id?: string;
+        };
       };
-    };
   };
 };
 
@@ -68,6 +69,29 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
   );
 }
 
+async function revokeCapturePayment(event: PayPalWebhookEvent) {
+  const resource = event.resource;
+  const orderId = resource?.supplementary_data?.related_ids?.order_id;
+  const captureId = resource?.supplementary_data?.related_ids?.capture_id ?? resource?.id;
+
+  await withDatabaseTimeout(
+    revokeProductAccessForPayment({
+      provider_checkout_session_id: orderId,
+      provider_payment_intent_id: captureId,
+      refunded_at: resource?.update_time ?? resource?.create_time ?? event.create_time,
+      metadata: {
+        paypal_event_id: event.id,
+        paypal_event_type: event.event_type,
+        paypal_refund_or_reversal_id: resource?.id,
+        paypal_capture_id: captureId,
+        paypal_order_id: orderId,
+        paypal_refund_or_reversal_status: resource?.status
+      }
+    }),
+    8000
+  );
+}
+
 export async function POST(request: Request) {
   const payload = await request.text();
   let event: PayPalWebhookEvent;
@@ -90,6 +114,9 @@ export async function POST(request: Request) {
   try {
     if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
       await fulfillCaptureCompleted(event);
+    }
+    if (event.event_type === "PAYMENT.CAPTURE.REFUNDED" || event.event_type === "PAYMENT.CAPTURE.REVERSED") {
+      await revokeCapturePayment(event);
     }
   } catch (error) {
     console.error(`PayPal webhook fulfillment failed for ${event.id ?? "unknown"}:`, error);

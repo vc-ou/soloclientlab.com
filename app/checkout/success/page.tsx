@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExtensionInstallLink } from "@/components/extension-install-link";
-import { getProductPaymentByProviderCheckoutSessionId } from "@/lib/db";
+import { ensureProductLicenseKey, getPaidProductLicenseAccessByCheckoutSessionId } from "@/lib/db";
 import {
   getLeadRadarExtensionSupportCopy,
   getNeedRadarExtensionSupportCopy,
   hasLeadRadarEdgeAddonsListing,
   hasNeedRadarEdgeAddonsListing
 } from "@/lib/extension-links";
+import { buildLicenseKey, getLicenseKeySuffix, hashLicenseSecret } from "@/lib/licenses";
 import type { ProductSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -32,11 +33,23 @@ export default async function CheckoutSuccessPage({
   const extensionSupportCopy = isNeedRadar ? getNeedRadarExtensionSupportCopy() : getLeadRadarExtensionSupportCopy();
   const orderId = typeof params.order_id === "string" ? params.order_id : undefined;
   let hasPaidAccess = false;
+  let licenseKey: string | undefined;
 
   if (orderId) {
     try {
-      const payment = await getProductPaymentByProviderCheckoutSessionId(orderId);
-      hasPaidAccess = payment?.status === "paid" && payment.product_slug === productSlug;
+      const access = await getPaidProductLicenseAccessByCheckoutSessionId(orderId, productSlug);
+      hasPaidAccess = Boolean(access);
+      if (access) {
+        licenseKey = buildLicenseKey(productSlug, access.payment.id, access.entitlement.id);
+        await ensureProductLicenseKey({
+          product_slug: productSlug,
+          entitlement_id: access.entitlement.id,
+          source_payment_id: access.payment.id,
+          key_hash: hashLicenseSecret(licenseKey),
+          key_suffix: getLicenseKeySuffix(licenseKey),
+          max_activations: 1
+        });
+      }
     } catch (error) {
       console.error(`Failed to verify paid access for checkout success order ${orderId}:`, error);
     }
@@ -57,6 +70,13 @@ export default async function CheckoutSuccessPage({
             ? extensionSupportCopy
             : "You can return to the product page while the webhook finishes processing."}
         </p>
+        {hasPaidAccess && licenseKey ? (
+          <div className="license-key-panel">
+            <p className="eyebrow">Extension license key</p>
+            <code>{licenseKey}</code>
+            <p>Install the extension, then paste this key on first launch. One payment activates one device.</p>
+          </div>
+        ) : null}
         <div className="hero-actions">
           {hasPaidAccess && hasEdgeListing ? (
             <ExtensionInstallLink productSlug={productSlug} sourcePage="/checkout/success" />

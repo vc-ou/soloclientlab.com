@@ -1152,6 +1152,32 @@ h3 {
   font-weight: 700;
 }
 
+.license-key-panel {
+  margin: 22px 0 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 86%, white);
+}
+
+.license-key-panel code {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.license-key-panel p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
 .success-modal-backdrop {
   position: fixed;
   inset: 0;
