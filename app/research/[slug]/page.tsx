@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   const title = post.seo_title ?? post.title;
   const description = getSeoDescription(post);
+  const image = post.cover_image_url ?? `/research/${post.slug}/opengraph-image`;
 
   return {
     title,
@@ -57,13 +58,20 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       type: "article",
       publishedTime: post.published_at,
       modifiedTime: post.updated_at,
-      images: post.cover_image_url ? [{ url: post.cover_image_url }] : undefined
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: title
+        }
+      ]
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: post.cover_image_url ? [post.cover_image_url] : undefined
+      images: [image]
     }
   };
 }
@@ -77,6 +85,7 @@ export default async function PostPage({ params }: PostPageProps) {
   }
 
   const related = await getRelatedPosts(post.slug, 3);
+  const articleImage = post.cover_image_url ?? `${siteUrl}/research/${post.slug}/opengraph-image`;
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -95,7 +104,7 @@ export default async function PostPage({ params }: PostPageProps) {
     publisher: {
       "@id": `${siteUrl}/#organization`
     },
-    image: post.cover_image_url
+    image: articleImage
   };
 
   return (

@@ -3,15 +3,37 @@ import Link from "next/link";
 import { getPublicPosts } from "@/lib/db";
 
 const leadRadarProductHref = "/products/leadradar";
+const homeTitle = "CNC Lead Generation Tools for Manufacturing Teams | SoloClientLab";
+const homeDescription =
+  "SoloClientLab builds LeadRadar, a practical tool for CNC and manufacturing teams to find buyer intent, sourcing questions, and lead signals in public conversations.";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Practical Tools for Independent Work | SoloClientLab"
+    absolute: homeTitle
   },
-  description:
-    "Practical software that helps independent professionals find opportunities, organize client work, and spend less time on repetitive tasks.",
+  description: homeDescription,
   alternates: {
     canonical: "/"
+  },
+  openGraph: {
+    title: homeTitle,
+    description: homeDescription,
+    url: "/",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "SoloClientLab LeadRadar preview for CNC and manufacturing lead generation"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: homeTitle,
+    description: homeDescription,
+    images: ["/opengraph-image"]
   }
 };
 
