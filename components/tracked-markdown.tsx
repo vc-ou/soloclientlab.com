@@ -1,28 +1,5 @@
-"use client";
-
 import ReactMarkdown from "react-markdown";
-
-async function trackInternalLinkClick(postId: string, postSlug: string, targetUrl: string) {
-  try {
-    await fetch("/api/post-events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        postId,
-        postSlug,
-        eventType: "article_internal_link_click",
-        path: window.location.pathname,
-        referrer: document.referrer || undefined,
-        targetUrl
-      }),
-      keepalive: true
-    });
-  } catch {
-    // Link analytics should never interrupt reading.
-  }
-}
+import { TrackedArticleLink } from "@/components/tracked-article-link";
 
 function isInternalHref(href?: string) {
   if (!href) return false;
@@ -49,17 +26,12 @@ export function TrackedMarkdown({
     <ReactMarkdown
       components={{
         h1: "h2",
-        a: ({ href, children }) => (
-          <a
-            href={href}
-            onClick={() => {
-              if (isInternalHref(href)) {
-                void trackInternalLinkClick(postId, postSlug, href ?? "");
-              }
-            }}
-          >
+        a: ({ href, children }) => isInternalHref(href) ? (
+          <TrackedArticleLink href={href} postId={postId} postSlug={postSlug}>
             {children}
-          </a>
+          </TrackedArticleLink>
+        ) : (
+          <a href={href}>{children}</a>
         )
       }}
     >

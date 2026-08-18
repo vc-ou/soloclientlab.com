@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/post-detail";
-import { getPostBySlug, getRelatedPosts } from "@/lib/db";
+import { getPostBySlug, getPublicPosts, getRelatedPosts } from "@/lib/db";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
-const titleSuffix = " | SoloClientLab.com";
+
+export const revalidate = 300;
+export const dynamicParams = false;
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;
@@ -23,6 +25,14 @@ function getSeoDescription(post: { seo_description?: string | null; summary?: st
   return `${description} Includes practical examples and next steps for consultants, freelancers, and solo service businesses.`;
 }
 
+export async function generateStaticParams() {
+  const posts = await getPublicPosts();
+
+  return posts.map((post) => ({
+    slug: post.slug
+  }));
+}
+
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
@@ -35,7 +45,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const description = getSeoDescription(post);
 
   return {
-    title: title.length + titleSuffix.length > 70 ? { absolute: title } : title,
+    title,
     description,
     alternates: {
       canonical: `/research/${post.slug}`
