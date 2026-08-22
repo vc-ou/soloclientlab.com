@@ -2492,6 +2492,31 @@ export async function saveProduct(
   revalidateTag("public-products", "max");
 }
 
+export async function deleteProductById(id: string) {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const sql = getWriteSql();
+    await sql`
+      delete from products
+      where id = ${id}
+    `;
+
+    if (shouldMirrorDatabaseToLocalFile()) {
+      const db = await readLocalDb();
+      db.products = db.products.filter((product) => product.id !== id);
+      await writeLocalDb(db);
+    }
+
+    revalidateTag("public-products", "max");
+    return;
+  }
+
+  const db = await readLocalDb();
+  db.products = db.products.filter((product) => product.id !== id);
+  await writeLocalDb(db);
+  revalidateTag("public-products", "max");
+}
+
 function filterPublishedProducts(products: Product[]) {
   return products
     .filter((product) => product.status === "published")

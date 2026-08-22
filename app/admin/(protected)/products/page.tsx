@@ -1,20 +1,8 @@
-import Link from "next/link";
 import { AdminLinkButton } from "@/components/admin-link-button";
-import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
-import { formatAdminLabel } from "@/lib/admin-labels";
+import { AdminShell, MetricCard } from "@/components/admin";
+import { AdminProductsTable } from "@/components/admin-products-table";
 import { getAdminProducts } from "@/lib/db";
 import type { Product } from "@/lib/types";
-
-function formatUsd(cents: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency
-  }).format(cents / 100);
-}
-
-function formatEnabled(value: boolean) {
-  return value ? "已启用" : "未启用";
-}
 
 export default async function AdminProductsPage() {
   const products: Product[] = await getAdminProducts();
@@ -36,27 +24,7 @@ export default async function AdminProductsPage() {
 
       <section className="activity-card" style={{ marginTop: 24 }}>
         <h2>商品列表</h2>
-        <SimpleTable
-          headers={["商品", "Slug", "状态", "开发阶段", "交付方式", "价格", "收款", "公开页", "编辑"]}
-          rows={products.map((product) => [
-            <div key={product.id}>
-              <strong>{product.name}</strong>
-              <p style={{ margin: "4px 0 0" }}>{product.short_description ?? "—"}</p>
-            </div>,
-            product.slug,
-            formatAdminLabel(product.status),
-            formatAdminLabel(product.development_status),
-            formatAdminLabel(product.delivery_mode),
-            formatUsd(product.price_cents, product.currency),
-            formatEnabled(product.payment_enabled),
-            <Link key={`${product.id}-view`} href={`/products/${product.slug}`} target="_blank" rel="noreferrer">
-              打开
-            </Link>,
-            <Link key={`${product.id}-edit`} href={`/admin/products/${product.id}`}>
-              编辑
-            </Link>
-          ])}
-        />
+        <AdminProductsTable initialProducts={products} />
       </section>
     </AdminShell>
   );

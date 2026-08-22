@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getProductById, getProductBySlug, getSubscriberByEmail, saveDemand, savePost, saveProduct, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteProductById, deleteSubscriberById, getProductById, getProductBySlug, getSubscriberByEmail, saveDemand, savePost, saveProduct, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { requireAdmin, signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -918,6 +918,37 @@ export async function upsertProduct(formData: FormData) {
     revalidatePath(`/admin/products/${productId}`);
   }
   redirect("/admin/products");
+}
+
+export async function removeProduct(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const id = getText(formData, "id");
+  if (!id) {
+    return { success: false, message: "商品 id 不能为空。" };
+  }
+
+  const product = await getProductById(id);
+  if (!product) {
+    return { success: false, message: "商品不存在，可能已经被删除。" };
+  }
+
+  try {
+    await deleteProductById(id);
+  } catch (error) {
+    console.error("Failed to delete product:", error);
+    return { success: false, message: "商品删除失败，请稍后重试。" };
+  }
+
+  revalidatePath("/products");
+  revalidatePath(`/products/${product.slug}`);
+  revalidatePath("/admin");
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${id}`);
+  return { success: true, message: "商品已删除。" };
 }
 
 export async function removePost(
