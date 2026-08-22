@@ -2498,6 +2498,14 @@ function filterPublishedProducts(products: Product[]) {
     .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
 }
 
+function getSeedPublicProducts() {
+  return filterPublishedProducts(seedDatabase.products.map(mapProductRow));
+}
+
+function getSeedProductBySlug(slug: string) {
+  return getSeedPublicProducts().find((product) => product.slug === slug) ?? null;
+}
+
 async function readPublicProducts() {
   if (process.env.NODE_ENV !== "production") {
     const db = await readLocalDb();
@@ -2516,7 +2524,8 @@ async function readPublicProducts() {
         `, ADMIN_DB_TIMEOUT_MS)
       );
 
-      return products.map(mapProductRow);
+      const publicProducts = products.map(mapProductRow);
+      return publicProducts.length > 0 ? publicProducts : getSeedPublicProducts();
     } catch (error) {
       console.error("Falling back to local products:", error);
     }
@@ -2592,7 +2601,12 @@ export async function getProductBySlug(slug: string) {
         `, ADMIN_DB_TIMEOUT_MS)
       );
 
-      return products[0] ? mapProductRow(products[0]) : null;
+      if (products[0]) {
+        return mapProductRow(products[0]);
+      }
+
+      const publicProducts = await getCachedAllPublicProducts();
+      return publicProducts.find((product) => product.slug === slug) ?? null;
     } catch (error) {
       console.error("Falling back to local product lookup:", error);
     }

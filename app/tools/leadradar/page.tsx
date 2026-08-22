@@ -28,7 +28,7 @@ export default function LeadRadarDemoPage() {
         description="This is an illustrative bridge page. The formal product is LeadRadar for CNC and manufacturing teams; this demo shows how visible social comments can move into a review workflow."
         aside={
           <div className="hero-actions">
-            <Link href="/products/leadradar" className="button primary">
+            <Link href="/products/leadradar" className="button primary" prefetch={false}>
               View LeadRadar product
             </Link>
             <ProductEventLink href="#leadradar-demo" eventType="demo_open" className="button ghost">

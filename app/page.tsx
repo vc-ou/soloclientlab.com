@@ -112,8 +112,8 @@ export default async function HomePage() {
           <h1>Small tools for getting solo work done.</h1>
           <p>Practical software that helps independent professionals find opportunities, organize client work, and spend less time on repetitive tasks.</p>
           <div className="scl-actions">
-            <Link className="button primary" href="/products">Explore tools <span aria-hidden="true">→</span></Link>
-            <Link className="button secondary" href={leadRadarProductHref}>See LeadRadar in action</Link>
+            <Link className="button primary" href="/products" prefetch={false}>Explore tools <span aria-hidden="true">→</span></Link>
+            <Link className="button secondary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action</Link>
           </div>
           <div className="scl-microcopy">Focused workflows. Clear next steps. No bloated setup.</div>
         </div>
@@ -136,7 +136,7 @@ export default async function HomePage() {
             <div className="scl-mono">LeadRadar · CNC / manufacturing</div>
             <h3>Find useful demand signals before they disappear.</h3>
             <p>Turn scattered public conversations into a reviewable list of opportunities, so you can decide what deserves a follow-up.</p>
-            <Link className="button primary" href={leadRadarProductHref}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
+            <Link className="button primary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
           </div>
           <ProductWindow compact />
         </div>
@@ -167,7 +167,7 @@ export default async function HomePage() {
           <p>Every product should earn its place by making one part of independent work noticeably easier.</p>
         </div>
         <div className="scl-tool-shelf">
-          <Link className="scl-guide scl-tool-card" href={leadRadarProductHref}><div className="scl-mono">Beta · Access requests open</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">CNC · MANUFACTURING · → VIEW TOOL</div></Link>
+          <Link className="scl-guide scl-tool-card" href={leadRadarProductHref} prefetch={false}><div className="scl-mono">Beta · Access requests open</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">CNC · MANUFACTURING · → VIEW TOOL</div></Link>
           <div className="scl-tool-note"><div className="scl-mono">What we&apos;re working on</div><h3>More focused tools, only when they earn their place.</h3><p>New products will appear here when they solve a real, repeated bottleneck. No pretend launch dates.</p></div>
         </div>
       </section>
@@ -184,7 +184,7 @@ export default async function HomePage() {
               <li><b>02</b><span><strong>Review the context</strong><small>Keep the source language and buying detail together.</small></span></li>
               <li><b>03</b><span><strong>Decide the next step</strong><small>Follow up when the opportunity actually makes sense.</small></span></li>
             </ol>
-            <Link className="button primary" href={leadRadarProductHref}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
+            <Link className="button primary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
           </div>
           <ProductWindow compact />
         </div>
@@ -193,11 +193,11 @@ export default async function HomePage() {
       <section className="scl-section container" id="guides">
         <div className="scl-section-heading scl-guides-heading">
           <div><div className="scl-mono">Guides</div><h2>Practical guides for independent work.</h2></div>
-          <Link className="button secondary" href="/research">Browse practical guides <span aria-hidden="true">→</span></Link>
+          <Link className="button secondary" href="/research" prefetch={false}>Browse practical guides <span aria-hidden="true">→</span></Link>
         </div>
         <div className="scl-guide-grid">
           {guideCards.map((guide) => (
-            <Link className="scl-guide" href={guide.href} key={guide.title}>
+            <Link className="scl-guide" href={guide.href} key={guide.title} prefetch={false}>
               <div className="scl-mono">{guide.meta}</div>
               <h3>{guide.title}</h3>
               <p>{guide.summary}</p>
@@ -211,7 +211,7 @@ export default async function HomePage() {
         <div className="scl-mono">Start small</div>
         <h2>Start with one useful workflow.</h2>
         <p>Try the tool that solves today&apos;s bottleneck. Add nothing you don&apos;t need.</p>
-        <Link className="button primary" href="/products">Explore tools <span aria-hidden="true">→</span></Link>
+        <Link className="button primary" href="/products" prefetch={false}>Explore tools <span aria-hidden="true">→</span></Link>
       </section>
     </div>
   );

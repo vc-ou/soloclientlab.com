@@ -252,7 +252,7 @@ export function ProductsCatalog({ products }: { products: Product[] }) {
                   </div>
 
                   <div className="product-feature-actions">
-                    <Link href={`/products/${product.slug}`} className="button ghost">
+                    <Link href={`/products/${product.slug}`} className="button ghost" prefetch={false}>
                       View details
                     </Link>
                     {product.payment_enabled ? (

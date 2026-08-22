@@ -43,6 +43,7 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
                   key={option.value}
                   href={option.value === "all" ? "/research" : `/research?topic=${option.value}`}
                   className={`button ${topic === option.value || (!topic && option.value === "all") ? "primary" : "ghost"}`}
+                  prefetch={false}
                 >
                   {option.label}
                 </Link>
@@ -59,10 +60,10 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
                     We&apos;re still building out this section. In the meantime, browse the available topics or try the live workflow preview.
                   </p>
                   <div className="empty-state-actions">
-                    <Link href="/research" className="button primary">
+                    <Link href="/research" className="button primary" prefetch={false}>
                       Browse all topics
                     </Link>
-                    <Link href="/products/leadradar" className="button ghost">
+                    <Link href="/products/leadradar" className="button ghost" prefetch={false}>
                       Explore LeadRadar
                     </Link>
                   </div>

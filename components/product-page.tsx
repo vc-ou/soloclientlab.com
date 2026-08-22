@@ -135,7 +135,7 @@ export function ProductPage({ product }: { product: Product }) {
       <TrackProductPageView productSlug={product.slug} />
 
       <section className="container product-detail-hero">
-        <Link href="/products" className="product-detail-back">← 返回工具网</Link>
+        <Link href="/products" className="product-detail-back" prefetch={false}>← 返回工具网</Link>
         <div className="product-detail-hero-grid">
           <div className="product-detail-hero-copy">
             <span className="product-detail-category">{getProductCategory(product)}</span>
@@ -147,7 +147,7 @@ export function ProductPage({ product }: { product: Product }) {
                   立即购买 {price}
                 </PayPalCheckoutButton>
               ) : null}
-              <Link href={product.slug === "leadradar" ? "/tools/leadradar" : "/products"} className="button ghost">
+              <Link href={product.slug === "leadradar" ? "/tools/leadradar" : "/products"} className="button ghost" prefetch={false}>
                 <span aria-hidden="true">▷</span> {product.slug === "leadradar" ? "查看演示视频" : "返回工具网"}
               </Link>
             </div>

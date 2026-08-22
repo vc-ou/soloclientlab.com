@@ -16,7 +16,13 @@ export function UmamiScript() {
 
   useEffect(() => {
     let cancelled = false;
+    let idleHandle: number | undefined;
+    let timerHandle: number | undefined;
     const excludedPath = pathname?.startsWith("/admin") ?? false;
+    const browserWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
 
     async function loadAnalyticsContext() {
       if (excludedPath || isBrowserAnalyticsDisabled()) {
@@ -44,7 +50,16 @@ export function UmamiScript() {
       }
     }
 
-    void loadAnalyticsContext();
+    const scheduleAnalyticsContext = () => {
+      if (browserWindow.requestIdleCallback) {
+        idleHandle = browserWindow.requestIdleCallback(() => void loadAnalyticsContext(), { timeout: 3000 });
+        return;
+      }
+
+      timerHandle = window.setTimeout(() => void loadAnalyticsContext(), 1500);
+    };
+
+    scheduleAnalyticsContext();
 
     function handlePreferenceChange() {
       if (isBrowserAnalyticsDisabled()) {
@@ -60,6 +75,12 @@ export function UmamiScript() {
 
     return () => {
       cancelled = true;
+      if (idleHandle !== undefined && browserWindow.cancelIdleCallback) {
+        browserWindow.cancelIdleCallback(idleHandle);
+      }
+      if (timerHandle !== undefined) {
+        window.clearTimeout(timerHandle);
+      }
       window.removeEventListener("analytics-preference-changed", handlePreferenceChange);
     };
   }, [pathname]);
@@ -79,7 +100,7 @@ export function UmamiScript() {
       data-host-url={umamiHostUrl}
       data-domains={umamiDomains}
       src={umamiScriptSrc}
-      strategy="afterInteractive"
+      strategy="lazyOnload"
     />
   );
 }

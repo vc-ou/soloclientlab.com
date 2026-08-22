@@ -56,7 +56,7 @@ export default async function AboutPage() {
                     {"activeExperiment" in item && item.activeExperimentHref ? (
                       <>
                         {" "}
-                        <Link href={item.activeExperimentHref}>{item.activeExperiment}</Link>
+                        <Link href={item.activeExperimentHref} prefetch={false}>{item.activeExperiment}</Link>
                       </>
                     ) : null}
                   </p>
@@ -92,7 +92,7 @@ export default async function AboutPage() {
           <SectionHeading
             title="Featured guides"
             action={
-              <Link href="/research" className="button ghost">
+              <Link href="/research" className="button ghost" prefetch={false}>
                 Browse all guides
               </Link>
             }

@@ -9,13 +9,13 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="container nav-shell">
-        <Link href="/" className="brand-mark">
+        <Link href="/" className="brand-mark" prefetch={false}>
           <span className="brand-symbol">S</span>
           <span className="brand-title">SoloClientLab</span>
         </Link>
         <HeaderNav />
         <ThemeToggle />
-        <Link href="/products" className="button primary header-explore">
+        <Link href="/products" className="button primary header-explore" prefetch={false}>
           Explore tools <span aria-hidden="true">→</span>
         </Link>
       </div>
@@ -31,7 +31,7 @@ export function SiteFooter() {
       <div className="container footer-shell">
         <div className="footer-grid">
           <div className="footer-brand-block">
-            <Link href="/" className="brand-mark footer-brand-link">
+            <Link href="/" className="brand-mark footer-brand-link" prefetch={false}>
               <span className="brand-symbol">S</span>
               <span className="footer-brand">SoloClientLab</span>
             </Link>
@@ -42,19 +42,19 @@ export function SiteFooter() {
 
           <div>
             <h3 className="footer-heading">Tools</h3>
-            <div className="footer-links"><Link href="/products/leadradar">LeadRadar</Link><Link href="/products">All tools</Link></div>
+            <div className="footer-links"><Link href="/products/leadradar" prefetch={false}>LeadRadar</Link><Link href="/products" prefetch={false}>All tools</Link></div>
           </div>
           <div>
             <h3 className="footer-heading">Learn</h3>
-            <div className="footer-links"><Link href="/research">Guides</Link><Link href="/products">Products</Link></div>
+            <div className="footer-links"><Link href="/research" prefetch={false}>Guides</Link><Link href="/products" prefetch={false}>Products</Link></div>
           </div>
           <div>
             <h3 className="footer-heading">Company</h3>
-            <div className="footer-links"><Link href="/about">About</Link><a href="mailto:soloclientlab.com@gmail.com">Contact</a></div>
+            <div className="footer-links"><Link href="/about" prefetch={false}>About</Link><a href="mailto:soloclientlab.com@gmail.com">Contact</a></div>
           </div>
           <div>
             <h3 className="footer-heading">Legal</h3>
-            <div className="footer-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></div>
+            <div className="footer-links"><Link href="/privacy" prefetch={false}>Privacy</Link><Link href="/terms" prefetch={false}>Terms</Link></div>
           </div>
         </div>
 

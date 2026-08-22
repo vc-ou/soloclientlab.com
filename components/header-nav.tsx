@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navItems = [
@@ -17,7 +17,6 @@ function isActivePath(pathname: string, href: string) {
 
 export function HeaderNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -41,9 +40,8 @@ export function HeaderNav() {
               href={item.href}
               className={`nav-link${active ? " is-active" : ""}`}
               aria-current={active ? "page" : undefined}
+              prefetch={false}
               onClick={() => setIsMenuOpen(false)}
-              onFocus={() => router.prefetch(item.href)}
-              onMouseEnter={() => router.prefetch(item.href)}
             >
               <span>{item.label}</span>
             </Link>

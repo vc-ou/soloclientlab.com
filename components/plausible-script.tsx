@@ -13,7 +13,7 @@ export function PlausibleScript() {
       defer
       data-domain={plausibleDomain}
       src={plausibleScriptSrc}
-      strategy="afterInteractive"
+      strategy="lazyOnload"
     />
   );
 }

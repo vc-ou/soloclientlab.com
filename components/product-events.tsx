@@ -118,7 +118,7 @@ export function ProductEventLink({
   }
 
   return (
-    <Link href={href} className={className} onClick={() => void sendProductEvent(eventType, undefined, productSlug)}>
+    <Link href={href} className={className} prefetch={false} onClick={() => void sendProductEvent(eventType, undefined, productSlug)}>
       {children}
     </Link>
   );

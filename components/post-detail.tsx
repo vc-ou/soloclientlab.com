@@ -53,7 +53,7 @@ export function PostDetail({
             <div className="activity-list">
               {related.map((item) => (
                 <div key={item.id}>
-                  <Link href={`/research/${item.slug}`}>
+                  <Link href={`/research/${item.slug}`} prefetch={false}>
                     <strong>{item.title}</strong>
                   </Link>
                   <p>{formatDate(item.published_at)} · {item.read_time ?? "6 min read"}</p>

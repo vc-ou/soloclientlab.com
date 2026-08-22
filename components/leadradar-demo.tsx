@@ -461,7 +461,7 @@ export function LeadRadarDemo() {
               <button type="button" className="button primary" onClick={handleTryDemoClick}>
                 Try the workflow
               </button>
-              <Link href="/products/leadradar" className="button ghost">
+              <Link href="/products/leadradar" className="button ghost" prefetch={false}>
                 View product page
               </Link>
             </div>
@@ -771,6 +771,7 @@ export function LeadRadarDemo() {
                 <Link
                   href="/products/leadradar#subscription"
                   className="button primary"
+                  prefetch={false}
                   onClick={() => void sendProductEvent("paypal_access_started")}
                 >
                   Continue to PayPal checkout
