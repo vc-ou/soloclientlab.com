@@ -14,12 +14,12 @@ export function AdminShell({
     <div className="admin-layout">
       <aside className="admin-sidebar">
         <div>
-          <p className="admin-brand">SoloClientLab.com Admin</p>
+          <p className="admin-brand">SoloClientLab.com 后台</p>
           <AdminNav />
         </div>
         <form action={logoutAdmin}>
           <button type="submit" className="button ghost full-width">
-            Sign out
+            退出登录
           </button>
         </form>
       </aside>
@@ -27,7 +27,7 @@ export function AdminShell({
         <div className="admin-topbar">
           <h1>{title}</h1>
           <Link href="/products" className="button ghost">
-            View products
+            查看商品页
           </Link>
         </div>
         {children}
@@ -136,10 +136,10 @@ export function FormActions() {
   return (
     <div className="admin-form-actions">
       <button type="submit" className="button primary">
-        Save
+        保存
       </button>
       <Link href="/admin" className="button ghost">
-        Cancel
+        取消
       </Link>
     </div>
   );
@@ -163,10 +163,10 @@ export function FilterForm({
       {children}
       <div className="admin-filter-actions">
         <button type="submit" className="button primary">
-          Apply filters
+          应用筛选
         </button>
         <Link href={resetHref} className="button ghost">
-          Reset
+          重置
         </Link>
       </div>
     </form>

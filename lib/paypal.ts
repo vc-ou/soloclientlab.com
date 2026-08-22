@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getOptionalEnv, getRequiredEnv } from "@/lib/env";
+import { getProductBySlug } from "@/lib/db";
 import type { ProductSlug } from "@/lib/types";
 
 type PayPalLink = {
@@ -63,10 +64,6 @@ function normalizeCurrency(value?: string) {
   return (value ?? "USD").trim().toUpperCase();
 }
 
-export function getLeadRadarPaidPilotCurrency() {
-  return normalizeCurrency(getOptionalEnv("PAYPAL_LEADRADAR_PAID_PILOT_CURRENCY"));
-}
-
 export function amountStringToCents(value: string) {
   const trimmed = value.trim();
   if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
@@ -83,10 +80,6 @@ function centsToPayPalAmount(cents: number) {
   }
 
   return (cents / 100).toFixed(2);
-}
-
-export function getLeadRadarPaidPilotAmountCents() {
-  return amountStringToCents(getRequiredEnv("PAYPAL_LEADRADAR_PAID_PILOT_AMOUNT"));
 }
 
 async function getPayPalAccessToken() {
@@ -166,12 +159,20 @@ export async function createPayPalPaidPilotOrder(input: {
 export async function createPayPalProductOrder(input: {
   checkoutId: string;
   productSlug: ProductSlug;
+  productName?: string;
+  amountCents?: number;
+  currency?: string;
   returnUrl: string;
   cancelUrl: string;
 }) {
-  const amountCents = getLeadRadarPaidPilotAmountCents();
-  const currency = getLeadRadarPaidPilotCurrency();
-  const productName = input.productSlug === "leadradar" ? "LeadRadar" : "NeedRadar Workflow Lab";
+  const product = await getProductBySlug(input.productSlug);
+  if (!product || !product.payment_enabled) {
+    throw new Error(`Product ${input.productSlug} is not available for payment.`);
+  }
+
+  const amountCents = input.amountCents ?? product.price_cents;
+  const currency = normalizeCurrency(input.currency ?? product.currency);
+  const productName = input.productName ?? product.name;
   const order = await paypalRequest<PayPalOrder>("/v2/checkout/orders", {
     method: "POST",
     headers: {
@@ -184,7 +185,7 @@ export async function createPayPalProductOrder(input: {
           reference_id: `${input.productSlug}-access-payment`,
           custom_id: input.checkoutId,
           invoice_id: input.checkoutId,
-          description: `${productName} lifetime access payment`,
+          description: `${productName} access payment`,
           amount: {
             currency_code: currency,
             value: centsToPayPalAmount(amountCents)
@@ -225,9 +226,7 @@ export function getPayPalCapturedOrderDetails(order: PayPalCapturedOrder) {
   const purchaseUnit = order.purchase_units?.[0];
   const capture = purchaseUnit?.payments?.captures?.[0];
   const amount = capture?.amount ?? purchaseUnit?.amount;
-  const productSlug = purchaseUnit?.reference_id?.startsWith("needradar-workflow-lab")
-    ? "needradar-workflow-lab"
-    : "leadradar";
+  const productSlug = purchaseUnit?.reference_id?.replace(/-access-payment$/, "") ?? "leadradar";
 
   return {
     productSlug: productSlug as ProductSlug,

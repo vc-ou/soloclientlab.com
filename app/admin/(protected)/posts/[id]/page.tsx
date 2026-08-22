@@ -18,8 +18,8 @@ export default async function PostEditorPage({ params, searchParams }: PostEdito
   ]);
 
   return (
-    <AdminShell title={post ? "Edit Post" : "New Post"}>
-      <form action={upsertPost} className="admin-form" encType="multipart/form-data">
+    <AdminShell title={post ? "编辑文章" : "新建文章"}>
+      <form action={upsertPost} className="admin-form">
         {error ? <p className="admin-action-feedback">{decodeURIComponent(error)}</p> : null}
         <input type="hidden" name="id" value={post?.id ?? ""} />
         <PostEditorFields post={post} posts={posts} />

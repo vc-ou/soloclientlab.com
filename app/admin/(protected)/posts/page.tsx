@@ -7,13 +7,13 @@ export default async function AdminPostsPage() {
   const posts = await getAdminPosts();
 
   return (
-    <AdminShell title="Article CMS">
+    <AdminShell title="文章管理">
       <div className="admin-topbar">
-        <p>Create and manage SEO-ready articles for search and GSC review.</p>
+        <p>创建和管理适合搜索及 GSC 查看、并已准备好 SEO 信息的文章。</p>
         <AdminLinkButton
           href="/admin/posts/new"
-          idleLabel="New post"
-          pendingLabel="Loading..."
+          idleLabel="新建文章"
+          pendingLabel="加载中..."
           className="button primary"
         />
       </div>

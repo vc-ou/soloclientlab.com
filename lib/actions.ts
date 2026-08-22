@@ -6,11 +6,11 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getSubscriberByEmail, saveDemand, savePost, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
-import { signInAdmin, signOutAdmin } from "@/lib/auth";
+import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteSubscriberById, getProductById, getProductBySlug, getSubscriberByEmail, saveDemand, savePost, saveProduct, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { requireAdmin, signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createPayPalPaidPilotOrder, createPayPalProductOrder, getLeadRadarPaidPilotAmountCents, getLeadRadarPaidPilotCurrency } from "@/lib/paypal";
+import { createPayPalPaidPilotOrder, createPayPalProductOrder } from "@/lib/paypal";
 import { getProductMonthlySubscriptionPriceId, getStripe } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/env";
 import type {
@@ -22,8 +22,12 @@ import type {
   ResourceStatus,
   ResourceType,
   ProductAccessType,
+  ProductDeliveryMode,
+  ProductDevelopmentStatus,
+  ProductStatus,
   ProductSlug,
-  TopicTag
+  TopicTag,
+  PostFaqItem
 } from "@/lib/types";
 
 const emailSchema = z.string().trim().email();
@@ -65,7 +69,7 @@ const productAccessSchema = z.object({
 });
 
 const monthlySubscriptionCheckoutSchema = z.object({
-  product_slug: z.enum(["leadradar", "needradar-workflow-lab"]).default("leadradar"),
+  product_slug: z.string().trim().min(1).max(120),
   source_page: z.string().trim().max(300).optional()
 });
 
@@ -101,6 +105,16 @@ function getOptionalDateTime(formData: FormData, key: string) {
 
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+function parsePriceCents(value: string) {
+  const trimmed = value.trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    throw new Error("价格必须是数字，最多保留两位小数。");
+  }
+
+  const [whole, fraction = ""] = trimmed.split(".");
+  return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 
 function encodeFormErrorMessage(message: string) {
@@ -211,7 +225,6 @@ export async function subscribeUser(
   }
 
   revalidatePath("/");
-  revalidatePath("/newsletter");
   revalidatePath("/research");
   revalidatePath("/admin");
   revalidatePath("/admin/subscribers");
@@ -460,8 +473,7 @@ export async function startMonthlySubscriptionCheckout(formData: FormData) {
 }
 
 export async function startPayPalCheckout(formData: FormData) {
-  const requestedProductSlug: ProductSlug =
-    getText(formData, "product_slug") === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
+  const requestedProductSlug = getText(formData, "product_slug").trim() as ProductSlug;
   const parsed = monthlySubscriptionCheckoutSchema.safeParse({
     product_slug: requestedProductSlug,
     source_page: getText(formData, "source_page") || undefined
@@ -472,6 +484,10 @@ export async function startPayPalCheckout(formData: FormData) {
   }
 
   const productSlug = parsed.data.product_slug as ProductSlug;
+  const product = await getProductBySlug(productSlug);
+  if (!product || !product.payment_enabled) {
+    redirect(`/checkout/cancel?reason=product_not_available&product=${encodeURIComponent(productSlug)}`);
+  }
   const checkoutId = randomUUID();
   let approveUrl: string | undefined;
 
@@ -479,6 +495,9 @@ export async function startPayPalCheckout(formData: FormData) {
     const order = await createPayPalProductOrder({
       checkoutId,
       productSlug,
+      productName: product.name,
+      amountCents: product.price_cents,
+      currency: product.currency,
       returnUrl: `${getSiteUrl()}/api/payments/paypal/return`,
       cancelUrl: `${getSiteUrl()}/checkout/cancel?product=${encodeURIComponent(productSlug)}`
     });
@@ -487,6 +506,21 @@ export async function startPayPalCheckout(formData: FormData) {
       throw new Error("PayPal did not return an approval URL.");
     }
     approveUrl = order.approveUrl;
+
+    await addPendingProductPayment({
+      provider: "paypal",
+      product_slug: productSlug,
+      currency: product.currency,
+      amount_subtotal: product.price_cents,
+      amount_total: product.price_cents,
+      provider_checkout_session_id: order.id,
+      checkout_url: order.approveUrl,
+      metadata: {
+        access_type: "lifetime_access",
+        product_name: product.name,
+        source_page: parsed.data.source_page
+      }
+    });
 
     try {
       await trackTrialEvent({
@@ -536,8 +570,12 @@ export async function createPaidPilotCheckout(
   let checkoutUrl: string;
 
   try {
-    const amountCents = getLeadRadarPaidPilotAmountCents();
-    const currency = getLeadRadarPaidPilotCurrency();
+    const product = await getProductBySlug("leadradar");
+    if (!product || !product.payment_enabled) {
+      throw new Error("LeadRadar product is not available for payment.");
+    }
+    const amountCents = product.price_cents;
+    const currency = product.currency;
 
     accessRequestId = await addProductAccessRequest({
       product_slug: "leadradar",
@@ -767,6 +805,21 @@ export async function upsertDemand(formData: FormData) {
 export async function upsertPost(formData: FormData) {
   const postId = getText(formData, "id") || undefined;
 
+  const faqRaw = getText(formData, "faq");
+  let faq: PostFaqItem[] | undefined;
+  if (faqRaw) {
+    try {
+      const parsed = JSON.parse(faqRaw);
+      if (Array.isArray(parsed)) {
+        faq = parsed
+          .filter((item) => item && typeof item.question === "string" && typeof item.answer === "string")
+          .map((item) => ({ question: item.question, answer: item.answer }));
+      }
+    } catch {
+      // 忽略非法 JSON，避免整篇保存失败
+    }
+  }
+
   try {
     await savePost({
       id: postId,
@@ -780,7 +833,8 @@ export async function upsertPost(formData: FormData) {
       seo_description: getText(formData, "seo_description") || undefined,
       status: getText(formData, "status") as PostStatus,
       published_at: getOptionalDateTime(formData, "published_at"),
-      read_time: getText(formData, "read_time") || undefined
+      read_time: getText(formData, "read_time") || undefined,
+      faq
     });
   } catch (error) {
     console.error("Failed to save post:", error);
@@ -815,6 +869,55 @@ export async function upsertResource(formData: FormData) {
   revalidatePath(getResourceLandingPath(resource));
   revalidatePath("/admin/resources");
   redirect("/admin/resources");
+}
+
+export async function upsertProduct(formData: FormData) {
+  await requireAdmin();
+
+  const productId = getText(formData, "id") || undefined;
+  const previousProduct = productId ? await getProductById(productId) : null;
+  let productSlug = "";
+
+  try {
+    const product = {
+      id: productId,
+      name: getText(formData, "name").trim(),
+      slug: getText(formData, "slug").trim(),
+      short_description: getText(formData, "short_description") || undefined,
+      hero_title: getText(formData, "hero_title") || undefined,
+      hero_description: getText(formData, "hero_description") || undefined,
+      audience: getText(formData, "audience") || undefined,
+      problem: getText(formData, "problem") || undefined,
+      promise: getText(formData, "promise") || undefined,
+      delivery_mode: getText(formData, "delivery_mode") as ProductDeliveryMode,
+      development_status: getText(formData, "development_status") as ProductDevelopmentStatus,
+      price_cents: parsePriceCents(getText(formData, "price_amount")),
+      currency: getText(formData, "currency").trim().toUpperCase(),
+      payment_enabled: formData.get("payment_enabled") === "on",
+      status: getText(formData, "status") as ProductStatus,
+      seo_title: getText(formData, "seo_title") || undefined,
+      seo_description: getText(formData, "seo_description") || undefined,
+      published_at: getOptionalDateTime(formData, "published_at")
+    };
+    productSlug = product.slug;
+    await saveProduct(product);
+  } catch (error) {
+    console.error("Failed to save product:", error);
+    const fallbackMessage = "商品保存失败，请检查必填项后重试。";
+    const message = error instanceof Error && error.message ? error.message : fallbackMessage;
+    redirect(`/admin/products/${productId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
+  }
+
+  revalidatePath("/products");
+  if (previousProduct?.slug && previousProduct.slug !== productSlug) {
+    revalidatePath(`/products/${previousProduct.slug}`);
+  }
+  revalidatePath(`/products/${productSlug}`);
+  revalidatePath("/admin/products");
+  if (productId) {
+    revalidatePath(`/admin/products/${productId}`);
+  }
+  redirect("/admin/products");
 }
 
 export async function removePost(

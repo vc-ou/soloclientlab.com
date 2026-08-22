@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
-import { topicOptions } from "@/lib/content";
+import { personaOptions, topicOptions } from "@/lib/content";
+import { formatAdminLabel } from "@/lib/admin-labels";
 import { getDemandFilterOptions, getFilteredDemands } from "@/lib/db";
 
 type AdminDemandsPageProps = {
@@ -22,22 +23,22 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
   ]);
 
   return (
-    <AdminShell title="Demand Database">
+    <AdminShell title="需求库">
       <div className="admin-topbar">
-        <p>Manage raw demand signals, scoring, and next actions.</p>
+        <p>管理原始需求信号、评分和下一步动作。</p>
         <Link href="/admin/demands/new" className="button primary">
-          New demand
+          新建需求
         </Link>
       </div>
       <FilterForm resetHref="/admin/demands">
         <label className="field">
-          <span>Search</span>
-          <input name="query" defaultValue={filters.query ?? ""} placeholder="Title, keyword, quote..." />
+          <span>搜索</span>
+          <input name="query" defaultValue={filters.query ?? ""} placeholder="标题、关键词、引用..." />
         </label>
         <label className="field">
-          <span>Source platform</span>
+          <span>来源平台</span>
           <select name="source_platform" defaultValue={filters.source_platform ?? ""}>
-            <option value="">All platforms</option>
+            <option value="">全部平台</option>
             {filterOptions.platforms.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -46,9 +47,9 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
           </select>
         </label>
         <label className="field">
-          <span>Persona</span>
+          <span>用户类型</span>
           <select name="persona" defaultValue={filters.persona ?? ""}>
-            <option value="">All personas</option>
+            <option value="">全部用户类型</option>
             {filterOptions.personas.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -57,20 +58,26 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
           </select>
         </label>
         <label className="field">
-          <span>Status</span>
+          <span>状态</span>
           <select name="status" defaultValue={filters.status ?? ""}>
-            <option value="">All statuses</option>
-            {["raw", "reviewed", "clustered", "used_in_post", "archived"].map((option) => (
-              <option key={option} value={option}>
-                {option}
+            <option value="">全部状态</option>
+            {[
+              ["raw", "原始"],
+              ["reviewed", "已复核"],
+              ["clustered", "已聚类"],
+              ["used_in_post", "已用于文章"],
+              ["archived", "已归档"]
+            ].map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
               </option>
             ))}
           </select>
         </label>
         <label className="field">
-          <span>Topic tag</span>
+          <span>主题标签</span>
           <select name="topic_tag" defaultValue={filters.topic_tag ?? ""}>
-            <option value="">All topics</option>
+            <option value="">全部主题</option>
             {topicOptions.filter((option) => option.value !== "all").map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -79,15 +86,15 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
           </select>
         </label>
         <label className="field">
-          <span>Sort</span>
+          <span>排序</span>
           <select name="sort" defaultValue={filters.sort ?? "created_desc"}>
             {[
-              ["created_desc", "Newest first"],
-              ["created_asc", "Oldest first"],
-              ["updated_desc", "Recently updated"],
-              ["pain_desc", "Highest pain"],
-              ["frequency_desc", "Highest frequency"],
-              ["payment_desc", "Highest payment"]
+              ["created_desc", "最新优先"],
+              ["created_asc", "最早优先"],
+              ["updated_desc", "最近更新"],
+              ["pain_desc", "最高痛点"],
+              ["frequency_desc", "最高频次"],
+              ["payment_desc", "最高支付"]
             ].map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -97,19 +104,19 @@ export default async function AdminDemandsPage({ searchParams }: AdminDemandsPag
         </label>
       </FilterForm>
       <SimpleTable
-        headers={["Title", "Platform", "Persona", "Keyword", "Pain", "Frequency", "Payment", "Evidence", "Status", "Created"]}
+        headers={["标题", "平台", "用户类型", "关键词", "痛点", "频次", "支付", "证据", "状态", "创建时间"]}
         rows={demands.map((demand) => [
           <Link key={demand.id} href={`/admin/demands/${demand.id}`}>
             {demand.title}
           </Link>,
           demand.source_platform ?? "—",
-          demand.persona ?? "—",
+          personaOptions.find((option) => option.value === demand.persona)?.label ?? "—",
           demand.keyword ?? "—",
           demand.pain_score ?? "—",
           demand.frequency_score ?? "—",
           demand.payment_score ?? "—",
-          demand.evidence_strength ?? "—",
-          demand.status,
+          formatAdminLabel(demand.evidence_strength),
+          formatAdminLabel(demand.status),
           demand.created_at.slice(0, 10)
         ])}
       />

@@ -13,7 +13,10 @@ export type PostEventType =
   | "install_click"
   | "demo_open"
   | "review_complete";
-export type ProductSlug = "leadradar" | "needradar-workflow-lab";
+export type ProductSlug = string;
+export type ProductStatus = "draft" | "published" | "archived";
+export type ProductDeliveryMode = "presale" | "digital_file" | "extension" | "service" | "manual_delivery";
+export type ProductDevelopmentStatus = "idea" | "presale" | "building" | "ready" | "paused";
 export type ProductAccessType =
   | "product_access"
   | "trial_access"
@@ -88,6 +91,11 @@ export type Demand = {
   updated_at: string;
 };
 
+export type PostFaqItem = {
+  question: string;
+  answer: string;
+};
+
 export type Post = {
   id: string;
   title: string;
@@ -105,6 +113,7 @@ export type Post = {
   created_at: string;
   updated_at: string;
   read_time?: string;
+  faq?: PostFaqItem[];
 };
 
 export type Resource = {
@@ -118,6 +127,29 @@ export type Resource = {
   delivery_mode?: ResourceDeliveryMode;
   delivery_url?: string;
   status: ResourceStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Product = {
+  id: string;
+  slug: ProductSlug;
+  name: string;
+  short_description?: string;
+  hero_title?: string;
+  hero_description?: string;
+  audience?: string;
+  problem?: string;
+  promise?: string;
+  delivery_mode: ProductDeliveryMode;
+  development_status: ProductDevelopmentStatus;
+  price_cents: number;
+  currency: string;
+  payment_enabled: boolean;
+  status: ProductStatus;
+  seo_title?: string;
+  seo_description?: string;
+  published_at?: string;
   created_at: string;
   updated_at: string;
 };
@@ -210,7 +242,7 @@ export type ProductPayment = {
   provider: PaymentProvider;
   status: PaymentStatus;
   access_request_id?: string;
-  email: string;
+  email?: string;
   currency?: string;
   amount_subtotal?: number;
   amount_total?: number;
@@ -306,6 +338,7 @@ export type PostPerformance = {
 export type Database = {
   demands: Demand[];
   posts: Post[];
+  products: Product[];
   resources: Resource[];
   subscribers: Subscriber[];
   waitlists: WaitlistEntry[];

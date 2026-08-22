@@ -46,6 +46,7 @@ create table if not exists posts (
 alter table posts add column if not exists cover_image_url text;
 alter table posts add column if not exists cta_type text;
 alter table posts add column if not exists cta_target text;
+alter table posts add column if not exists faq jsonb;
 alter table posts drop column if exists related_persona;
 alter table posts drop column if exists related_demand_ids;
 alter table posts drop column if exists hero_label;
@@ -78,6 +79,29 @@ create table if not exists resources (
   delivery_mode text,
   delivery_url text,
   status text not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
+create table if not exists products (
+  id text primary key,
+  slug text not null unique,
+  name text not null,
+  short_description text,
+  hero_title text,
+  hero_description text,
+  audience text,
+  problem text,
+  promise text,
+  delivery_mode text not null,
+  development_status text not null,
+  price_cents integer not null default 0,
+  currency text not null default 'USD',
+  payment_enabled boolean not null default false,
+  status text not null,
+  seo_title text,
+  seo_description text,
+  published_at timestamptz,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
@@ -170,7 +194,7 @@ create table if not exists product_payments (
   provider text not null,
   status text not null,
   access_request_id text references product_access_requests(id) on delete set null,
-  email text not null,
+  email text,
   currency text,
   amount_subtotal integer,
   amount_total integer,
@@ -185,6 +209,8 @@ create table if not exists product_payments (
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
+
+alter table product_payments alter column email drop not null;
 
 create table if not exists product_entitlements (
   id text primary key,
@@ -260,17 +286,34 @@ create table if not exists trial_events (
 
 create index if not exists idx_demands_status on demands (status);
 create index if not exists idx_demands_topic_tag on demands (topic_tag);
+create index if not exists idx_demands_source_platform on demands (source_platform);
+create index if not exists idx_demands_persona on demands (persona);
+create index if not exists idx_demands_created_at on demands (created_at desc);
+create index if not exists idx_demands_updated_at on demands (updated_at desc);
 create index if not exists idx_posts_status on posts (status);
 create index if not exists idx_posts_topic_tag on posts (topic_tag);
+create index if not exists idx_posts_published_at on posts (published_at desc);
+create index if not exists idx_posts_created_at on posts (created_at desc);
 create index if not exists idx_resources_status on resources (status);
 create index if not exists idx_subscribers_source_type on subscribers (source_type);
 create index if not exists idx_subscribers_lead_magnet on subscribers (lead_magnet);
+create index if not exists idx_subscribers_persona_tag on subscribers (persona_tag);
+create index if not exists idx_subscribers_topic_tag on subscribers (topic_tag);
+create index if not exists idx_subscribers_status on subscribers (status);
+create index if not exists idx_subscribers_created_at on subscribers (created_at desc);
+create index if not exists idx_waitlists_project_name on waitlists (project_name);
 create index if not exists idx_waitlists_page_slug on waitlists (page_slug);
+create index if not exists idx_waitlists_interest_tag on waitlists (interest_tag);
+create index if not exists idx_waitlists_source_page on waitlists (source_page);
+create index if not exists idx_waitlists_created_at on waitlists (created_at desc);
 create index if not exists idx_post_events_post_slug on post_events (post_slug);
 create index if not exists idx_post_events_event_type on post_events (event_type);
+create index if not exists idx_post_events_created_at on post_events (created_at desc);
 create index if not exists idx_feedback_tool_slug on feedback (tool_slug);
 create index if not exists idx_feedback_created_at on feedback (created_at desc);
 create index if not exists idx_product_access_requests_product_slug on product_access_requests (product_slug);
+create index if not exists idx_products_status on products (status);
+create index if not exists idx_products_slug on products (slug);
 create index if not exists idx_product_access_requests_email on product_access_requests (email);
 create index if not exists idx_product_trials_product_slug on product_trials (product_slug);
 create index if not exists idx_product_trials_status on product_trials (status);

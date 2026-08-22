@@ -46,7 +46,7 @@ export function SiteFooter() {
           </div>
           <div>
             <h3 className="footer-heading">Learn</h3>
-            <div className="footer-links"><Link href="/research">Guides</Link><Link href="/newsletter">Newsletter</Link></div>
+            <div className="footer-links"><Link href="/research">Guides</Link><Link href="/products">Products</Link></div>
           </div>
           <div>
             <h3 className="footer-heading">Company</h3>
@@ -77,7 +77,7 @@ export function PageHero({
 }: {
   eyebrow?: string;
   title: ReactNode;
-  description: string;
+  description?: string;
   aside?: ReactNode;
   align?: "split" | "center";
   className?: string;
@@ -88,7 +88,7 @@ export function PageHero({
         <div className="hero-copy">
           {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
           <h1>{title}</h1>
-          <p className="hero-description">{description}</p>
+          {description ? <p className="hero-description">{description}</p> : null}
         </div>
         {aside ? <div className="hero-aside">{aside}</div> : null}
       </div>

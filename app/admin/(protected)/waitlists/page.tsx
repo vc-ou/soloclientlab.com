@@ -22,34 +22,35 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
     Object.entries(filters).filter(([, value]) => value)
       .map(([key, value]) => [key, value ?? ""])
   );
+  const projectLabelMap = Object.fromEntries(Object.values(waitlistProjects).map((project) => [project.slug, project.name]));
 
   return (
-    <AdminShell title="Access Leads">
+    <AdminShell title="访问线索">
       <div className="admin-topbar">
-        <p>Review product access and trial-interest records by product, access page, interest, or source page.</p>
+        <p>按商品、访问页、兴趣或来源页面查看商品访问和试用兴趣记录。</p>
         <Link
           href={exportParams.toString() ? `/admin/waitlists/export?${exportParams.toString()}` : "/admin/waitlists/export"}
           className="button ghost"
         >
-          Export CSV
+          导出 CSV
         </Link>
       </div>
       <FilterForm resetHref="/admin/waitlists">
         <label className="field">
-          <span>Product</span>
+          <span>商品</span>
           <select name="project_name" defaultValue={filters.project_name ?? ""}>
-            <option value="">All projects</option>
+            <option value="">全部商品</option>
             {filterOptions.projects.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {projectLabelMap[option] ?? option}
               </option>
             ))}
           </select>
         </label>
         <label className="field">
-          <span>Page slug</span>
+          <span>页面 Slug</span>
           <select name="page_slug" defaultValue={filters.page_slug ?? ""}>
-            <option value="">All slugs</option>
+            <option value="">全部 Slug</option>
             {Object.values(waitlistProjects).map((project) => (
               <option key={project.slug} value={project.slug}>
                 {project.slug}
@@ -58,9 +59,9 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
           </select>
         </label>
         <label className="field">
-          <span>Interest</span>
+          <span>兴趣</span>
           <select name="interest_tag" defaultValue={filters.interest_tag ?? ""}>
-            <option value="">All interests</option>
+            <option value="">全部兴趣</option>
             {waitlistInterestOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -69,9 +70,9 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
           </select>
         </label>
         <label className="field">
-          <span>Source page</span>
+          <span>来源页面</span>
           <select name="source_page" defaultValue={filters.source_page ?? ""}>
-            <option value="">All pages</option>
+            <option value="">全部页面</option>
             {filterOptions.sourcePages.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -81,12 +82,12 @@ export default async function AdminWaitlistsPage({ searchParams }: AdminWaitlist
         </label>
       </FilterForm>
       <SimpleTable
-        headers={["Product", "Access page", "Email", "Interest", "Source page", "Created"]}
+        headers={["商品", "访问页", "邮箱", "兴趣", "来源页面", "创建时间"]}
         rows={waitlists.map((entry) => [
           entry.project_name,
           entry.page_slug,
           entry.email,
-          entry.interest_tag ?? "—",
+          waitlistInterestOptions.find((option) => option.value === entry.interest_tag)?.label ?? "—",
           entry.source_page ?? "—",
           entry.created_at.slice(0, 10)
         ])}

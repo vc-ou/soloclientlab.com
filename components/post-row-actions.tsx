@@ -107,7 +107,7 @@ function DeleteForm({
         disabled={pending}
       >
         {pending ? <span className="button-spinner" aria-hidden="true" /> : null}
-        <span>{pending ? "Deleting..." : "Delete"}</span>
+        <span>{pending ? "删除中..." : "删除"}</span>
       </button>
       {state.message && !state.success ? <p className="admin-action-feedback">{state.message}</p> : null}
     </form>
@@ -119,15 +119,15 @@ export function PostRowActions({ postId, postSlug, onDeleteSuccess }: PostRowAct
     <div className="admin-table-actions">
       <NavButton
         href={`/admin/posts/${postId}/preview`}
-        idleLabel="Preview"
-        pendingLabel="Opening..."
+        idleLabel="预览"
+        pendingLabel="打开中..."
         className="button ghost button-sm"
         newTab
       />
       <NavButton
         href={`/admin/posts/${postId}`}
-        idleLabel="Edit"
-        pendingLabel="Loading..."
+        idleLabel="编辑"
+        pendingLabel="加载中..."
         className="button secondary button-sm"
       />
       <DeleteForm postId={postId} onDeleteSuccess={onDeleteSuccess} />

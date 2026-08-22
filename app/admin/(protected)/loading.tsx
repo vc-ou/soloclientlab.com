@@ -2,7 +2,7 @@ import { AdminShell } from "@/components/admin";
 
 export default function AdminProtectedLoading() {
   return (
-    <AdminShell title="Loading...">
+    <AdminShell title="加载中...">
       <section className="route-loading-shell" aria-live="polite" aria-busy="true">
         <div className="route-loading-card admin-route-loading-card">
           <div className="route-loading-bar route-loading-bar-lg" />

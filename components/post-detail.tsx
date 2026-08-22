@@ -31,6 +31,20 @@ export function PostDetail({
           <div className="article-content">
             <TrackedMarkdown content={post.content ?? ""} postId={post.id} postSlug={post.slug} />
           </div>
+
+          {post.faq && post.faq.length ? (
+            <section className="faq-block" style={{ marginTop: 32 }}>
+              <h2>常见问题</h2>
+              <div className="faq-list">
+                {post.faq.map((item, index) => (
+                  <div className="faq-item" key={index} style={{ marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 17, marginBottom: 6 }}>{item.question}</h3>
+                    <p style={{ margin: 0 }}>{item.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </article>
 
         <aside className="sidebar-stack">

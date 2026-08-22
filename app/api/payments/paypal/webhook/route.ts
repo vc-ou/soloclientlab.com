@@ -40,6 +40,10 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
     console.warn(`PayPal webhook ${event.id ?? "unknown"} could not find pending payment for order ${orderId}; waiting for the return route.`);
     return;
   }
+  if (!pendingPayment.email) {
+    console.warn(`PayPal webhook ${event.id ?? "unknown"} found pending payment without payer email for order ${orderId}; waiting for the return route.`);
+    return;
+  }
 
   const amountCents = resource?.amount?.value ? amountStringToCents(resource.amount.value) : pendingPayment.amount_total;
 

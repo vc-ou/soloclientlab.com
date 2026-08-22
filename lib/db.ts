@@ -14,6 +14,7 @@ import type {
   Post,
   PostEvent,
   PostPerformance,
+  Product,
   ProductAccessRequest,
   ProductAccessType,
   ProductEntitlement,
@@ -36,6 +37,7 @@ type DemandRow = Omit<Demand, "tags"> & {
 };
 
 type PostRow = Post;
+type ProductRow = Product;
 
 type PostEventRow = PostEvent;
 type FeedbackRow = FeedbackEntry;
@@ -132,6 +134,7 @@ async function readLocalDb(): Promise<Database> {
       ...post,
       topic_tag: normalizeTopicTag(post.topic_tag) as Post["topic_tag"]
     })),
+    products: parsed.products ?? seedDatabase.products ?? [],
     resources: parsed.resources ?? [],
     subscribers: parsed.subscribers ?? [],
     waitlists: parsed.waitlists ?? [],
@@ -180,6 +183,7 @@ function createInMemoryFallbackDb(): Database {
   return {
     demands: seedDatabase.demands.map((item) => ({ ...item, tags: [...(item.tags ?? [])] })),
     posts: seedDatabase.posts.map((item) => ({ ...item })),
+    products: seedDatabase.products.map((item) => ({ ...item })),
     resources: seedDatabase.resources.map((item) => ({ ...item })),
     subscribers: [],
     waitlists: [],
@@ -310,6 +314,8 @@ async function readWithRetry<T>(label: string, read: () => Promise<T>, retries =
 }
 
 let ensuredSubscriberNoteColumn = false;
+let ensuredProductsTable = false;
+let ensuredProductPaymentsEmailNullable = false;
 
 async function ensureSubscriberNoteColumn() {
   if (ensuredSubscriberNoteColumn || !hasDatabaseUrl()) {
@@ -319,6 +325,51 @@ async function ensureSubscriberNoteColumn() {
   const writeSql = getWriteSql();
   await writeSql`alter table subscribers add column if not exists note text`;
   ensuredSubscriberNoteColumn = true;
+}
+
+async function ensureProductsTable() {
+  if (ensuredProductsTable || !hasDatabaseUrl()) {
+    return;
+  }
+
+  const writeSql = getWriteSql();
+  await writeSql`
+    create table if not exists products (
+      id text primary key,
+      slug text not null unique,
+      name text not null,
+      short_description text,
+      hero_title text,
+      hero_description text,
+      audience text,
+      problem text,
+      promise text,
+      delivery_mode text not null,
+      development_status text not null,
+      price_cents integer not null default 0,
+      currency text not null default 'USD',
+      payment_enabled boolean not null default false,
+      status text not null,
+      seo_title text,
+      seo_description text,
+      published_at timestamptz,
+      created_at timestamptz not null,
+      updated_at timestamptz not null
+    )
+  `;
+  await writeSql`create index if not exists idx_products_status on products (status)`;
+  await writeSql`create index if not exists idx_products_slug on products (slug)`;
+  ensuredProductsTable = true;
+}
+
+async function ensureProductPaymentsEmailNullable() {
+  if (ensuredProductPaymentsEmailNullable || !hasDatabaseUrl()) {
+    return;
+  }
+
+  const writeSql = getWriteSql();
+  await writeSql`alter table product_payments alter column email drop not null`;
+  ensuredProductPaymentsEmailNullable = true;
 }
 
 function toIsoString(value?: string | null) {
@@ -345,6 +396,15 @@ function mapPostRow(row: PostRow): Post {
   return {
     ...row,
     topic_tag: normalizeTopicTag(row.topic_tag) as Post["topic_tag"],
+    published_at: toIsoString(row.published_at),
+    created_at: new Date(row.created_at).toISOString(),
+    updated_at: new Date(row.updated_at).toISOString()
+  };
+}
+
+function mapProductRow(row: ProductRow): Product {
+  return {
+    ...row,
     published_at: toIsoString(row.published_at),
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString()
@@ -498,12 +558,16 @@ function filterSubscribers(subscribers: Subscriber[], filters: SubscriberFilters
   });
 }
 
-async function readWaitlistRows() {
+async function readWaitlistRows(filters: WaitlistFilters = {}) {
   const sql = getReadSql();
   const waitlists = await readWithRetry(
     "Filtered waitlists read",
     () => withTimeout(sql<WaitlistEntry[]>`
       select * from waitlists
+      where (${filters.project_name ?? null}::text is null or project_name = ${filters.project_name ?? null})
+        and (${filters.page_slug ?? null}::text is null or page_slug = ${filters.page_slug ?? null})
+        and (${filters.interest_tag ?? null}::text is null or interest_tag = ${filters.interest_tag ?? null})
+        and (${filters.source_page ?? null}::text is null or source_page = ${filters.source_page ?? null})
       order by created_at desc
     `, ADMIN_DB_TIMEOUT_MS)
   );
@@ -688,6 +752,7 @@ async function readPostgresDb(): Promise<Database> {
   const [
     demands,
     posts,
+    products,
     resources,
     subscribers,
     waitlists,
@@ -705,6 +770,13 @@ async function readPostgresDb(): Promise<Database> {
     Promise.all([
       sql<DemandRow[]>`select * from demands order by created_at desc`,
       sql<PostRow[]>`select * from posts order by created_at desc`,
+      sql<ProductRow[]>`select * from products order by created_at desc`.catch((error: unknown) => {
+        if (isMissingOptionalTable(error, "products")) {
+          console.warn("products table is not available yet, using seed product data.");
+          return seedDatabase.products as ProductRow[];
+        }
+        throw error;
+      }),
       sql<Resource[]>`select * from resources order by created_at desc`,
       sql<Subscriber[]>`select * from subscribers order by created_at desc`,
       sql<WaitlistEntry[]>`select * from waitlists order by created_at desc`,
@@ -724,6 +796,7 @@ async function readPostgresDb(): Promise<Database> {
   return {
     demands: demands.map(mapDemandRow),
     posts: posts.map(mapPostRow),
+    products: products.map(mapProductRow),
     resources: resources.map(mapResourceRow),
     subscribers: subscribers.map(mapSubscriberRow),
     waitlists: waitlists.map(mapWaitlistRow),
@@ -1268,11 +1341,12 @@ export async function addPendingProductPayment(
 ) {
   const nowIso = new Date().toISOString();
   const paymentId = randomUUID();
-  const email = input.email.toLowerCase();
+  const email = input.email?.toLowerCase();
   const provider = input.provider ?? "stripe";
   const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
 
   if (hasDatabaseUrl()) {
+    await ensureProductPaymentsEmailNullable();
     const writeSql = getWriteSql();
     await writeSql`
       insert into product_payments (
@@ -1282,7 +1356,7 @@ export async function addPendingProductPayment(
         checkout_url, paid_at, refunded_at, metadata, created_at, updated_at
       ) values (
         ${paymentId}, ${input.product_slug}, ${provider}, 'pending',
-        ${input.access_request_id ?? null}, ${email}, ${input.currency ?? null},
+        ${input.access_request_id ?? null}, ${email ?? null}, ${input.currency ?? null},
         ${input.amount_subtotal ?? null}, ${input.amount_total ?? null},
         ${input.provider_checkout_session_id ?? null}, ${input.provider_payment_intent_id ?? null},
         ${input.provider_customer_id ?? null}, ${input.provider_subscription_id ?? null},
@@ -2129,6 +2203,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           seo_description = ${input.seo_description ?? null},
           cta_type = coalesce(${input.cta_type ?? null}, cta_type),
           cta_target = coalesce(${input.cta_target ?? null}, cta_target),
+          faq = ${sql.json(input.faq ?? [])},
           status = ${input.status},
           published_at = ${publishedAt},
           updated_at = ${now},
@@ -2143,7 +2218,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
       await sql`
         insert into posts (
           id, title, slug, summary, content, cover_image_url,
-          topic_tag, seo_title, seo_description, cta_type, cta_target, status,
+          topic_tag, seo_title, seo_description, cta_type, cta_target, faq, status,
           published_at, created_at, updated_at, read_time
         ) values (
           ${postId}, ${input.title}, ${input.slug}, ${input.summary ?? null}, ${input.content ?? null},
@@ -2151,6 +2226,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           ${input.topic_tag ?? null},
           ${input.seo_title ?? null}, ${input.seo_description ?? null},
           ${input.cta_type ?? null}, ${input.cta_target ?? null},
+          ${sql.json(input.faq ?? [])},
           ${input.status}, ${publishedAt ?? null},
           ${now}, ${now}, ${input.read_time ?? null}
         )
@@ -2183,6 +2259,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
           seo_description: input.seo_description,
           cta_type: input.cta_type,
           cta_target: input.cta_target,
+          faq: input.faq,
           status: input.status,
           published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
           created_at: now,
@@ -2223,6 +2300,7 @@ export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug
       seo_description: input.seo_description,
       cta_type: input.cta_type,
       cta_target: input.cta_target,
+      faq: input.faq,
       status: input.status,
       published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
       created_at: now,
@@ -2308,6 +2386,220 @@ export async function saveResource(
   }
 
   await writeLocalDb(db);
+}
+
+export async function saveProduct(
+  input: Partial<Product> & Pick<Product, "slug" | "name" | "delivery_mode" | "development_status" | "price_cents" | "currency" | "payment_enabled" | "status">
+) {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const sql = getWriteSql();
+    const now = new Date().toISOString();
+    const duplicate = await sql<{ id: string }[]>`
+      select id from products where slug = ${input.slug} and id <> ${input.id ?? ""} limit 1
+    `;
+    if (duplicate.length) throw new Error("Slug must be unique");
+
+    const publishedAt = input.status === "published" ? input.published_at ?? now : input.published_at ?? null;
+
+    if (input.id) {
+      const existing = await sql<{ id: string }[]>`select id from products where id = ${input.id} limit 1`;
+      if (!existing.length) throw new Error("Product not found");
+
+      await sql`
+        update products
+        set
+          slug = ${input.slug},
+          name = ${input.name},
+          short_description = ${input.short_description ?? null},
+          hero_title = ${input.hero_title ?? null},
+          hero_description = ${input.hero_description ?? null},
+          audience = ${input.audience ?? null},
+          problem = ${input.problem ?? null},
+          promise = ${input.promise ?? null},
+          delivery_mode = ${input.delivery_mode},
+          development_status = ${input.development_status},
+          price_cents = ${input.price_cents},
+          currency = ${input.currency},
+          payment_enabled = ${input.payment_enabled},
+          status = ${input.status},
+          seo_title = ${input.seo_title ?? null},
+          seo_description = ${input.seo_description ?? null},
+          published_at = ${publishedAt},
+          updated_at = ${now}
+        where id = ${input.id}
+      `;
+    } else {
+      await sql`
+        insert into products (
+          id, slug, name, short_description, hero_title, hero_description, audience,
+          problem, promise, delivery_mode, development_status, price_cents, currency,
+          payment_enabled, status, seo_title, seo_description, published_at,
+          created_at, updated_at
+        ) values (
+          ${randomUUID()}, ${input.slug}, ${input.name}, ${input.short_description ?? null},
+          ${input.hero_title ?? null}, ${input.hero_description ?? null}, ${input.audience ?? null},
+          ${input.problem ?? null}, ${input.promise ?? null}, ${input.delivery_mode}, ${input.development_status},
+          ${input.price_cents}, ${input.currency}, ${input.payment_enabled}, ${input.status},
+          ${input.seo_title ?? null}, ${input.seo_description ?? null}, ${publishedAt},
+          ${now}, ${now}
+        )
+      `;
+    }
+
+    revalidateTag("public-products", "max");
+    return;
+  }
+
+  const db = await readLocalDb();
+  const now = new Date().toISOString();
+  const duplicate = db.products.find((item) => item.slug === input.slug && item.id !== input.id);
+  if (duplicate) throw new Error("Slug must be unique");
+
+  if (input.id) {
+    const existing = db.products.find((item) => item.id === input.id);
+    if (!existing) throw new Error("Product not found");
+    Object.assign(existing, input, {
+      published_at: input.status === "published" ? input.published_at ?? existing.published_at ?? now : input.published_at ?? undefined,
+      updated_at: now
+    });
+  } else {
+    db.products.unshift({
+      id: randomUUID(),
+      slug: input.slug,
+      name: input.name,
+      short_description: input.short_description,
+      hero_title: input.hero_title,
+      hero_description: input.hero_description,
+      audience: input.audience,
+      problem: input.problem,
+      promise: input.promise,
+      delivery_mode: input.delivery_mode,
+      development_status: input.development_status,
+      price_cents: input.price_cents,
+      currency: input.currency,
+      payment_enabled: input.payment_enabled,
+      status: input.status,
+      seo_title: input.seo_title,
+      seo_description: input.seo_description,
+      published_at: input.status === "published" ? input.published_at ?? now : input.published_at,
+      created_at: now,
+      updated_at: now
+    });
+  }
+
+  await writeLocalDb(db);
+  revalidateTag("public-products", "max");
+}
+
+function filterPublishedProducts(products: Product[]) {
+  return products
+    .filter((product) => product.status === "published")
+    .sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at));
+}
+
+async function readPublicProducts() {
+  if (process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    return filterPublishedProducts(db.products.map(mapProductRow));
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const products = await readWithRetry(
+        "Public products read",
+        () => withTimeout(sql<ProductRow[]>`
+          select * from products
+          where status = 'published'
+          order by published_at desc nulls last, created_at desc
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+
+      return products.map(mapProductRow);
+    } catch (error) {
+      console.error("Falling back to local products:", error);
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return filterPublishedProducts(db.products.map(mapProductRow));
+}
+
+const getCachedAllPublicProducts = unstable_cache(
+  async () => readPublicProducts(),
+  ["public-products", "all"],
+  {
+    tags: ["public-products"],
+    revalidate: 300
+  }
+);
+
+export async function getPublicProducts() {
+  return getCachedAllPublicProducts();
+}
+
+export async function getAdminProducts() {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const products = await readWithRetry(
+      "Admin products read",
+      () => withTimeout(sql<ProductRow[]>`
+        select * from products
+        order by created_at desc
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return products.map(mapProductRow);
+  }
+
+  const db = await readLocalDbSafe();
+  return db.products.map(mapProductRow);
+}
+
+export async function getProductById(id: string) {
+  if (shouldReadLiveAdminDb()) {
+    const sql = getReadSql();
+    const products = await readWithRetry(
+      "Product by id read",
+      () => withTimeout(sql<ProductRow[]>`
+        select * from products where id = ${id} limit 1
+      `, ADMIN_DB_TIMEOUT_MS)
+    );
+
+    return products[0] ? mapProductRow(products[0]) : null;
+  }
+
+  const db = await readLocalDbSafe();
+  return db.products.find((product) => product.id === id) ?? null;
+}
+
+export async function getProductBySlug(slug: string) {
+  if (process.env.NODE_ENV !== "production") {
+    const db = await readLocalDb();
+    return db.products.find((product) => product.slug === slug && product.status === "published") ?? null;
+  }
+
+  if (hasDatabaseUrl()) {
+    try {
+      const sql = getReadSql();
+      const products = await readWithRetry(
+        "Product by slug read",
+        () => withTimeout(sql<ProductRow[]>`
+          select * from products
+          where slug = ${slug} and status = 'published'
+          limit 1
+        `, ADMIN_DB_TIMEOUT_MS)
+      );
+
+      return products[0] ? mapProductRow(products[0]) : null;
+    } catch (error) {
+      console.error("Falling back to local product lookup:", error);
+    }
+  }
+
+  const db = await readLocalDbSafe();
+  return db.products.find((product) => product.slug === slug && product.status === "published") ?? null;
 }
 
 export async function getPublicPosts(topic?: string) {
@@ -2999,11 +3291,16 @@ export async function getFilteredSubscribers(filters: SubscriberFilters): Promis
       "Filtered subscribers read",
       () => withTimeout(sql<Subscriber[]>`
         select * from subscribers
+        where (${filters.source_type ?? null}::text is null or source_type = ${filters.source_type ?? null})
+          and (${filters.lead_magnet ?? null}::text is null or lead_magnet = ${filters.lead_magnet ?? null})
+          and (${filters.persona_tag ?? null}::text is null or persona_tag = ${filters.persona_tag ?? null})
+          and (${filters.topic_tag ?? null}::text is null or topic_tag = ${filters.topic_tag ?? null})
+          and (${filters.status ?? null}::text is null or status = ${filters.status ?? null})
         order by created_at desc
       `, ADMIN_DB_TIMEOUT_MS)
     );
 
-    return filterSubscribers(subscribers.map(mapSubscriberRow), filters);
+    return subscribers.map(mapSubscriberRow);
   }
 
   const db = await readLocalDbSafe();
@@ -3122,7 +3419,7 @@ export async function getFeedbackSourcePageOptions(): Promise<string[]> {
 
 export async function getFilteredWaitlists(filters: WaitlistFilters): Promise<WaitlistEntry[]> {
   const db = shouldReadLiveAdminDb()
-    ? { waitlists: await readWaitlistRows() }
+    ? { waitlists: await readWaitlistRows(filters) }
     : await readLocalDbSafe();
 
   return db.waitlists.filter((entry) => {
@@ -3208,12 +3505,19 @@ export async function getFilteredDemands(filters: DemandFilters): Promise<Demand
     ? {
         demands: await (async () => {
           const sql = getReadSql();
+          const query = filters.query?.trim();
+          const queryPattern = query ? `%${query}%` : null;
           const demands = await readWithRetry(
             "Filtered demands read",
             () => withTimeout(sql<DemandRow[]>`
-            select * from demands
-            order by created_at desc
-          `, ADMIN_DB_TIMEOUT_MS)
+              select * from demands
+              where (${queryPattern}::text is null or concat_ws(' ', title, keyword, persona, source_platform, user_quote, next_action) ilike ${queryPattern})
+                and (${filters.source_platform ?? null}::text is null or source_platform = ${filters.source_platform ?? null})
+                and (${filters.persona ?? null}::text is null or persona = ${filters.persona ?? null})
+                and (${filters.status ?? null}::text is null or status = ${filters.status ?? null})
+                and (${filters.topic_tag ?? null}::text is null or topic_tag = ${filters.topic_tag ?? null})
+              order by created_at desc
+            `, ADMIN_DB_TIMEOUT_MS)
           );
 
           return demands.map(mapDemandRow);

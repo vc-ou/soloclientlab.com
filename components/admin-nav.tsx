@@ -5,18 +5,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const adminNavItems = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/metrics", label: "Metrics" },
-  { href: "/admin/umami", label: "Umami" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/product-access", label: "Product Access" },
-  { href: "/admin/trials", label: "Trials" },
-  { href: "/admin/leadradar-configs", label: "LeadRadar Configs" },
-  { href: "/admin/post-analytics", label: "Post Analytics" },
-  { href: "/admin/posts", label: "Posts" },
-  { href: "/admin/subscribers", label: "Contacts" },
-  { href: "/admin/waitlists", label: "Access Leads" },
-  { href: "/admin/feedback", label: "Feedback" }
+  { href: "/admin", label: "总览" },
+  { href: "/admin/metrics", label: "转化漏斗" },
+  { href: "/admin/umami", label: "访问分析" },
+  { href: "/admin/products", label: "商品与销售" },
+  { href: "/admin/product-access", label: "商品访问" },
+  { href: "/admin/payments", label: "支付记录" },
+  { href: "/admin/trials", label: "试用记录" },
+  { href: "/admin/leadradar-configs", label: "LeadRadar 配置" },
+  { href: "/admin/post-analytics", label: "文章分析" },
+  { href: "/admin/posts", label: "文章管理" },
+  { href: "/admin/subscribers", label: "联系人" },
+  { href: "/admin/waitlists", label: "访问线索" },
+  { href: "/admin/feedback", label: "反馈" }
 ];
 
 function isActive(pathname: string, href: string) {
@@ -33,7 +34,7 @@ export function AdminNav() {
   }, [pathname]);
 
   return (
-    <nav aria-label="Admin navigation">
+    <nav aria-label="后台导航">
       {adminNavItems.map((item) => {
         const active = isActive(pathname, item.href);
         const pending = pendingHref === item.href && !active;
@@ -50,7 +51,7 @@ export function AdminNav() {
             onClick={() => setPendingHref(item.href)}
           >
             <span>{item.label}</span>
-            {pending ? <span className="admin-nav-status">Loading...</span> : null}
+            {pending ? <span className="admin-nav-status">加载中...</span> : null}
           </Link>
         );
       })}

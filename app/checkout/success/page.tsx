@@ -9,6 +9,7 @@ import {
   hasNeedRadarEdgeAddonsListing
 } from "@/lib/extension-links";
 import { buildLicenseKey, getLicenseKeySuffix, hashLicenseSecret } from "@/lib/licenses";
+import { getProductBySlug } from "@/lib/db";
 import type { ProductSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -26,11 +27,16 @@ export default async function CheckoutSuccessPage({
 }) {
   const params = await searchParams;
   const productSlug = parseProductSlug(params.product);
-  const isNeedRadar = productSlug === "needradar-workflow-lab";
-  const hasEdgeListing = isNeedRadar ? hasNeedRadarEdgeAddonsListing() : hasLeadRadarEdgeAddonsListing();
-  const productName = isNeedRadar ? "NeedRadar" : "LeadRadar";
-  const productPath = isNeedRadar ? "/products/needradar-workflow-lab" : "/products/leadradar";
-  const extensionSupportCopy = isNeedRadar ? getNeedRadarExtensionSupportCopy() : getLeadRadarExtensionSupportCopy();
+  const product = await getProductBySlug(productSlug);
+  const isNeedRadar = product?.slug === "needradar-workflow-lab";
+  const hasEdgeListing = isNeedRadar ? hasNeedRadarEdgeAddonsListing() : product?.slug === "leadradar" ? hasLeadRadarEdgeAddonsListing() : false;
+  const productName = product?.name ?? "商品";
+  const productPath = product ? `/products/${product.slug}` : "/products";
+  const extensionSupportCopy = isNeedRadar
+    ? getNeedRadarExtensionSupportCopy()
+    : product?.slug === "leadradar"
+      ? getLeadRadarExtensionSupportCopy()
+      : "Payment has been confirmed. Return to the product page for the current install or access instructions.";
   const orderId = typeof params.order_id === "string" ? params.order_id : undefined;
   let hasPaidAccess = false;
   let licenseKey: string | undefined;

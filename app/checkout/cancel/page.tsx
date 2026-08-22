@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getProductBySlug } from "@/lib/db";
 import type { ProductSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -17,9 +18,9 @@ export default async function CheckoutCancelPage({
 }) {
   const params = await searchParams;
   const productSlug = parseProductSlug(params.product);
-  const isNeedRadar = productSlug === "needradar-workflow-lab";
-  const productPath = isNeedRadar ? "/products/needradar-workflow-lab#product-access" : "/products/leadradar#subscription";
-  const productName = isNeedRadar ? "NeedRadar" : "LeadRadar";
+  const product = await getProductBySlug(productSlug);
+  const productPath = product ? `/products/${product.slug}` : "/products";
+  const productName = product?.name ?? "商品";
 
   return (
     <section className="container page-section">

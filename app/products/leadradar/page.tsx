@@ -1,182 +1,30 @@
 import type { Metadata } from "next";
-import { ProductEventLink, TrackProductPageView } from "@/components/product-events";
-import { LeadRadarConfigForm } from "@/components/forms";
-import { PayPalCheckoutButton } from "@/components/paypal-checkout-button";
-import { PageHero, SectionHeading } from "@/components/site";
+import { notFound } from "next/navigation";
+import { ProductPage } from "@/components/product-page";
+import { getProductBySlug } from "@/lib/db";
 
-export const metadata: Metadata = {
-  title: {
-    absolute: "Manufacturing Lead Generation Tool for CNC Teams | LeadRadar"
-  },
-  description:
-    "LeadRadar helps CNC and manufacturing teams review TikTok comments and public social conversations for sourcing, RFQ, MOQ, sample, and custom manufacturing signals.",
-  alternates: {
-    canonical: "/products/leadradar"
+export async function generateMetadata(): Promise<Metadata> {
+  const product = await getProductBySlug("leadradar");
+  if (!product) {
+    return { title: "LeadRadar" };
   }
-};
 
-const workflowSteps = [
-  ["Discover", "Open the TikTok searches, accounts, and comment threads where buyers already ask about sourcing, MOQ, samples, capacity, or shipping."],
-  ["Configure", "Set the materials, capabilities, countries, keywords, and lead types that matter to your manufacturing business."],
-  ["Review", "Separate likely buying or partnership signals from noise while preserving the source context for a human decision."],
-  ["Export", "Move the review list into your sales process, then calibrate the rules from what your team finds useful."]
-] as const;
+  return {
+    title: {
+      absolute: `${product.name} | SoloClientLab`
+    },
+    description: product.seo_description ?? product.hero_description ?? product.short_description ?? undefined,
+    alternates: {
+      canonical: `/products/${product.slug}`
+    }
+  };
+}
 
-export default function LeadRadarProductPage() {
-  return (
-    <>
-      <TrackProductPageView />
-      <PageHero
-        eyebrow="LeadRadar for CNC / Manufacturing"
-        title="Find CNC and manufacturing lead signals from public conversations"
-        description="LeadRadar helps manufacturing teams spot sourcing and buying signals in social comments, configure what matters to their business, and move qualified findings into a practical review workflow."
-        aside={
-          <div className="form-card waitlist-card">
-            <h3>Pay for LeadRadar access</h3>
-            <p className="form-intro">
-              PayPal checkout is required before the Microsoft Edge install link is shown.
-            </p>
-            <PayPalCheckoutButton sourcePage="/products/leadradar#hero">
-              Continue to PayPal checkout
-            </PayPalCheckoutButton>
-            <p className="form-feedback">
-              Payment opens PayPal checkout immediately. Install appears after payment confirmation.
-            </p>
-            <div className="hero-actions">
-              <ProductEventLink href="/tools/leadradar" eventType="demo_open" className="button ghost">
-                Try workflow demo
-              </ProductEventLink>
-            </div>
-            <p className="form-feedback">Current payment channel: PayPal before Edge install.</p>
-          </div>
-        }
-      />
+export default async function LeadRadarPage() {
+  const product = await getProductBySlug("leadradar");
+  if (!product) {
+    notFound();
+  }
 
-      <section className="container">
-        <div className="grid-3">
-          <div className="card">
-            <h3>For CNC and manufacturing teams</h3>
-            <p>Use the real language buyers use when asking about capabilities, MOQ, samples, pricing, lead time, custom work, and supplier fit.</p>
-          </div>
-          <div className="card">
-            <h3>Human review stays in control</h3>
-            <p>LeadRadar flags and organizes possible signals. Your team decides what is relevant, what needs calibration, and what deserves follow-up.</p>
-          </div>
-          <div className="card">
-            <h3>Built for a usable sales handoff</h3>
-            <p>Move from social scanning to a reviewable list that can be configured, inspected, exported, and used by the people who handle demand.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="container">
-        <div className="section-panel">
-          <SectionHeading title="From social signal to sales review" />
-          <div className="grid-4">
-            {workflowSteps.map(([title, body], index) => (
-              <div key={title} className="card">
-                <p className="eyebrow">0{index + 1}</p>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="container">
-        <div className="inline-cta">
-          <div>
-            <h3>One PayPal access path, one LeadRadar core</h3>
-            <p>
-              Customers pay through PayPal first. After payment confirmation, the install link appears on the checkout
-              success page for product access, evaluation, support, and workflow calibration.
-            </p>
-          </div>
-          <PayPalCheckoutButton sourcePage="/products/leadradar#subscription-cta">
-            Continue to PayPal checkout
-          </PayPalCheckoutButton>
-        </div>
-      </section>
-
-      <section className="container" id="manual-install">
-        <div className="section-panel">
-          <SectionHeading title="Paid access before Edge install" />
-          <div className="grid-4">
-            {[
-              ["Store access", "The Microsoft Edge install link is shown after PayPal confirms payment."],
-              ["Pay with PayPal", "Request access starts secure PayPal checkout immediately."],
-              ["Use TikTok", "Open TikTok search, videos, comments, or users pages and let LeadRadar collect visible signals into a local review list."],
-              ["Access now", "Payment confirms access and unlocks the install and setup follow-up path."]
-            ].map(([title, body]) => (
-              <div key={title} className="card">
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="container" id="product-access">
-        <div className="two-column">
-          <div className="resource-showcase">
-            <p className="eyebrow">Product access</p>
-            <h2>Start PayPal access before installing LeadRadar</h2>
-            <p>
-              The primary request path starts PayPal checkout immediately. Install access appears after payment,
-              with setup support, calibration help, co-build access, or partner evaluation available afterward.
-            </p>
-          </div>
-          <div className="form-card waitlist-card">
-            <h3>Request LeadRadar product access</h3>
-            <p className="form-intro">
-              Click once to enter secure PayPal checkout. Payment confirms access and replaces the old product-access request step.
-            </p>
-            <PayPalCheckoutButton sourcePage="/products/leadradar#product-access">
-              Request LeadRadar access
-            </PayPalCheckoutButton>
-            <p className="form-feedback">No separate access approval step before checkout.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="container" id="subscription">
-        <div className="two-column">
-          <div className="resource-showcase">
-            <p className="eyebrow">PayPal access payment</p>
-            <h2>Move from a promising signal workflow to a paid customer test</h2>
-            <p>
-              PayPal is the temporary payment path for a manufacturing or sourcing team that wants to test LeadRadar
-              against a real market, capability set, and review process. Access is activated after payment confirmation.
-            </p>
-          </div>
-          <div className="form-card waitlist-card">
-            <h3>Pay with PayPal</h3>
-            <p className="form-intro">
-              Continue to secure PayPal checkout. One payment gives you lifetime access to the product.
-            </p>
-            <PayPalCheckoutButton sourcePage="/products/leadradar#subscription">
-              Continue to PayPal checkout
-            </PayPalCheckoutButton>
-            <p className="form-feedback">Payment opens PayPal checkout immediately.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="container">
-        <div className="two-column">
-          <div className="resource-showcase">
-            <p className="eyebrow">Co-build configuration</p>
-            <h2>Tell LeadRadar what signal rules matter</h2>
-            <p>
-              The first configuration pass should include concrete keywords, markets, capabilities, and lead types.
-              This keeps paid access setup tied to a real manufacturing workflow instead of a vague product waitlist.
-            </p>
-          </div>
-          <LeadRadarConfigForm sourcePage="/products/leadradar" />
-        </div>
-      </section>
-    </>
-  );
+  return <ProductPage product={product} />;
 }

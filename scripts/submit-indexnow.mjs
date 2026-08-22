@@ -140,13 +140,11 @@ async function inferUrlsFromChangedFiles(files, siteUrl) {
 
     if (file === "app/page.tsx") paths.add("/");
     if (file === "app/about/page.tsx") paths.add("/about");
-    if (file === "app/newsletter/page.tsx") paths.add("/newsletter");
     if (file === "app/products/page.tsx") paths.add("/products");
+    if (file === "app/products/[slug]/page.tsx" || file === "components/product-page.tsx") needsAllPublicUrls = true;
     if (file === "app/products/leadradar/page.tsx") paths.add("/products/leadradar");
     if (file === "app/products/needradar-workflow-lab/page.tsx") paths.add("/products/needradar-workflow-lab");
     if (file === "app/research/page.tsx") paths.add("/research");
-    if (file === "app/resources/page.tsx") paths.add("/resources");
-    if (file === "app/resources/client-acquisition-report/page.tsx") paths.add("/resources/client-acquisition-report");
     if (file === "app/tools/leadradar/page.tsx" || file === "components/leadradar-demo.tsx") paths.add("/tools/leadradar");
     if (file.startsWith("app/research/[slug]/") || file === "components/post-detail.tsx") needsAllPublicUrls = true;
   }

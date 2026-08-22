@@ -1,4 +1,5 @@
 import { AdminShell, SimpleTable } from "@/components/admin";
+import { formatAdminLabel, formatProductLabel } from "@/lib/admin-labels";
 import { getProductTrials, getTrialEvents } from "@/lib/db";
 
 export default async function AdminTrialsPage() {
@@ -8,18 +9,18 @@ export default async function AdminTrialsPage() {
   ]);
 
   return (
-    <AdminShell title="Trials">
+    <AdminShell title="试用记录">
       <div className="admin-grid" style={{ marginBottom: 24 }}>
         <section className="activity-card">
-          <h2>Trial windows</h2>
-          <p>Public self-serve trials use a 7-day window. Partner preview follows offline collaboration progress and is tracked in Product Access, not forced into this trial table.</p>
+          <h2>试用窗口</h2>
+          <p>公开自助试用使用 7 天窗口。合作预览按线下协作进度推进，并在商品访问里跟踪，不强行放进试用表。</p>
           <SimpleTable
-            headers={["Created", "Product", "Email", "Status", "Trial ends", "Co-build unlock ends", "Source"]}
+            headers={["创建时间", "商品", "邮箱", "状态", "试用结束", "共建解锁结束", "来源"]}
             rows={trials.map((trial) => [
               trial.created_at.slice(0, 10),
-              trial.product_slug,
+              formatProductLabel(trial.product_slug),
               trial.email,
-              trial.status,
+              formatAdminLabel(trial.status),
               trial.trial_ends_at?.slice(0, 10) ?? "-",
               trial.co_build_unlock_ends_at?.slice(0, 10) ?? "-",
               trial.source_page ?? "-"
@@ -29,14 +30,14 @@ export default async function AdminTrialsPage() {
       </div>
 
       <section className="activity-card">
-        <h2>Effective trial events</h2>
-        <p>Localhost, test referrers, ignored IPs, browser opt-out visits, and configured internal emails are excluded from this table.</p>
+        <h2>有效试用事件</h2>
+        <p>本表已排除 localhost、测试来源、忽略 IP、浏览器退出跟踪访问，以及已配置的内部邮箱。</p>
         <SimpleTable
-          headers={["Created", "Product", "Event", "Email", "Path", "Referrer"]}
+          headers={["创建时间", "商品", "事件", "邮箱", "路径", "来源"]}
           rows={events.slice(0, 30).map((event) => [
             event.created_at.slice(0, 16).replace("T", " "),
-            event.product_slug,
-            event.event_type,
+            formatProductLabel(event.product_slug),
+            formatAdminLabel(event.event_type),
             event.email ?? "-",
             event.path ?? event.source_page ?? "-",
             event.referrer ?? "-"

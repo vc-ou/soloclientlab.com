@@ -4,10 +4,10 @@ import { createHash, createHmac, randomBytes } from "node:crypto";
 import { getOptionalEnv } from "@/lib/env";
 import type { ProductSlug } from "@/lib/types";
 
-const LICENSE_KEY_PREFIX: Record<ProductSlug, string> = {
+const LICENSE_KEY_PREFIX = {
   leadradar: "SCL-LR",
   "needradar-workflow-lab": "SCL-NR"
-};
+} as const;
 
 const base32Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -48,10 +48,14 @@ export function normalizeLicenseKey(value: unknown) {
 }
 
 export function buildLicenseKey(productSlug: ProductSlug, paymentId: string, entitlementId: string) {
+  if (!(productSlug in LICENSE_KEY_PREFIX)) {
+    throw new Error(`Unsupported license product: ${productSlug}`);
+  }
+  const prefix = LICENSE_KEY_PREFIX[productSlug as keyof typeof LICENSE_KEY_PREFIX];
   const digest = createHmac("sha256", getLicenseSigningSecret())
     .update(`product-license:v1:${productSlug}:${paymentId}:${entitlementId}`)
     .digest();
-  return `${LICENSE_KEY_PREFIX[productSlug]}-${groupKey(toBase32(digest).slice(0, 24))}`;
+  return `${prefix}-${groupKey(toBase32(digest).slice(0, 24))}`;
 }
 
 export function hashLicenseSecret(value: string) {

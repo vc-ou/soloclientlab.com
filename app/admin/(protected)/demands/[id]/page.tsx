@@ -12,36 +12,42 @@ export default async function DemandEditorPage({ params }: DemandEditorProps) {
   const demand = id === "new" ? null : await getDemandById(id);
 
   return (
-    <AdminShell title={demand ? "Edit Demand" : "New Demand"}>
+    <AdminShell title={demand ? "编辑需求" : "新建需求"}>
       <form action={upsertDemand} className="admin-form">
         <input type="hidden" name="id" value={demand?.id ?? ""} />
         <div className="admin-fields-2">
           <label className="field">
-            <span>Title</span>
+            <span>标题</span>
             <input name="title" defaultValue={demand?.title ?? ""} required />
           </label>
           <label className="field">
-            <span>Status</span>
+            <span>状态</span>
             <select name="status" defaultValue={demand?.status ?? "raw"}>
-              {["raw", "reviewed", "clustered", "used_in_post", "archived"].map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              {[
+                ["raw", "原始"],
+                ["reviewed", "已复核"],
+                ["clustered", "已聚类"],
+                ["used_in_post", "已用于文章"],
+                ["archived", "已归档"]
+              ].map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            <span>Source URL</span>
+            <span>来源 URL</span>
             <input name="source_url" defaultValue={demand?.source_url ?? ""} />
           </label>
           <label className="field">
-            <span>Source platform</span>
+            <span>来源平台</span>
             <input name="source_platform" defaultValue={demand?.source_platform ?? ""} />
           </label>
           <label className="field">
-            <span>Persona</span>
+            <span>用户类型</span>
             <select name="persona" defaultValue={demand?.persona ?? ""}>
-              <option value="">Select persona</option>
+              <option value="">选择用户类型</option>
               {personaOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -50,36 +56,40 @@ export default async function DemandEditorPage({ params }: DemandEditorProps) {
             </select>
           </label>
           <label className="field">
-            <span>Keyword</span>
+            <span>关键词</span>
             <input name="keyword" defaultValue={demand?.keyword ?? ""} />
           </label>
           <label className="field">
-            <span>Pain score</span>
+            <span>痛点分</span>
             <input name="pain_score" type="number" min="1" max="5" defaultValue={demand?.pain_score ?? ""} />
           </label>
           <label className="field">
-            <span>Frequency score</span>
+            <span>频次分</span>
             <input name="frequency_score" type="number" min="1" max="5" defaultValue={demand?.frequency_score ?? ""} />
           </label>
           <label className="field">
-            <span>Payment score</span>
+            <span>支付分</span>
             <input name="payment_score" type="number" min="1" max="5" defaultValue={demand?.payment_score ?? ""} />
           </label>
           <label className="field">
-            <span>Evidence strength</span>
+            <span>证据强度</span>
             <select name="evidence_strength" defaultValue={demand?.evidence_strength ?? ""}>
-              <option value="">Select</option>
-              {["weak", "medium", "strong"].map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              <option value="">选择</option>
+              {[
+                ["weak", "弱"],
+                ["medium", "中"],
+                ["strong", "强"]
+              ].map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            <span>Topic tag</span>
+            <span>主题标签</span>
             <select name="topic_tag" defaultValue={demand?.topic_tag ?? ""}>
-              <option value="">Select topic</option>
+              <option value="">选择主题</option>
               {topicOptions.filter((option) => option.value !== "all").map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -88,31 +98,31 @@ export default async function DemandEditorPage({ params }: DemandEditorProps) {
             </select>
           </label>
           <label className="field">
-            <span>Tags</span>
+            <span>标签</span>
             <input name="tags" defaultValue={demand?.tags?.join(", ") ?? ""} />
-            <small className="field-help">Use comma-separated tags like `client_acquisition, referrals, content`.</small>
+            <small className="field-help">使用英文逗号分隔，例如 `client_acquisition, referrals, content`。</small>
           </label>
         </div>
         <label className="field">
-          <span>User quote</span>
+          <span>用户原话</span>
           <textarea name="user_quote" rows={4} defaultValue={demand?.user_quote ?? ""} />
         </label>
         <label className="field">
-          <span>Job to be done</span>
+          <span>待完成任务</span>
           <textarea name="job_to_be_done" rows={3} defaultValue={demand?.job_to_be_done ?? ""} />
         </label>
         <label className="field">
-          <span>Problem stage</span>
+          <span>问题阶段</span>
           <input name="problem_stage" defaultValue={demand?.problem_stage ?? ""} />
         </label>
         <label className="field">
-          <span>Solution attempted</span>
+          <span>已尝试方案</span>
           <textarea name="solution_attempted" rows={3} defaultValue={demand?.solution_attempted ?? ""} />
         </label>
         <label className="field">
-          <span>Next action</span>
+          <span>下一步动作</span>
           <textarea name="next_action" rows={3} defaultValue={demand?.next_action ?? ""} />
-          <small className="field-help">Capture the clearest next move, like “Use in research post”, “Add to lead magnet”, or “Explore waitlist angle”.</small>
+          <small className="field-help">记录最清晰的下一步，比如“用于研究文章”“加入引流资源”“探索候补页方向”。</small>
         </label>
         <FormActions />
       </form>

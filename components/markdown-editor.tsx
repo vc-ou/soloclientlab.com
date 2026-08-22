@@ -202,6 +202,7 @@ export function MarkdownEditor({
   const [manualArticlePath, setManualArticlePath] = useState("");
   const [anchorText, setAnchorText] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (mode === "visual" && editorRef.current) {
@@ -227,18 +228,37 @@ export function MarkdownEditor({
   };
 
   const insertArticleLink = () => {
+    const manualPath = manualArticlePath.trim();
     const selectedPost = linkablePosts.find((post) => post.slug === selectedPostSlug);
-    const href = normalizeArticleHref(selectedPost ? `/research/${selectedPost.slug}` : manualArticlePath);
+    const href = normalizeArticleHref(manualPath || (selectedPost ? `/research/${selectedPost.slug}` : ""));
     if (!href) return;
 
-    const selection = window.getSelection();
-    const selectedText = selection?.toString().trim();
-    const label = anchorText.trim() || selectedText || selectedPost?.title || "related article";
+    const visualSelectionText = mode === "visual" ? (window.getSelection()?.toString().trim() ?? "") : "";
+    const label = anchorText.trim() || visualSelectionText || selectedPost?.title || "related article";
     const markdownLink = `[${label}](${href})`;
 
     if (mode === "markdown") {
-      setMarkdown((currentMarkdown) => `${currentMarkdown}${currentMarkdown ? "\n\n" : ""}${markdownLink}`);
+      const ta = textareaRef.current;
+      if (ta) {
+        const value = ta.value;
+        const start = ta.selectionStart ?? value.length;
+        const end = ta.selectionEnd ?? value.length;
+        const before = value.slice(0, start);
+        const after = value.slice(end);
+        const prefix = before && !before.endsWith("\n") ? "\n\n" : "";
+        const inserted = prefix + markdownLink;
+        const next = before + inserted + after;
+        setMarkdown(next);
+        requestAnimationFrame(() => {
+          ta.focus();
+          const pos = (before + inserted).length;
+          ta.setSelectionRange(pos, pos);
+        });
+      } else {
+        setMarkdown((currentMarkdown) => `${currentMarkdown}${currentMarkdown ? "\n\n" : ""}${markdownLink}`);
+      }
       setAnchorText("");
+      setManualArticlePath("");
       return;
     }
 
@@ -261,6 +281,7 @@ export function MarkdownEditor({
 
     syncFromEditor();
     setAnchorText("");
+    setManualArticlePath("");
   };
 
   return (
@@ -268,16 +289,16 @@ export function MarkdownEditor({
       <input type="hidden" name={name} value={markdown} />
       <div className="markdown-editor-header">
         <div>
-          <span>Article content</span>
-          <small className="field-help">Paste formatted content here. It will be saved as Markdown.</small>
+          <span>文章内容</span>
+          <small className="field-help">把排版好的内容贴在这里，会保存为 Markdown。</small>
         </div>
-        <div className="markdown-editor-tabs" role="tablist" aria-label="Editor mode">
+        <div className="markdown-editor-tabs" role="tablist" aria-label="编辑模式">
           <button
             type="button"
             className={mode === "visual" ? "is-active" : ""}
             onClick={() => setMode("visual")}
           >
-            Visual
+            可视化
           </button>
           <button
             type="button"
@@ -289,9 +310,9 @@ export function MarkdownEditor({
         </div>
       </div>
 
-      <div className="markdown-link-toolbar" aria-label="Article link insertion">
+      <div className="markdown-link-toolbar" aria-label="插入文章链接">
         <label>
-          <span>Article link</span>
+          <span>已发布文章</span>
           {linkablePosts.length ? (
             <select value={selectedPostSlug} onChange={(event) => setSelectedPostSlug(event.target.value)}>
               {linkablePosts.map((post) => (
@@ -301,23 +322,32 @@ export function MarkdownEditor({
               ))}
             </select>
           ) : (
-            <input
-              value={manualArticlePath}
-              onChange={(event) => setManualArticlePath(event.target.value)}
-              placeholder="/research/article-slug"
-            />
+            <span className="field-help">暂无其他已发布文章</span>
           )}
         </label>
         <label>
-          <span>Anchor text</span>
+          <span>或手动路径</span>
+          <input
+            value={manualArticlePath}
+            onChange={(event) => setManualArticlePath(event.target.value)}
+            placeholder="/research/slug 或 /demand-radar"
+          />
+        </label>
+        <label>
+          <span>锚文本</span>
           <input
             value={anchorText}
             onChange={(event) => setAnchorText(event.target.value)}
-            placeholder="Use selected text or article title"
+            placeholder="使用选中的文字或文章标题"
           />
         </label>
-        <button type="button" className="button secondary" onClick={insertArticleLink}>
-          Insert link
+        <button
+          type="button"
+          className="button secondary"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={insertArticleLink}
+        >
+          插入链接
         </button>
       </div>
 
@@ -328,18 +358,19 @@ export function MarkdownEditor({
           contentEditable
           suppressContentEditableWarning
           role="textbox"
-          aria-label="Article content visual editor"
+          aria-label="文章内容可视化编辑器"
           onInput={syncFromEditor}
           onBlur={syncFromEditor}
           onPaste={handlePaste}
         />
       ) : (
         <textarea
+          ref={textareaRef}
           className="markdown-editor-source"
           value={markdown}
           onChange={(event) => setMarkdown(event.target.value)}
           rows={24}
-          aria-label="Article content Markdown source"
+          aria-label="文章内容 Markdown 源码"
         />
       )}
     </section>
