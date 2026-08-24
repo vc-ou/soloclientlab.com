@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteProductById, deleteSubscriberById, getProductById, getProductBySlug, getSubscriberByEmail, saveDemand, savePost, saveProduct, saveResource, saveSubscriber, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
+import { addFeedbackEntry, addLeadRadarConfig, addPendingProductPayment, addProductAccessRequest, addWaitlistEntry, deletePostById, deleteProductById, deleteSubscriberById, getProductById, getProductBySlug, getSubscriberByEmail, saveDemand, savePost, saveProduct, saveResource, saveSubscriber, syncSeedProducts, trackTrialEvent, updateSubscriberNote, withDatabaseTimeout } from "@/lib/db";
 import { requireAdmin, signInAdmin, signOutAdmin } from "@/lib/auth";
 import { getResourceLandingPath } from "@/lib/resource-delivery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -918,6 +918,23 @@ export async function upsertProduct(formData: FormData) {
     revalidatePath(`/admin/products/${productId}`);
   }
   redirect("/admin/products");
+}
+
+export async function syncCodeProducts() {
+  await requireAdmin();
+
+  let result: Awaited<ReturnType<typeof syncSeedProducts>>;
+  try {
+    result = await syncSeedProducts();
+  } catch (error) {
+    console.error("Failed to sync code products:", error);
+    const message = error instanceof Error && error.message ? error.message : "代码商品同步失败，请稍后重试。";
+    redirect(`/admin/products?sync=error&message=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/products");
+  revalidatePath("/admin/products");
+  redirect(`/admin/products?sync=success&inserted=${result.inserted}&updated=${result.updated}&total=${result.total}`);
 }
 
 export async function removeProduct(

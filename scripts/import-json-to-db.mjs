@@ -189,6 +189,43 @@ try {
     `;
   });
 
+  await importTable("products", db.products ?? [], async (row) => {
+    await sql`
+      insert into products (
+        id, slug, name, short_description, hero_title, hero_description, audience,
+        problem, promise, delivery_mode, development_status, price_cents, currency,
+        payment_enabled, status, seo_title, seo_description, published_at,
+        created_at, updated_at
+      ) values (
+        ${row.id}, ${row.slug}, ${row.name}, ${row.short_description ?? null},
+        ${row.hero_title ?? null}, ${row.hero_description ?? null}, ${row.audience ?? null},
+        ${row.problem ?? null}, ${row.promise ?? null}, ${row.delivery_mode},
+        ${row.development_status}, ${row.price_cents}, ${row.currency ?? "USD"},
+        ${row.payment_enabled ?? false}, ${row.status}, ${row.seo_title ?? null},
+        ${row.seo_description ?? null}, ${row.published_at ?? null},
+        ${row.created_at}, ${row.updated_at}
+      )
+      on conflict (slug) do update set
+        name = excluded.name,
+        short_description = excluded.short_description,
+        hero_title = excluded.hero_title,
+        hero_description = excluded.hero_description,
+        audience = excluded.audience,
+        problem = excluded.problem,
+        promise = excluded.promise,
+        delivery_mode = excluded.delivery_mode,
+        development_status = excluded.development_status,
+        price_cents = excluded.price_cents,
+        currency = excluded.currency,
+        payment_enabled = excluded.payment_enabled,
+        status = excluded.status,
+        seo_title = excluded.seo_title,
+        seo_description = excluded.seo_description,
+        published_at = excluded.published_at,
+        updated_at = excluded.updated_at
+    `;
+  });
+
   console.log("Seed data import complete.");
 } finally {
   await sql.end();

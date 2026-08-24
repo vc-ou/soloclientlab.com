@@ -699,6 +699,13 @@ h3 {
   gap: 16px;
 }
 
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .mini-proof {
   justify-content: flex-start;
   color: var(--muted);

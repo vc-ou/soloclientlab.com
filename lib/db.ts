@@ -210,6 +210,10 @@ function shouldReadLiveAdminDb() {
   return process.env.NODE_ENV === "production" && hasDatabaseUrl();
 }
 
+function shouldReadLiveProducts() {
+  return hasDatabaseUrl();
+}
+
 async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
   return await Promise.race([
     promise,
@@ -2404,7 +2408,23 @@ export async function saveProduct(
 
     if (input.id) {
       const existing = await sql<{ id: string }[]>`select id from products where id = ${input.id} limit 1`;
-      if (!existing.length) throw new Error("Product not found");
+      if (!existing.length) {
+        await sql`
+          insert into products (
+            id, slug, name, short_description, hero_title, hero_description, audience,
+            problem, promise, delivery_mode, development_status, price_cents, currency,
+            payment_enabled, status, seo_title, seo_description, published_at,
+            created_at, updated_at
+          ) values (
+            ${input.id}, ${input.slug}, ${input.name}, ${input.short_description ?? null},
+            ${input.hero_title ?? null}, ${input.hero_description ?? null}, ${input.audience ?? null},
+            ${input.problem ?? null}, ${input.promise ?? null}, ${input.delivery_mode},
+            ${input.development_status}, ${input.price_cents}, ${input.currency},
+            ${input.payment_enabled}, ${input.status}, ${input.seo_title ?? null},
+            ${input.seo_description ?? null}, ${publishedAt}, ${now}, ${now}
+          )
+        `;
+      }
 
       await sql`
         update products
@@ -2492,6 +2512,95 @@ export async function saveProduct(
   revalidateTag("public-products", "max");
 }
 
+export async function syncSeedProducts() {
+  const seedProducts = seedDatabase.products;
+
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const sql = getWriteSql();
+    let inserted = 0;
+    let updated = 0;
+
+    for (const product of seedProducts) {
+      const existing = await sql<{ id: string }[]>`
+        select id from products where slug = ${product.slug} limit 1
+      `;
+      const rows = await sql<{ id: string }[]>`
+        insert into products (
+          id, slug, name, short_description, hero_title, hero_description, audience,
+          problem, promise, delivery_mode, development_status, price_cents, currency,
+          payment_enabled, status, seo_title, seo_description, published_at,
+          created_at, updated_at
+        ) values (
+          ${product.id}, ${product.slug}, ${product.name}, ${product.short_description ?? null},
+          ${product.hero_title ?? null}, ${product.hero_description ?? null}, ${product.audience ?? null},
+          ${product.problem ?? null}, ${product.promise ?? null}, ${product.delivery_mode},
+          ${product.development_status}, ${product.price_cents}, ${product.currency},
+          ${product.payment_enabled}, ${product.status}, ${product.seo_title ?? null},
+          ${product.seo_description ?? null}, ${product.published_at ?? null},
+          ${product.created_at}, ${product.updated_at}
+        )
+        on conflict (slug) do update set
+          name = excluded.name,
+          short_description = excluded.short_description,
+          hero_title = excluded.hero_title,
+          hero_description = excluded.hero_description,
+          audience = excluded.audience,
+          problem = excluded.problem,
+          promise = excluded.promise,
+          delivery_mode = excluded.delivery_mode,
+          development_status = excluded.development_status,
+          price_cents = excluded.price_cents,
+          currency = excluded.currency,
+          payment_enabled = excluded.payment_enabled,
+          status = excluded.status,
+          seo_title = excluded.seo_title,
+          seo_description = excluded.seo_description,
+          published_at = excluded.published_at,
+          updated_at = excluded.updated_at
+        returning id
+      `;
+      if (rows.length) {
+        if (existing.length) {
+          updated += 1;
+        } else {
+          inserted += 1;
+        }
+      }
+    }
+
+    revalidateTag("public-products", "max");
+    return { inserted, updated, total: seedProducts.length };
+  }
+
+  const db = await readLocalDb();
+  let inserted = 0;
+  let updated = 0;
+  const now = new Date().toISOString();
+
+  for (const product of seedProducts) {
+    const existingIndex = db.products.findIndex((item) => item.slug === product.slug);
+    const nextProduct = {
+      ...product,
+      created_at: existingIndex >= 0 ? db.products[existingIndex].created_at : now,
+      updated_at: now,
+      published_at: product.status === "published" ? product.published_at ?? now : product.published_at
+    };
+
+    if (existingIndex >= 0) {
+      db.products[existingIndex] = nextProduct;
+      updated += 1;
+    } else {
+      db.products.unshift(nextProduct);
+      inserted += 1;
+    }
+  }
+
+  await writeLocalDb(db);
+  revalidateTag("public-products", "max");
+  return { inserted, updated, total: seedProducts.length };
+}
+
 export async function deleteProductById(id: string) {
   if (hasDatabaseUrl()) {
     await ensureProductsTable();
@@ -2532,12 +2641,7 @@ function getSeedProductBySlug(slug: string) {
 }
 
 async function readPublicProducts() {
-  if (process.env.NODE_ENV !== "production") {
-    const db = await readLocalDb();
-    return filterPublishedProducts(db.products.map(mapProductRow));
-  }
-
-  if (hasDatabaseUrl()) {
+  if (shouldReadLiveProducts()) {
     try {
       const sql = getReadSql();
       const products = await readWithRetry(
@@ -2574,7 +2678,7 @@ export async function getPublicProducts() {
 }
 
 export async function getAdminProducts() {
-  if (shouldReadLiveAdminDb()) {
+  if (shouldReadLiveProducts()) {
     const sql = getReadSql();
     const products = await readWithRetry(
       "Admin products read",
@@ -2592,7 +2696,7 @@ export async function getAdminProducts() {
 }
 
 export async function getProductById(id: string) {
-  if (shouldReadLiveAdminDb()) {
+  if (shouldReadLiveProducts()) {
     const sql = getReadSql();
     const products = await readWithRetry(
       "Product by id read",
@@ -2609,12 +2713,7 @@ export async function getProductById(id: string) {
 }
 
 export async function getProductBySlug(slug: string) {
-  if (process.env.NODE_ENV !== "production") {
-    const db = await readLocalDb();
-    return db.products.find((product) => product.slug === slug && product.status === "published") ?? null;
-  }
-
-  if (hasDatabaseUrl()) {
+  if (shouldReadLiveProducts()) {
     try {
       const sql = getReadSql();
       const products = await readWithRetry(
