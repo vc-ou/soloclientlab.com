@@ -47,6 +47,7 @@ alter table posts add column if not exists cover_image_url text;
 alter table posts add column if not exists cta_type text;
 alter table posts add column if not exists cta_target text;
 alter table posts add column if not exists faq jsonb;
+alter table posts add column if not exists read_time text;
 alter table posts drop column if exists related_persona;
 alter table posts drop column if exists related_demand_ids;
 alter table posts drop column if exists hero_label;

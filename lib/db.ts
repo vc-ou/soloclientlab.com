@@ -318,6 +318,7 @@ async function readWithRetry<T>(label: string, read: () => Promise<T>, retries =
 }
 
 let ensuredSubscriberNoteColumn = false;
+let ensuredPostsTable = false;
 let ensuredProductsTable = false;
 let ensuredProductPaymentsEmailNullable = false;
 
@@ -329,6 +330,45 @@ async function ensureSubscriberNoteColumn() {
   const writeSql = getWriteSql();
   await writeSql`alter table subscribers add column if not exists note text`;
   ensuredSubscriberNoteColumn = true;
+}
+
+async function ensurePostsTable() {
+  if (ensuredPostsTable || !hasDatabaseUrl()) {
+    return;
+  }
+
+  const writeSql = getWriteSql();
+  await writeSql`
+    create table if not exists posts (
+      id text primary key,
+      title text not null,
+      slug text not null unique,
+      summary text,
+      content text,
+      cover_image_url text,
+      topic_tag text,
+      seo_title text,
+      seo_description text,
+      cta_type text,
+      cta_target text,
+      faq jsonb,
+      status text not null,
+      published_at timestamptz,
+      created_at timestamptz not null,
+      updated_at timestamptz not null,
+      read_time text
+    )
+  `;
+  await writeSql`alter table posts add column if not exists cover_image_url text`;
+  await writeSql`alter table posts add column if not exists cta_type text`;
+  await writeSql`alter table posts add column if not exists cta_target text`;
+  await writeSql`alter table posts add column if not exists faq jsonb`;
+  await writeSql`alter table posts add column if not exists read_time text`;
+  await writeSql`create index if not exists idx_posts_status on posts (status)`;
+  await writeSql`create index if not exists idx_posts_topic_tag on posts (topic_tag)`;
+  await writeSql`create index if not exists idx_posts_published_at on posts (published_at desc)`;
+  await writeSql`create index if not exists idx_posts_created_at on posts (created_at desc)`;
+  ensuredPostsTable = true;
 }
 
 async function ensureProductsTable() {
@@ -2181,6 +2221,7 @@ export async function saveDemand(input: Partial<Demand> & Pick<Demand, "title" |
 
 export async function savePost(input: Partial<Post> & Pick<Post, "title" | "slug" | "status">) {
   if (hasDatabaseUrl()) {
+    await ensurePostsTable();
     const sql = getWriteSql();
     const now = new Date().toISOString();
     let savedPostId = input.id;
