@@ -24,7 +24,7 @@ export function PayPalCheckoutButton({
       <button type="submit" className={buttonClassName}>
         {children}
       </button>
-      <p className="paypal-country-note">中国大陆用户请邮件联系获取支付方式：soloclientlab.com@gmail.com，或 WeChat 联系 yiyuanxuezhang</p>
+      <p className="paypal-country-note">For Mainland China payment options, email soloclientlab.com@gmail.com or contact yiyuanxuezhang on WeChat.</p>
     </form>
   );
 }

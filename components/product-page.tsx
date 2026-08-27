@@ -75,8 +75,13 @@ function getBenefits(product: Product) {
   ];
 }
 
+function getProductDisplayName(product: Product) {
+  return product.name.split(/[（(]/)[0].trim();
+}
+
 function ProductWindow({ product }: { product: Product }) {
   const isLeadRadar = product.slug === "leadradar";
+  const displayName = getProductDisplayName(product);
   const featureRows = product.features?.slice(0, 4).map((feature, index) => [
     feature.title,
     feature.body ?? "A focused workflow step",
@@ -103,7 +108,7 @@ function ProductWindow({ product }: { product: Product }) {
     <div className={`product-detail-window${isLeadRadar ? "" : " is-needradar"}`} aria-label={`${product.name} preview`}>
       <div className="product-detail-window-top">
         <span className="product-detail-window-dots" aria-hidden="true"><i /><i /><i /></span>
-        <span className="product-detail-window-title">{product.name.split("（")[0]}</span>
+        <span className="product-detail-window-title">{displayName}</span>
         <span className="product-detail-window-action">Review signals</span>
       </div>
       <div className="product-detail-window-body">
@@ -146,6 +151,7 @@ export function ProductPage({ product }: { product: Product }) {
   const featureItems = getFeatureItems(product);
   const benefits = getBenefits(product);
   const landingPageUrl = product.landing_page_url;
+  const displayName = getProductDisplayName(product);
 
   return (
     <div className="product-detail-page">
@@ -221,7 +227,7 @@ export function ProductPage({ product }: { product: Product }) {
         <div className="product-detail-purchase-copy">
           <span className="product-detail-purchase-icon" aria-hidden="true">🛒</span>
           <div>
-            <h2>Start using {product.name.split("（")[0]}</h2>
+            <h2>Start using {displayName}</h2>
             <p>Turn public conversations into evidence you can act on.</p>
             <ul>
               <li>One-time payment with lifetime access</li>

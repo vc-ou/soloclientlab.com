@@ -298,13 +298,31 @@ Validation reduces the risk of spending months building something nobody wants.
     {
       id: "product-leadradar",
       slug: "leadradar",
-      name: "LeadRadar（CNC / 制造）",
-      short_description: "从公开社交对话里发现采购、询价、样品、MOQ 和产能相关线索。",
-      hero_title: "从公开对话里发现 CNC 和制造业线索",
-      hero_description: "LeadRadar 帮制造团队识别社交评论中的采购和买家意图，配置关键信号，并把结果放进可评审的工作流。",
-      audience: "CNC、定制制造、B2B 服务团队，以及需要从公开评论里发现海外需求的操作者。",
-      problem: "有价值的采购、报价、样品、MOQ、交期和供应商匹配问题，常常散落在评论和帖子里，人工扫描不稳定也容易遗漏。",
-      promise: "付款后获得 LeadRadar 访问权、安装路径、许可证和后续设置支持。",
+      name: "LeadRadar (CNC / Manufacturing)",
+      short_description: "Find sourcing, RFQ, sample, MOQ, and capacity signals in public social conversations.",
+      hero_title: "Find CNC and manufacturing leads in public conversations",
+      hero_description: "LeadRadar helps manufacturing teams identify buying intent in social comments, configure key signals, and move results into a reviewable workflow.",
+      audience: "CNC, custom manufacturing, and B2B service teams that need to find overseas demand from public comments.",
+      problem: "Valuable sourcing, quoting, sample, MOQ, lead-time, and supplier-fit questions are scattered across comments and posts, making manual scanning inconsistent and easy to miss.",
+      promise: "After payment, you get LeadRadar access, installation steps, a license, and setup support.",
+      features: [
+        {
+          title: "Spot intent",
+          body: "Identify buying, quoting, sample, MOQ, and custom-order signals from public manufacturing conversations."
+        },
+        {
+          title: "Manage the workflow",
+          body: "Organize and score leads so teams can review, assign, and follow up with more focus."
+        },
+        {
+          title: "Respect platform rules",
+          body: "Work from public content without automated scraping."
+        },
+        {
+          title: "Start quickly",
+          body: "Install the browser extension and begin capturing leads in minutes."
+        }
+      ],
       delivery_mode: "extension",
       development_status: "ready",
       price_cents: 9900,
@@ -320,13 +338,31 @@ Validation reduces the risk of spending months building something nobody wants.
     {
       id: "product-needradar-workflow-lab",
       slug: "needradar-workflow-lab",
-      name: "NeedRadar 工作流实验室",
-      short_description: "把公开评论、搜索查询和一线记录整理成更清晰的需求聚类。",
-      hero_title: "把公开评论和搜索查询整理成客户需求聚类",
-      hero_description: "NeedRadar 工作流实验室用于判断哪些公开信号值得继续研究、配置成产品工作流，或进入小规模验证。",
-      audience: "正在做需求研究、产品验证、内容选题或细分市场探索的独立开发者和小团队。",
-      problem: "公开评论、搜索词和一线记录很容易堆成材料库，却无法快速判断哪些问题重复、紧急、可付费。",
-      promise: "付款后获得 NeedRadar 访问权、安装路径、许可证和后续使用说明。",
+      name: "NeedRadar Workflow Lab",
+      short_description: "Turn public comments, search queries, and field notes into clearer customer need clusters.",
+      hero_title: "Turn public comments and search queries into customer need clusters",
+      hero_description: "NeedRadar Workflow Lab helps you decide which public signals are worth deeper research, product workflow setup, or small-scale validation.",
+      audience: "Indie builders and small teams doing demand research, product validation, content planning, or niche market exploration.",
+      problem: "Public comments, search terms, and field notes can quickly become a pile of raw material without revealing which problems are recurring, urgent, or likely to be paid for.",
+      promise: "After payment, you get NeedRadar access, installation steps, a license, and usage guidance.",
+      features: [
+        {
+          title: "Centralize research",
+          body: "Bring comments, search queries, and field notes into one reusable workflow."
+        },
+        {
+          title: "Cluster demand",
+          body: "Find recurring problems, urgent needs, and possible paid opportunities faster."
+        },
+        {
+          title: "Keep the context",
+          body: "Preserve original language and sources so you can return to the evidence when deciding."
+        },
+        {
+          title: "Validate lightly",
+          body: "Start with one research question instead of building a complex system first."
+        }
+      ],
       delivery_mode: "extension",
       development_status: "building",
       price_cents: 9900,
