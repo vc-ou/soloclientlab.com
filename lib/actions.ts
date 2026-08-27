@@ -24,6 +24,7 @@ import type {
   ProductAccessType,
   ProductDeliveryMode,
   ProductDevelopmentStatus,
+  ProductFeature,
   ProductStatus,
   ProductSlug,
   TopicTag,
@@ -115,6 +116,42 @@ function parsePriceCents(value: string) {
 
   const [whole, fraction = ""] = trimmed.split(".");
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+}
+
+function parseProductFeatures(value: string): ProductFeature[] {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+    .map((line) => {
+      const [title, ...bodyParts] = line.split("|");
+      const cleanTitle = title.trim();
+      const body = bodyParts.join("|").trim();
+      return body ? { title: cleanTitle, body } : { title: cleanTitle };
+    })
+    .filter((feature) => feature.title);
+}
+
+function parseLandingPageUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new Error("落地页地址格式不正确，请填写站内路径或完整的 http(s) 地址。");
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error("落地页地址只能使用站内路径或 http(s) 地址。");
+  }
+
+  return url.toString();
 }
 
 function encodeFormErrorMessage(message: string) {
@@ -889,6 +926,8 @@ export async function upsertProduct(formData: FormData) {
       audience: getText(formData, "audience") || undefined,
       problem: getText(formData, "problem") || undefined,
       promise: getText(formData, "promise") || undefined,
+      landing_page_url: parseLandingPageUrl(getText(formData, "landing_page_url")),
+      features: parseProductFeatures(getText(formData, "features")),
       delivery_mode: getText(formData, "delivery_mode") as ProductDeliveryMode,
       development_status: getText(formData, "development_status") as ProductDevelopmentStatus,
       price_cents: parsePriceCents(getText(formData, "price_amount")),

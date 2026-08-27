@@ -93,6 +93,8 @@ create table if not exists products (
   audience text,
   problem text,
   promise text,
+  landing_page_url text,
+  features jsonb not null default '[]'::jsonb,
   delivery_mode text not null,
   development_status text not null,
   price_cents integer not null default 0,
@@ -105,6 +107,9 @@ create table if not exists products (
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
+
+alter table products add column if not exists landing_page_url text;
+alter table products add column if not exists features jsonb not null default '[]'::jsonb;
 
 create table if not exists subscribers (
   id text primary key,

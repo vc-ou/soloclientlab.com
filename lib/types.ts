@@ -141,6 +141,8 @@ export type Product = {
   audience?: string;
   problem?: string;
   promise?: string;
+  landing_page_url?: string;
+  features?: ProductFeature[];
   delivery_mode: ProductDeliveryMode;
   development_status: ProductDevelopmentStatus;
   price_cents: number;
@@ -152,6 +154,11 @@ export type Product = {
   published_at?: string;
   created_at: string;
   updated_at: string;
+};
+
+export type ProductFeature = {
+  title: string;
+  body?: string;
 };
 
 export type Subscriber = {

@@ -348,6 +348,8 @@ async function ensureProductsTable() {
       audience text,
       problem text,
       promise text,
+      landing_page_url text,
+      features jsonb not null default '[]'::jsonb,
       delivery_mode text not null,
       development_status text not null,
       price_cents integer not null default 0,
@@ -361,6 +363,8 @@ async function ensureProductsTable() {
       updated_at timestamptz not null
     )
   `;
+  await writeSql`alter table products add column if not exists landing_page_url text`;
+  await writeSql`alter table products add column if not exists features jsonb not null default '[]'::jsonb`;
   await writeSql`create index if not exists idx_products_status on products (status)`;
   await writeSql`create index if not exists idx_products_slug on products (slug)`;
   ensuredProductsTable = true;
@@ -409,6 +413,7 @@ function mapPostRow(row: PostRow): Post {
 function mapProductRow(row: ProductRow): Product {
   return {
     ...row,
+    features: row.features ?? [],
     published_at: toIsoString(row.published_at),
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString()
@@ -2412,13 +2417,14 @@ export async function saveProduct(
         await sql`
           insert into products (
             id, slug, name, short_description, hero_title, hero_description, audience,
-            problem, promise, delivery_mode, development_status, price_cents, currency,
+            problem, promise, landing_page_url, features, delivery_mode, development_status, price_cents, currency,
             payment_enabled, status, seo_title, seo_description, published_at,
             created_at, updated_at
           ) values (
             ${input.id}, ${input.slug}, ${input.name}, ${input.short_description ?? null},
             ${input.hero_title ?? null}, ${input.hero_description ?? null}, ${input.audience ?? null},
-            ${input.problem ?? null}, ${input.promise ?? null}, ${input.delivery_mode},
+            ${input.problem ?? null}, ${input.promise ?? null}, ${input.landing_page_url ?? null},
+            ${sql.json(input.features ?? [])}, ${input.delivery_mode},
             ${input.development_status}, ${input.price_cents}, ${input.currency},
             ${input.payment_enabled}, ${input.status}, ${input.seo_title ?? null},
             ${input.seo_description ?? null}, ${publishedAt}, ${now}, ${now}
@@ -2437,6 +2443,8 @@ export async function saveProduct(
           audience = ${input.audience ?? null},
           problem = ${input.problem ?? null},
           promise = ${input.promise ?? null},
+          landing_page_url = ${input.landing_page_url ?? null},
+          features = ${sql.json(input.features ?? [])},
           delivery_mode = ${input.delivery_mode},
           development_status = ${input.development_status},
           price_cents = ${input.price_cents},
@@ -2453,13 +2461,14 @@ export async function saveProduct(
       await sql`
         insert into products (
           id, slug, name, short_description, hero_title, hero_description, audience,
-          problem, promise, delivery_mode, development_status, price_cents, currency,
+          problem, promise, landing_page_url, features, delivery_mode, development_status, price_cents, currency,
           payment_enabled, status, seo_title, seo_description, published_at,
           created_at, updated_at
         ) values (
           ${randomUUID()}, ${input.slug}, ${input.name}, ${input.short_description ?? null},
           ${input.hero_title ?? null}, ${input.hero_description ?? null}, ${input.audience ?? null},
-          ${input.problem ?? null}, ${input.promise ?? null}, ${input.delivery_mode}, ${input.development_status},
+          ${input.problem ?? null}, ${input.promise ?? null}, ${input.landing_page_url ?? null},
+          ${sql.json(input.features ?? [])}, ${input.delivery_mode}, ${input.development_status},
           ${input.price_cents}, ${input.currency}, ${input.payment_enabled}, ${input.status},
           ${input.seo_title ?? null}, ${input.seo_description ?? null}, ${publishedAt},
           ${now}, ${now}
@@ -2494,6 +2503,8 @@ export async function saveProduct(
       audience: input.audience,
       problem: input.problem,
       promise: input.promise,
+      landing_page_url: input.landing_page_url,
+      features: input.features ?? [],
       delivery_mode: input.delivery_mode,
       development_status: input.development_status,
       price_cents: input.price_cents,

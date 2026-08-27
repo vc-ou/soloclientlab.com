@@ -6,7 +6,7 @@ import { getProductBySlug } from "@/lib/db";
 export async function generateMetadata(): Promise<Metadata> {
   const product = await getProductBySlug("needradar-workflow-lab");
   if (!product) {
-    return { title: "NeedRadar 工作流实验室" };
+    return { title: "NeedRadar Workflow Lab" };
   }
 
   return {

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: "商品未找到"
+      title: "Product not found"
     };
   }
 

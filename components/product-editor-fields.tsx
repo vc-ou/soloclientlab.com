@@ -63,6 +63,16 @@ export function ProductEditorFields({
           <small className="field-help">默认由商品名生成，必要时可手动修改。</small>
         </label>
         <label className="field">
+          <span>落地页地址</span>
+          <input
+            name="landing_page_url"
+            inputMode="url"
+            placeholder="https://... 或 /products/..."
+            defaultValue={product?.landing_page_url ?? ""}
+          />
+          <small className="field-help">已做好的独立落地页可直接填这里，公开商品页会显示入口。</small>
+        </label>
+        <label className="field">
           <span>状态</span>
           <select name="status" defaultValue={product?.status ?? "published"}>
             {productStatusOptions.map((option) => (
@@ -143,6 +153,16 @@ export function ProductEditorFields({
       <label className="field">
         <span>购买承诺</span>
         <textarea name="promise" rows={3} defaultValue={product?.promise ?? ""} />
+      </label>
+      <label className="field">
+        <span>核心卖点</span>
+        <textarea
+          name="features"
+          rows={5}
+          defaultValue={product?.features?.map((feature) => `${feature.title}${feature.body ? ` | ${feature.body}` : ""}`).join("\n") ?? ""}
+          placeholder={"自动扫描整页评论 | 不需要逐条阅读\n只高亮 A / B 级线索 | 保留上下文和判断理由"}
+        />
+        <small className="field-help">每行一个卖点；用“标题 | 解释”写两段，公开页会自动排版。</small>
       </label>
       <label className="field">
         <span>SEO 标题</span>

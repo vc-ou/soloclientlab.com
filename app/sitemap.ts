@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getPublicPosts } from "@/lib/db";
+import { getPublicPosts, getPublicProducts } from "@/lib/db";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 const staticLastModified = {
@@ -17,7 +17,7 @@ const staticLastModified = {
 export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getPublicPosts();
+  const [posts, products] = await Promise.all([getPublicPosts(), getPublicProducts()]);
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -37,18 +37,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: staticLastModified.products,
       changeFrequency: "weekly",
       priority: 0.95
-    },
-    {
-      url: `${siteUrl}/products/leadradar`,
-      lastModified: staticLastModified.leadRadarProduct,
-      changeFrequency: "weekly",
-      priority: 0.95
-    },
-    {
-      url: `${siteUrl}/products/needradar-workflow-lab`,
-      lastModified: staticLastModified.needRadarWorkflowLab,
-      changeFrequency: "weekly",
-      priority: 0.75
     },
     {
       url: `${siteUrl}/tools/leadradar`,
@@ -83,5 +71,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8
   }));
 
-  return [...staticPages, ...postPages];
+  const productPages: MetadataRoute.Sitemap = products.map((product) => ({
+    url: `${siteUrl}/products/${product.slug}`,
+    lastModified: product.updated_at ?? product.published_at ?? new Date().toISOString(),
+    changeFrequency: "weekly",
+    priority: product.slug === "leadradar" ? 0.95 : 0.8
+  }));
+
+  return [...staticPages, ...productPages, ...postPages];
 }

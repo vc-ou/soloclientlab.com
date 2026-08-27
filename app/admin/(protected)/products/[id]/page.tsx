@@ -44,6 +44,11 @@ export default async function ProductEditorPage({ params, searchParams }: Produc
               <Link href={`/products/${product.slug}`} target="_blank" rel="noreferrer" className="button secondary">
                 打开公开页
               </Link>
+              {product.landing_page_url ? (
+                <Link href={product.landing_page_url} target="_blank" rel="noreferrer" className="button ghost">
+                  打开落地页
+                </Link>
+              ) : null}
             </div>
             <div className="resource-preview-stats">
               <div>

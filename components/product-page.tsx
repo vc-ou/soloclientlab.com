@@ -12,11 +12,11 @@ function formatUsd(cents: number, currency = "USD") {
 
 function formatDevelopmentStatus(status: Product["development_status"]) {
   const labels: Record<Product["development_status"], string> = {
-    idea: "概念阶段",
-    presale: "预售中",
-    building: "开发中",
-    ready: "ready",
-    paused: "暂缓"
+    idea: "Concept",
+    presale: "Pre-order",
+    building: "In development",
+    ready: "Ready",
+    paused: "Paused"
   };
 
   return labels[status];
@@ -24,71 +24,87 @@ function formatDevelopmentStatus(status: Product["development_status"]) {
 
 function formatDeliveryMode(mode: Product["delivery_mode"]) {
   const labels: Record<Product["delivery_mode"], string> = {
-    presale: "预售交付",
-    digital_file: "数字文件",
-    extension: "浏览器扩展",
-    service: "服务交付",
-    manual_delivery: "人工交付"
+    presale: "Pre-order delivery",
+    digital_file: "Digital download",
+    extension: "Browser extension",
+    service: "Service delivery",
+    manual_delivery: "Manual delivery"
   };
 
   return labels[mode];
 }
 
 function getProductCategory(product: Product) {
-  return product.slug === "leadradar" ? "团队协作工具" : "需求研究工具";
+  if (product.delivery_mode === "extension") return "Browser extension";
+  if (product.delivery_mode === "service") return "Productized service";
+  return "Focused workflow tool";
 }
 
 function getFeatureItems(product: Product) {
+  if (product.features?.length) {
+    return product.features.map((feature, index) => [
+      ["⌾", "⌘", "◇", "ϟ"][index % 4],
+      feature.title,
+      feature.body ?? ""
+    ]);
+  }
+
   if (product.slug === "leadradar") {
     return [
-      ["⌾", "精准识别", "基于制造业高价值信号，识别采购、询价、定制等意愿"],
-      ["⌘", "工作流管理", "线索自动归类与打分，团队协作跟进更高效"],
-      ["◇", "安全合规", "仅采集公开内容，不自动爬取，守护平台规则"],
-      ["ϟ", "快速上手", "浏览器扩展安装即用，几分钟开始捕获线索"]
+      ["⌾", "Spot intent", "Identify buying, quoting, and custom-order signals from public manufacturing conversations."],
+      ["⌘", "Manage the workflow", "Automatically organize and score leads so teams can follow up with more focus."],
+      ["◇", "Respect platform rules", "Work from public content without automated scraping."],
+      ["ϟ", "Get started quickly", "Install the browser extension and begin capturing leads in minutes."]
     ];
   }
 
   return [
-    ["⌾", "集中整理", "把评论、搜索词和一线记录放在一个可复用的工作流里"],
-    ["⌘", "需求聚类", "更快发现重复问题、紧急需求和潜在付费场景"],
-    ["◇", "保留上下文", "保留原始语言和来源，方便回到真实场景继续判断"],
-    ["ϟ", "轻量验证", "从一个研究问题开始，不需要先搭建复杂系统"]
+    ["⌾", "Centralize research", "Bring comments, search queries, and field notes into one reusable workflow."],
+    ["⌘", "Cluster demand", "Find recurring problems, urgent needs, and possible paid opportunities faster."],
+    ["◇", "Keep the context", "Preserve original language and sources so you can return to the evidence when deciding."],
+    ["ϟ", "Validate lightly", "Start with one research question instead of building a complex system first."]
   ];
 }
 
 function getBenefits(product: Product) {
-  const name = product.name.split("（")[0];
-
   return [
-    [`${name} 访问权`, "购买后获得完整访问权限，立即开始使用。"],
-    ["安装路径", "包含浏览器扩展安装包及详细安装指南。"],
-    ["许可证", "个人或团队使用许可证，支持多设备使用。"],
-    ["后续更新", "产品更新与功能迭代，持续优化使用体验。"]
+    ["Clear fit", product.audience ?? "For people who want a more focused way to handle this recurring workflow."],
+    ["Defined outcome", product.promise ?? product.short_description ?? "A practical next step for the problem described above."],
+    ["Delivery", formatDeliveryMode(product.delivery_mode)],
+    ["Product stage", formatDevelopmentStatus(product.development_status)]
   ];
 }
 
 function ProductWindow({ product }: { product: Product }) {
   const isLeadRadar = product.slug === "leadradar";
+  const featureRows = product.features?.slice(0, 4).map((feature, index) => [
+    feature.title,
+    feature.body ?? "A focused workflow step",
+    "Signal",
+    String(88 - index * 6)
+  ]);
   const rows = isLeadRadar
     ? [
         ["Looking for a CNC supplier", "who can handle small batch...", "MOQ", "85"],
-        ["Need a quote for aluminum", "parts, about 100pcs", "询价", "78"],
-        ["Can you do 5-axis machining", "for titanium?", "五轴加工", "92"],
-        ["Looking for custom parts", "manufacturer", "定制", "80"]
+        ["Need a quote for aluminum", "parts, about 100pcs", "Quote", "78"],
+        ["Can you do 5-axis machining", "for titanium?", "5-axis", "92"],
+        ["Looking for custom parts", "manufacturer", "Custom", "80"]
       ]
-    : [
-        ["Need a better way to cluster", "research notes from Reddit", "聚类", "88"],
-        ["How do I compare repeated", "customer problems?", "需求", "82"],
-        ["Looking for a lightweight", "validation workflow", "验证", "76"],
-        ["Can I turn comments into", "a usable research brief?", "研究", "91"]
+    : featureRows?.length
+      ? featureRows
+      : [
+        ["Need a better way to cluster", "research notes from Reddit", "Cluster", "88"],
+        ["How do I compare repeated", "customer problems?", "Demand", "82"],
+        ["Looking for a lightweight", "validation workflow", "Validate", "76"],
+        ["Can I turn comments into", "a usable research brief?", "Research", "91"]
       ];
 
   return (
     <div className={`product-detail-window${isLeadRadar ? "" : " is-needradar"}`} aria-label={`${product.name} preview`}>
       <div className="product-detail-window-top">
         <span className="product-detail-window-dots" aria-hidden="true"><i /><i /><i /></span>
-        <span className="product-detail-window-title">{isLeadRadar ? "LeadRadar" : "NeedRadar"}</span>
-        <span className="product-detail-window-action">New leads</span>
+        <span className="product-detail-window-title">{product.name.split("（")[0]}</span>
+        <span className="product-detail-window-action">Review signals</span>
       </div>
       <div className="product-detail-window-body">
         <aside className="product-detail-window-sidebar" aria-hidden="true">
@@ -98,7 +114,7 @@ function ProductWindow({ product }: { product: Product }) {
           <span>◷</span>
         </aside>
         <div className="product-detail-window-content">
-          <div className="product-detail-search">⌕ <span>{isLeadRadar ? "Public intent" : "Research queue"}</span></div>
+          <div className="product-detail-search">⌕ <span>{isLeadRadar ? "Public intent" : "Workflow queue"}</span></div>
           <div className="product-detail-lead-list">
             {rows.map(([title, detail, tag, score]) => (
               <div className="product-detail-lead-row" key={title}>
@@ -113,10 +129,10 @@ function ProductWindow({ product }: { product: Product }) {
             ))}
           </div>
           <div className="product-detail-window-stats">
-            <div><span>今日线索</span><strong>128</strong></div>
-            <div><span>高意向</span><strong>32</strong></div>
-            <div><span>待跟进</span><strong>18</strong></div>
-            <div><span>已转化</span><strong>5</strong></div>
+            <div><span>Today</span><strong>128</strong></div>
+            <div><span>High intent</span><strong>32</strong></div>
+            <div><span>To follow up</span><strong>18</strong></div>
+            <div><span>Converted</span><strong>5</strong></div>
           </div>
         </div>
       </div>
@@ -129,13 +145,14 @@ export function ProductPage({ product }: { product: Product }) {
   const price = formatUsd(product.price_cents, product.currency);
   const featureItems = getFeatureItems(product);
   const benefits = getBenefits(product);
+  const landingPageUrl = product.landing_page_url;
 
   return (
     <div className="product-detail-page">
       <TrackProductPageView productSlug={product.slug} />
 
       <section className="container product-detail-hero">
-        <Link href="/products" className="product-detail-back" prefetch={false}>← 返回工具网</Link>
+        <Link href="/products" className="product-detail-back" prefetch={false}>← Back to products</Link>
         <div className="product-detail-hero-grid">
           <div className="product-detail-hero-copy">
             <span className="product-detail-category">{getProductCategory(product)}</span>
@@ -144,19 +161,25 @@ export function ProductPage({ product }: { product: Product }) {
             <div className="product-detail-actions">
               {product.payment_enabled ? (
                 <PayPalCheckoutButton productSlug={product.slug} sourcePage={`/products/${product.slug}#hero`}>
-                  立即购买 {price}
+                  Buy now {price}
                 </PayPalCheckoutButton>
               ) : null}
-              <Link href={product.slug === "leadradar" ? "/tools/leadradar" : "/products"} className="button ghost" prefetch={false}>
-                <span aria-hidden="true">▷</span> {product.slug === "leadradar" ? "查看演示视频" : "返回工具网"}
-              </Link>
+              {landingPageUrl ? (
+                <Link href={landingPageUrl} className="button ghost" target="_blank" rel="noreferrer">
+                  <span aria-hidden="true">↗</span> View full landing page
+                </Link>
+              ) : (
+                <Link href={product.slug === "leadradar" ? "/tools/leadradar" : "/products"} className="button ghost" prefetch={false}>
+                  <span aria-hidden="true">▷</span> {product.slug === "leadradar" ? "Watch demo" : "Back to products"}
+                </Link>
+              )}
             </div>
           </div>
           <ProductWindow product={product} />
         </div>
       </section>
 
-      <section className="container product-detail-features" aria-label="产品特点">
+      <section className="container product-detail-features" aria-label="Product features">
         {featureItems.map(([icon, title, body]) => (
           <div className="product-detail-feature" key={title}>
             <span className="product-detail-feature-icon" aria-hidden="true">{icon}</span>
@@ -170,18 +193,19 @@ export function ProductPage({ product }: { product: Product }) {
 
       <section className="container product-detail-info-grid">
         <div className="product-detail-card">
-          <h2>产品信息</h2>
+          <h2>Product details</h2>
           <dl className="product-detail-table">
-            <div><dt>价格</dt><dd>{price}</dd></div>
-            <div><dt>开发阶段</dt><dd>{formatDevelopmentStatus(product.development_status)}</dd></div>
-            <div><dt>交付方式</dt><dd>{formatDeliveryMode(product.delivery_mode)}</dd></div>
-            <div><dt>适合谁</dt><dd>{product.audience ?? "适合希望把重复工作变得更清晰的独立工作者和小团队。"}</dd></div>
-            <div><dt>解决什么问题</dt><dd>{product.problem ?? product.short_description ?? "把分散的信息整理成下一步可执行的工作流。"}</dd></div>
+            <div><dt>Price</dt><dd>{price}</dd></div>
+            <div><dt>Stage</dt><dd>{formatDevelopmentStatus(product.development_status)}</dd></div>
+            <div><dt>Delivery</dt><dd>{formatDeliveryMode(product.delivery_mode)}</dd></div>
+            <div><dt>Best for</dt><dd>{product.audience ?? "Independent operators and small teams who want to make recurring work clearer."}</dd></div>
+            <div><dt>What it solves</dt><dd>{product.problem ?? product.short_description ?? "Turn scattered information into a practical next-step workflow."}</dd></div>
+            <div><dt>Expected outcome</dt><dd>{product.promise ?? "A clearer next step from the problem described above."}</dd></div>
           </dl>
         </div>
 
         <div className="product-detail-card">
-          <h2>下单后获得什么</h2>
+          <h2>What you get</h2>
           <ul className="product-detail-benefits">
             {benefits.map(([title, body]) => (
               <li key={title}>
@@ -197,23 +221,28 @@ export function ProductPage({ product }: { product: Product }) {
         <div className="product-detail-purchase-copy">
           <span className="product-detail-purchase-icon" aria-hidden="true">🛒</span>
           <div>
-            <h2>开始使用 {product.name.split("（")[0]}</h2>
-            <p>解锁从公开对话中发现有效线索的能力</p>
+            <h2>Start using {product.name.split("（")[0]}</h2>
+            <p>Turn public conversations into evidence you can act on.</p>
             <ul>
-              <li>一次性付费，终身使用</li>
-              <li>7 天内不满意可退款</li>
-              <li>安全支付，多种方式支持</li>
+              <li>One-time payment with lifetime access</li>
+              <li>7-day money-back guarantee</li>
+              <li>Secure payment with multiple options</li>
             </ul>
+            {landingPageUrl ? (
+              <Link href={landingPageUrl} target="_blank" rel="noreferrer" className="product-detail-inline-link">
+                Read the full product story ↗
+              </Link>
+            ) : null}
           </div>
         </div>
         <div className="product-detail-purchase-action">
           <strong>{price}</strong>
           {product.payment_enabled ? (
             <PayPalCheckoutButton productSlug={product.slug} sourcePage={`/products/${product.slug}#checkout`}>
-              {isPresale ? "继续支付" : "立即购买"}
+              {isPresale ? "Continue to payment" : "Buy now"}
             </PayPalCheckoutButton>
           ) : (
-            <Link href="mailto:soloclientlab.com@gmail.com" className="button primary">联系获取</Link>
+            <Link href="mailto:soloclientlab.com@gmail.com" className="button primary">Contact us</Link>
           )}
         </div>
       </section>
