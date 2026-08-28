@@ -6,7 +6,7 @@ import { getPostBySlug, getPublicPosts, getRelatedPosts } from "@/lib/db";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 
 export const revalidate = 300;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;

@@ -108,6 +108,32 @@ function getOptionalDateTime(formData: FormData, key: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
 
+function hasUnclosedMarkdownCodeFence(content: string) {
+  let fenceMarker: "`" | "~" | null = null;
+  let fenceLength = 0;
+
+  for (const line of content.replace(/\r\n/g, "\n").split("\n")) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/);
+    if (!fence) continue;
+
+    const marker = fence[1][0] as "`" | "~";
+    const length = fence[1].length;
+
+    if (!fenceMarker) {
+      fenceMarker = marker;
+      fenceLength = length;
+      continue;
+    }
+
+    if (marker === fenceMarker && length >= fenceLength) {
+      fenceMarker = null;
+      fenceLength = 0;
+    }
+  }
+
+  return fenceMarker !== null;
+}
+
 function parsePriceCents(value: string) {
   const trimmed = value.trim();
   if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
@@ -841,6 +867,11 @@ export async function upsertDemand(formData: FormData) {
 
 export async function upsertPost(formData: FormData) {
   const postId = getText(formData, "id") || undefined;
+  const content = getText(formData, "content");
+
+  if (hasUnclosedMarkdownCodeFence(content)) {
+    redirect(`/admin/posts/${postId ?? "new"}?error=${encodeFormErrorMessage("文章内容包含未闭合的 Markdown 代码块。请在 Markdown 模式补上或删除 ``` / ~~~ 后再保存。")}`);
+  }
 
   const faqRaw = getText(formData, "faq");
   let faq: PostFaqItem[] | undefined;
@@ -863,7 +894,7 @@ export async function upsertPost(formData: FormData) {
       title: getText(formData, "title"),
       slug: getText(formData, "slug"),
       summary: getText(formData, "summary") || undefined,
-      content: getText(formData, "content") || undefined,
+      content: content || undefined,
       cover_image_url: getText(formData, "cover_image_url") || undefined,
       topic_tag: (getText(formData, "topic_tag") || undefined) as TopicTag | undefined,
       seo_title: getText(formData, "seo_title") || undefined,
