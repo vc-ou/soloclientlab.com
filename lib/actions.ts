@@ -882,6 +882,7 @@ export async function upsertPost(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/research");
+  revalidatePath(`/research/${getText(formData, "slug")}`);
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
   redirect("/admin/posts");
