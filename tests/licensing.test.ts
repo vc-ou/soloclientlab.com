@@ -45,24 +45,26 @@ describe("licensing · 商品前缀与白名单", () => {
 process.on("exit", () => env.cleanup());
 
 describe("licensing · 签名密钥来源", () => {
-  const originalSecret = process.env.LICENSE_SIGNING_SECRET;
-  const originalPayPal = process.env.PAYPAL_CLIENT_SECRET;
-  const originalEnv = process.env.NODE_ENV;
+  // @types/node 把 NODE_ENV 标成只读，测试里需要临时改写，因此走可写视图
+  const env = process.env as Record<string, string | undefined>;
+  const originalSecret = env.LICENSE_SIGNING_SECRET;
+  const originalPayPal = env.PAYPAL_CLIENT_SECRET;
+  const originalEnv = env.NODE_ENV;
 
   function restore() {
-    if (originalSecret === undefined) delete process.env.LICENSE_SIGNING_SECRET;
-    else process.env.LICENSE_SIGNING_SECRET = originalSecret;
-    if (originalPayPal === undefined) delete process.env.PAYPAL_CLIENT_SECRET;
-    else process.env.PAYPAL_CLIENT_SECRET = originalPayPal;
-    if (originalEnv === undefined) delete process.env.NODE_ENV;
-    else process.env.NODE_ENV = originalEnv;
+    if (originalSecret === undefined) delete env.LICENSE_SIGNING_SECRET;
+    else env.LICENSE_SIGNING_SECRET = originalSecret;
+    if (originalPayPal === undefined) delete env.PAYPAL_CLIENT_SECRET;
+    else env.PAYPAL_CLIENT_SECRET = originalPayPal;
+    if (originalEnv === undefined) delete env.NODE_ENV;
+    else env.NODE_ENV = originalEnv;
   }
 
   it("生产环境缺少 LICENSE_SIGNING_SECRET 时直接报错（不回退到 PayPal 密钥）", () => {
     try {
-      delete process.env.LICENSE_SIGNING_SECRET;
-      process.env.PAYPAL_CLIENT_SECRET = "paypal-secret-should-not-be-used";
-      process.env.NODE_ENV = "production";
+      delete env.LICENSE_SIGNING_SECRET;
+      env.PAYPAL_CLIENT_SECRET = "paypal-secret-should-not-be-used";
+      env.NODE_ENV = "production";
       expect(() => licenses.buildLicenseKey("leadradar", "p", "e")).toThrow(/LICENSE_SIGNING_SECRET/);
     } finally {
       restore();
@@ -71,12 +73,12 @@ describe("licensing · 签名密钥来源", () => {
 
   it("配置了独立密钥后，生产环境正常出码，且与 PayPal 密钥无关", () => {
     try {
-      process.env.LICENSE_SIGNING_SECRET = "dedicated-secret";
-      process.env.PAYPAL_CLIENT_SECRET = "paypal-secret";
-      process.env.NODE_ENV = "production";
+      env.LICENSE_SIGNING_SECRET = "dedicated-secret";
+      env.PAYPAL_CLIENT_SECRET = "paypal-secret";
+      env.NODE_ENV = "production";
       const key = licenses.buildLicenseKey("leadradar", "p", "e");
 
-      process.env.PAYPAL_CLIENT_SECRET = "rotated-paypal-secret";
+      env.PAYPAL_CLIENT_SECRET = "rotated-paypal-secret";
       expect(licenses.buildLicenseKey("leadradar", "p", "e")).toBe(key);
     } finally {
       restore();
