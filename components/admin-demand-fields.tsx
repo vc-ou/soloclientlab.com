@@ -1,21 +1,14 @@
-import { AdminShell, FormActions } from "@/components/admin";
-import { upsertDemand } from "@/lib/actions";
 import { personaOptions, topicOptions } from "@/lib/content";
-import { getDemandById } from "@/lib/domains/leads";
+import type { Demand } from "@/lib/types";
 
-type DemandEditorProps = {
-  params: Promise<{ id: string }>;
-};
-
-export default async function DemandEditorPage({ params }: DemandEditorProps) {
-  const { id } = await params;
-  const demand = id === "new" ? null : await getDemandById(id);
-
+/**
+ * 需求（选题池）表单字段。从旧的 /admin/demands/[id] 页面抽出来，
+ * 供 /admin/content/demand/[id] 复用；M5 删除旧路由后这里是唯一实现。
+ */
+export function AdminDemandFields({ demand }: { demand: Demand | null }) {
   return (
-    <AdminShell title={demand ? "编辑需求" : "新建需求"}>
-      <form action={upsertDemand} className="admin-form">
-        <input type="hidden" name="id" value={demand?.id ?? ""} />
-        <div className="admin-fields-2">
+    <>
+<div className="admin-fields-2">
           <label className="field">
             <span>标题</span>
             <input name="title" defaultValue={demand?.title ?? ""} required />
@@ -124,8 +117,6 @@ export default async function DemandEditorPage({ params }: DemandEditorProps) {
           <textarea name="next_action" rows={3} defaultValue={demand?.next_action ?? ""} />
           <small className="field-help">记录最清晰的下一步，比如“用于研究文章”“加入引流资源”“探索候补页方向”。</small>
         </label>
-        <FormActions />
-      </form>
-    </AdminShell>
+    </>
   );
 }

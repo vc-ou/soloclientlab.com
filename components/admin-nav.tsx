@@ -6,20 +6,12 @@ import { useEffect, useState } from "react";
 
 const adminNavItems = [
   { href: "/admin", label: "今日" },
-  { href: "/admin/orders", label: "订单" },
+  { href: "/admin/content", label: "内容" },
+  { href: "/admin/catalog", label: "商品" },
   { href: "/admin/people", label: "客户" },
-  { href: "/admin/metrics", label: "转化漏斗" },
-  { href: "/admin/umami", label: "访问分析" },
-  { href: "/admin/products", label: "商品与销售" },
-  { href: "/admin/product-access", label: "商品访问" },
-  { href: "/admin/payments", label: "支付记录" },
-  { href: "/admin/trials", label: "试用记录" },
-  { href: "/admin/leadradar-configs", label: "LeadRadar 配置" },
-  { href: "/admin/post-analytics", label: "文章分析" },
-  { href: "/admin/posts", label: "文章管理" },
-  { href: "/admin/subscribers", label: "联系人" },
-  { href: "/admin/waitlists", label: "访问线索" },
-  { href: "/admin/feedback", label: "反馈" }
+  { href: "/admin/orders", label: "订单" },
+  { href: "/admin/insights", label: "数据" },
+  { href: "/admin/settings", label: "设置" }
 ];
 
 function isActive(pathname: string, href: string) {

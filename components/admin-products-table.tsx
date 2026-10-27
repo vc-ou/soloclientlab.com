@@ -92,7 +92,7 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
             未发布
           </span>
         ),
-        <Link key={`${product.id}-edit`} href={`/admin/products/${product.id}`}>
+        <Link key={`${product.id}-edit`} href={`/admin/catalog/${product.id}`}>
           编辑
         </Link>,
         <DeleteProductButton

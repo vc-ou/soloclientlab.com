@@ -133,8 +133,8 @@ async function loadRaw(): Promise<TodayRaw> {
       },
       customers: row?.customers ?? 0,
       newLeadItems: [
-        ...(row?.requests ?? []).map((r) => ({ title: r.email, detail: r.detail, href: "/admin/product-access", tone: "warn" as const })),
-        ...(row?.subscribers ?? []).map((s) => ({ title: s.email, detail: s.detail, href: "/admin/subscribers", tone: "muted" as const }))
+        ...(row?.requests ?? []).map((r) => ({ title: r.email, detail: r.detail, href: "/admin/people", tone: "warn" as const })),
+        ...(row?.subscribers ?? []).map((s) => ({ title: s.email, detail: s.detail, href: "/admin/people", tone: "muted" as const }))
       ],
       draftItems: (row?.drafts ?? []).map((p) => ({
         title: p.title,
@@ -194,7 +194,7 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
         .map((r) => ({
           title: r.email,
           detail: `访问申请 · ${r.access_type} · ${r.product_slug}`,
-          href: "/admin/product-access",
+          href: "/admin/people",
           tone: "warn" as const
         })),
       ...db.leadradar_configs
@@ -212,7 +212,7 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
         .map((s) => ({
           title: s.email,
           detail: `新订阅 · ${s.source_type ?? "未知来源"} · ${s.source_page ?? "-"}`,
-          href: "/admin/subscribers",
+          href: "/admin/people",
           tone: "muted" as const
         }))
     ],
@@ -302,7 +302,7 @@ async function buildTodaySnapshot(): Promise<TodaySnapshot> {
       count: raw.newLeadItems.length,
       items: raw.newLeadItems.slice(0, 5),
       emptyHint: "本周没有新线索。文章 CTA 与订阅表单是否已配置？",
-      href: "/admin/subscribers"
+      href: "/admin/people"
     },
     {
       key: "drafts",

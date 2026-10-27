@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T07:47:58.125Z",
+  "generated_at": "2026-10-27T10:10:10.632Z",
   "reason": "棘轮基线：只减不增。修好一条就从这里删一条。",
   "known": [
     {
@@ -22,13 +22,6 @@
       "detail": "components/leadradar-demo.tsx",
       "value": 788,
       "budget": 400
-    },
-    {
-      "id": "routes:admin",
-      "kind": "routes",
-      "detail": "app/admin/**/page.tsx",
-      "value": 21,
-      "budget": 12
     }
   ]
 }
