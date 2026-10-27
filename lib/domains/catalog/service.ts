@@ -19,7 +19,8 @@ import {
   shouldReadLiveProducts,
   withTimeout,
   writeLocalDb,
-  ProductRow
+  ProductRow,
+  rethrowInProduction
 } from "@/lib/platform";
 import type {
   Product
@@ -41,6 +42,7 @@ async function readPublicProducts() {
       return publicProducts.length > 0 ? publicProducts : getSeedPublicProducts();
     } catch (error) {
       console.error("Falling back to local products:", error);
+      rethrowInProduction("public products", error);
     }
   }
 
@@ -117,6 +119,7 @@ export async function getProductBySlug(slug: string) {
       return publicProducts.find((product) => product.slug === slug) ?? null;
     } catch (error) {
       console.error("Falling back to local product lookup:", error);
+      rethrowInProduction("product lookup", error);
     }
   }
 

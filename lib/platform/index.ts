@@ -15,3 +15,4 @@ export { filterSubscribers, readWaitlistRows, readFeedbackRows, readAdminPostPer
 export { readDb, getSnapshot } from "./snapshot";
 export { resetCacheUnsafe } from "./cache";
 export { addDaysIso } from "./time";
+export { rethrowInProduction } from "./errors";

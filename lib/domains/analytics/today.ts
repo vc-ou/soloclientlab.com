@@ -139,7 +139,7 @@ async function loadRaw(): Promise<TodayRaw> {
       draftItems: (row?.drafts ?? []).map((p) => ({
         title: p.title,
         detail: `更新于 ${new Date(p.updated_at).toISOString().slice(0, 10)} · ${p.topic_tag ?? "未分类"}`,
-        href: `/admin/posts/${p.id}`,
+        href: `/admin/content/post/${p.id}`,
         tone: "muted" as const
       })),
       draftCount: row?.drafts?.length ?? 0
@@ -203,7 +203,7 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
         .map((c) => ({
           title: c.email,
           detail: "配置问卷未完成 · LeadRadar",
-          href: "/admin/leadradar-configs",
+          href: "/admin/people",
           tone: "warn" as const
         })),
       ...db.subscribers
@@ -219,7 +219,7 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
     draftItems: drafts.slice(0, 5).map((p) => ({
       title: p.title,
       detail: `更新于 ${new Date(p.updated_at).toISOString().slice(0, 10)} · ${p.topic_tag ?? "未分类"}`,
-      href: `/admin/posts/${p.id}`,
+      href: `/admin/content/post/${p.id}`,
       tone: "muted" as const
     })),
     draftCount: drafts.length

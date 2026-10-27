@@ -21,7 +21,8 @@ import {
   withTimeout,
   writeLocalDb,
   PostRow,
-  ResourcePerformance
+  ResourcePerformance,
+  rethrowInProduction
 } from "@/lib/platform";
 import type {
   Post,
@@ -62,6 +63,7 @@ async function readPublicPosts(topic?: string) {
       return posts.map(mapPostRow).map(toPostListItem);
     } catch (error) {
       console.error("Falling back to local posts:", error);
+      rethrowInProduction("public posts list", error);
     }
   }
 
@@ -145,6 +147,7 @@ export async function getPostBySlug(slug: string, options?: { preferLocal?: bool
       return posts[0] ? mapPostRow(posts[0]) : undefined;
     } catch (error) {
       console.error("Falling back to local post detail:", error);
+      rethrowInProduction("public post detail", error);
     }
   }
 
@@ -209,6 +212,7 @@ export async function getRelatedPosts(slug: string, limit = 3, options?: { prefe
       return posts.map(mapPostRow);
     } catch (error) {
       console.error("Falling back to local related posts:", error);
+      rethrowInProduction("related posts", error);
     }
   }
 

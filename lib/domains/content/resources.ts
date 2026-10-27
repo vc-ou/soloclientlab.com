@@ -14,7 +14,8 @@ import {
   shouldReadLiveAdminDb,
   withTimeout,
   writeLocalDb,
-  ResourcePerformance
+  ResourcePerformance,
+  rethrowInProduction
 } from "@/lib/platform";
 import type {
   Resource
@@ -40,6 +41,7 @@ export async function getResourceBySlug(slug: string) {
       return resources[0] ? mapResourceRow(resources[0]) : undefined;
     } catch (error) {
       console.error("Falling back to local resource:", error);
+      rethrowInProduction("resource lookup", error);
     }
   }
 
