@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const adminNavItems = [
   { href: "/admin", label: "今日" },
   { href: "/admin/orders", label: "订单" },
+  { href: "/admin/people", label: "客户" },
   { href: "/admin/metrics", label: "转化漏斗" },
   { href: "/admin/umami", label: "访问分析" },
   { href: "/admin/products", label: "商品与销售" },
