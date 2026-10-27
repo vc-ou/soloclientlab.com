@@ -6,7 +6,8 @@ import {
   buildLicenseTokenHash,
   generateLicenseToken,
   hashLicenseSecret,
-  normalizeLicenseKey
+  normalizeLicenseKey,
+  isLicensedProduct
 } from "@/lib/licenses";
 import type { ProductSlug } from "@/lib/types";
 
@@ -19,8 +20,7 @@ const corsHeaders = {
 };
 
 function parseProductSlug(value: unknown): ProductSlug | null {
-  if (value === "leadradar" || value === "needradar-workflow-lab") return value;
-  return null;
+  return isLicensedProduct(value) ? value : null;
 }
 
 export function OPTIONS() {

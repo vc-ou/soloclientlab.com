@@ -8,7 +8,7 @@ import {
   hasLeadRadarEdgeAddonsListing,
   hasNeedRadarEdgeAddonsListing
 } from "@/lib/extension-links";
-import { buildLicenseKey, getLicenseKeySuffix, hashLicenseSecret } from "@/lib/licenses";
+import { buildLicenseKey, getLicenseKeySuffix, hashLicenseSecret, isLicensedProduct } from "@/lib/licenses";
 import { getProductBySlug } from "@/lib/domains/catalog";
 import type { ProductSlug } from "@/lib/types";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 function parseProductSlug(value?: string): ProductSlug {
-  return value === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
+  return isLicensedProduct(value) ? value : "leadradar";
 }
 
 export default async function CheckoutSuccessPage({

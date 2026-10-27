@@ -6,8 +6,16 @@ import type { ProductSlug } from "@/lib/types";
 
 const LICENSE_KEY_PREFIX = {
   leadradar: "SCL-LR",
-  "needradar-workflow-lab": "SCL-NR"
+  "needradar-workflow-lab": "SCL-NR",
+  "opportunity-intelligence-agent": "SCL-OI"
 } as const;
+
+/** 所有可发放授权码的商品。新增商品时只改这里，API 白名单会自动跟随。 */
+export const LICENSED_PRODUCT_SLUGS = Object.keys(LICENSE_KEY_PREFIX) as ProductSlug[];
+
+export function isLicensedProduct(value: unknown): value is ProductSlug {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(LICENSE_KEY_PREFIX, value);
+}
 
 const base32Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

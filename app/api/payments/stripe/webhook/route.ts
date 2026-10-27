@@ -3,6 +3,7 @@ import "server-only";
 import Stripe from "stripe";
 import { fulfillPaidProductPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { isLicensedProduct } from "@/lib/licenses";
 import type { ProductAccessType, ProductSlug } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -26,7 +27,7 @@ async function fulfillCheckoutSession(
 
   const metadata = session.metadata ?? {};
   if (
-    !["leadradar", "needradar-workflow-lab"].includes(metadata.product_slug ?? "") ||
+    !isLicensedProduct(metadata.product_slug) ||
     !["paid_pilot", "monthly_subscription"].includes(metadata.access_type ?? "")
   ) {
     return;

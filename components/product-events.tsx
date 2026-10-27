@@ -70,7 +70,7 @@ export async function sendProductEvent(
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        toolSlug: productSlug === "leadradar" ? "products/leadradar" : "products/needradar-workflow-lab",
+        toolSlug: `products/${productSlug}`,
         productSlug,
         eventType,
         path: `${window.location.pathname}${window.location.search}`,

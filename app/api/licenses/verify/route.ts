@@ -1,7 +1,7 @@
 import "server-only";
 
 import { verifyProductLicenseToken } from "@/lib/domains/commerce";
-import { buildDeviceIdHash, buildLicenseTokenHash } from "@/lib/licenses";
+import { buildDeviceIdHash, buildLicenseTokenHash, isLicensedProduct } from "@/lib/licenses";
 import type { ProductSlug } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -13,8 +13,7 @@ const corsHeaders = {
 };
 
 function parseProductSlug(value: unknown): ProductSlug | null {
-  if (value === "leadradar" || value === "needradar-workflow-lab") return value;
-  return null;
+  return isLicensedProduct(value) ? value : null;
 }
 
 export function OPTIONS() {

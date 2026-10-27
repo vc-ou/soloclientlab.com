@@ -8,7 +8,8 @@ export const metadata: Metadata = {
 };
 
 function parseProductSlug(value?: string): ProductSlug {
-  return value === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
+  // 只做展示，未知 slug 会让 getProductBySlug 返回 null 并回落到商品目录
+  return value && value.trim() ? value.trim() : "leadradar";
 }
 
 /**
