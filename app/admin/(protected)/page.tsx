@@ -20,7 +20,27 @@ function DeltaChip({ value, previous }: { value: number; previous: number }) {
 }
 
 export default async function AdminTodayPage() {
-  const snapshot = await getTodaySnapshot();
+  let snapshot: Awaited<ReturnType<typeof getTodaySnapshot>> | null = null;
+  let loadError: string | null = null;
+
+  try {
+    snapshot = await getTodaySnapshot();
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "未知错误";
+  }
+
+  if (!snapshot) {
+    return (
+      <AdminShell title="今日">
+        <p className="queue-empty" style={{ borderLeft: "3px solid #c0392b" }}>
+          数据读取失败：{loadError}
+          <br />
+          页面没有崩溃（这是刻意降级）。刷新重试；若持续失败，按 RUNBOOK 检查数据库连通性。
+        </p>
+      </AdminShell>
+    );
+  }
+
   const totalActions = snapshot.queues.reduce((sum, queue) => sum + queue.count, 0);
 
   return (

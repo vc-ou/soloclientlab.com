@@ -4,7 +4,8 @@ import type {
   ProductLicenseKey,
   ProductPayment
 } from "@/lib/types";
-import { readDb } from "@/lib/platform";
+import { readDb, getReadSql, readWithRetry, withTimeout, ADMIN_DB_TIMEOUT_MS } from "@/lib/platform";
+import { hasDatabaseUrl } from "@/lib/env";
 
 /**
  * 订单视图：以 payment 为主键，串起 权益 → 授权码 → 激活。
@@ -57,28 +58,64 @@ function hoursSince(iso?: string) {
   return Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 36_000) / 100);
 }
 
+type CoreCollections = {
+  payments: ProductPayment[];
+  entitlements: ProductEntitlement[];
+  keys: ProductLicenseKey[];
+  activations: ProductLicenseActivation[];
+};
+
+/**
+ * 定向读取（不是全库快照）。
+ *
+ * 早期版本用 readDb() 读 16 张表，4 秒预算下会超时；生产环境 readDb 超时是抛错的，
+ * 等于后台直接 500。这里只读本域需要的 4 张表，并用 admin 的 10 秒预算。
+ */
+async function loadCore(): Promise<CoreCollections> {
+  if (!hasDatabaseUrl()) {
+    const db = await readDb();
+    return {
+      payments: db.product_payments,
+      entitlements: db.product_entitlements,
+      keys: db.product_license_keys,
+      activations: db.product_license_activations
+    };
+  }
+
+  const sql = getReadSql();
+  return readWithRetry("Admin order view read", async () => {
+    const [payments, entitlements, keys, activations] = await Promise.all([
+      withTimeout(sql<ProductPayment[]>`select * from product_payments order by created_at desc`, ADMIN_DB_TIMEOUT_MS),
+      withTimeout(sql<ProductEntitlement[]>`select * from product_entitlements`, ADMIN_DB_TIMEOUT_MS),
+      withTimeout(sql<ProductLicenseKey[]>`select * from product_license_keys`, ADMIN_DB_TIMEOUT_MS),
+      withTimeout(sql<ProductLicenseActivation[]>`select * from product_license_activations`, ADMIN_DB_TIMEOUT_MS)
+    ]);
+    return { payments, entitlements, keys, activations };
+  });
+}
+
 export async function getOrderRows(): Promise<OrderRow[]> {
-  const db = await readDb();
+  const db = await loadCore();
   const entitlementsByPayment = new Map<string, ProductEntitlement>();
-  for (const entitlement of db.product_entitlements) {
+  for (const entitlement of db.entitlements) {
     if (entitlement.source_payment_id) {
       entitlementsByPayment.set(entitlement.source_payment_id, entitlement);
     }
   }
 
   const keysByEntitlement = new Map<string, ProductLicenseKey>();
-  for (const key of db.product_license_keys) {
+  for (const key of db.keys) {
     keysByEntitlement.set(key.entitlement_id, key);
   }
 
   const activationsByKey = new Map<string, ProductLicenseActivation[]>();
-  for (const activation of db.product_license_activations) {
+  for (const activation of db.activations) {
     const list = activationsByKey.get(activation.license_key_id) ?? [];
     list.push(activation);
     activationsByKey.set(activation.license_key_id, list);
   }
 
-  const rows: OrderRow[] = db.product_payments.map((payment) => {
+  const rows: OrderRow[] = db.payments.map((payment) => {
     const entitlement = entitlementsByPayment.get(payment.id);
     const licenseKey = entitlement ? keysByEntitlement.get(entitlement.id) : undefined;
     const activations = licenseKey ? activationsByKey.get(licenseKey.id) ?? [] : [];

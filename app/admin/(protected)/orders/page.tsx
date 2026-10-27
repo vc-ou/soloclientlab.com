@@ -13,7 +13,15 @@ function flagTone(flag: string) {
 }
 
 export default async function AdminOrdersPage() {
-  const orders = await getOrderRows();
+  let orders: Awaited<ReturnType<typeof getOrderRows>> = [];
+  let loadError: string | null = null;
+
+  try {
+    orders = await getOrderRows();
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "未知错误";
+  }
+
   const needsAttention = orders.filter((order) => order.flags.length > 0).length;
   const pendingTotal = orders
     .filter((order) => order.payment.status === "pending")
@@ -21,6 +29,11 @@ export default async function AdminOrdersPage() {
 
   return (
     <AdminShell title="订单">
+      {loadError ? (
+        <p className="queue-empty" style={{ borderLeft: "3px solid #c0392b" }}>
+          订单数据读取失败：{loadError}。页面已降级，刷新重试。
+        </p>
+      ) : null}
       <div className="today-metrics">
         <div className="today-metric">
           <p>订单总数</p>
