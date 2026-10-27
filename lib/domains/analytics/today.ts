@@ -1,4 +1,5 @@
-import { getReadSql, readDb, readWithRetry, withTimeout, ADMIN_DB_TIMEOUT_MS } from "@/lib/platform";
+import { unstable_cache } from "next/cache";
+import { getReadSql, readDb, readWithRetry, withTimeout } from "@/lib/platform";
 import { hasDatabaseUrl } from "@/lib/env";
 import { getOrderRows } from "@/lib/domains/commerce";
 
@@ -74,42 +75,53 @@ async function loadRaw(): Promise<TodayRaw> {
 
   const sql = getReadSql();
   return readWithRetry("Admin today snapshot read", async () => {
-    // 尽量少的往返：一个合并计数查询 + 三个"最多 5 条"的列表查询
-    const [counts, requests, subscribers, drafts] = await Promise.all([
-      withTimeout(sql<{ views_cur: number; views_prev: number; leads_cur: number; leads_prev: number; paid_n: number; paid_cents: number; paid_prev_n: number; paid_prev_cents: number; customers: number }[]>`
-        select
-          (select count(*)::int from post_events where event_type='view' and created_at >= ${weekAgoIso}) as views_cur,
-          (select count(*)::int from post_events where event_type='view' and created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso}) as views_prev,
-          ((select count(*)::int from subscribers where created_at >= ${weekAgoIso})
-           + (select count(*)::int from waitlists where created_at >= ${weekAgoIso})
-           + (select count(*)::int from product_access_requests where created_at >= ${weekAgoIso})
-           + (select count(*)::int from product_trials where created_at >= ${weekAgoIso})
-           + (select count(*)::int from leadradar_configs where created_at >= ${weekAgoIso})) as leads_cur,
-          ((select count(*)::int from subscribers where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
-           + (select count(*)::int from waitlists where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
-           + (select count(*)::int from product_access_requests where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
-           + (select count(*)::int from product_trials where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
-           + (select count(*)::int from leadradar_configs where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})) as leads_prev,
-          (select count(*)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${weekAgoIso}) as paid_n,
-          (select coalesce(sum(amount_total),0)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${weekAgoIso}) as paid_cents,
-          (select count(*)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${twoWeeksAgoIso} and coalesce(paid_at, created_at) < ${weekAgoIso}) as paid_prev_n,
-          (select coalesce(sum(amount_total),0)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${twoWeeksAgoIso} and coalesce(paid_at, created_at) < ${weekAgoIso}) as paid_prev_cents,
-          (select count(distinct lower(email))::int from product_entitlements where status='active') as customers
-      `, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<{ email: string; detail: string; href: string }[]>`
-        select email, '访问申请 · ' || access_type || ' · ' || product_slug as detail, '/admin/product-access' as href
-        from product_access_requests where status='new' order by created_at desc limit 5
-      `, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<{ email: string; detail: string; href: string }[]>`
-        select email, '新订阅 · ' || coalesce(source_type,'未知来源') || ' · ' || coalesce(source_page,'-') as detail, '/admin/subscribers' as href
-        from subscribers where created_at >= ${weekAgoIso} order by created_at desc limit 5
-      `, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<{ id: string; title: string; updated_at: string; topic_tag: string | null }[]>`
-        select id, title, updated_at, topic_tag from posts where status='draft' order by updated_at desc limit 5
-      `, ADMIN_DB_TIMEOUT_MS)
-    ]);
+    // 单次往返：所有计数 + 三个列表用子查询 + json_agg 一次取回
+    const rows = await withTimeout(sql<Array<{
+      views_cur: number;
+      views_prev: number;
+      leads_cur: number;
+      leads_prev: number;
+      paid_n: number;
+      paid_cents: number;
+      paid_prev_n: number;
+      paid_prev_cents: number;
+      customers: number;
+      requests: Array<{ email: string; detail: string }>;
+      subscribers: Array<{ email: string; detail: string }>;
+      drafts: Array<{ id: string; title: string; updated_at: string; topic_tag: string | null }>;
+    }>>`
+      select
+        (select count(*)::int from post_events where event_type='view' and created_at >= ${weekAgoIso}) as views_cur,
+        (select count(*)::int from post_events where event_type='view' and created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso}) as views_prev,
+        ((select count(*)::int from subscribers where created_at >= ${weekAgoIso})
+         + (select count(*)::int from waitlists where created_at >= ${weekAgoIso})
+         + (select count(*)::int from product_access_requests where created_at >= ${weekAgoIso})
+         + (select count(*)::int from product_trials where created_at >= ${weekAgoIso})
+         + (select count(*)::int from leadradar_configs where created_at >= ${weekAgoIso})) as leads_cur,
+        ((select count(*)::int from subscribers where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
+         + (select count(*)::int from waitlists where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
+         + (select count(*)::int from product_access_requests where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
+         + (select count(*)::int from product_trials where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})
+         + (select count(*)::int from leadradar_configs where created_at >= ${twoWeeksAgoIso} and created_at < ${weekAgoIso})) as leads_prev,
+        (select count(*)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${weekAgoIso}) as paid_n,
+        (select coalesce(sum(amount_total),0)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${weekAgoIso}) as paid_cents,
+        (select count(*)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${twoWeeksAgoIso} and coalesce(paid_at, created_at) < ${weekAgoIso}) as paid_prev_n,
+        (select coalesce(sum(amount_total),0)::int from product_payments where status='paid' and coalesce(paid_at, created_at) >= ${twoWeeksAgoIso} and coalesce(paid_at, created_at) < ${weekAgoIso}) as paid_prev_cents,
+        (select count(distinct lower(email))::int from product_entitlements where status='active') as customers,
+        coalesce((select json_agg(x) from (
+          select email, '访问申请 · ' || access_type || ' · ' || product_slug as detail
+          from product_access_requests where status='new' order by created_at desc limit 5
+        ) x), '[]'::json) as requests,
+        coalesce((select json_agg(y) from (
+          select email, '新订阅 · ' || coalesce(source_type,'未知来源') || ' · ' || coalesce(source_page,'-') as detail
+          from subscribers where created_at >= ${weekAgoIso} order by created_at desc limit 5
+        ) y), '[]'::json) as subscribers,
+        coalesce((select json_agg(z) from (
+          select id, title, updated_at, topic_tag from posts where status='draft' order by updated_at desc limit 5
+        ) z), '[]'::json) as drafts
+    `, ADMIN_READ_TIMEOUT_MS);
 
-    const row = counts[0];
+    const row = rows[0];
     return {
       views: { current: row?.views_cur ?? 0, previous: row?.views_prev ?? 0 },
       leads: { current: row?.leads_cur ?? 0, previous: row?.leads_prev ?? 0 },
@@ -121,16 +133,16 @@ async function loadRaw(): Promise<TodayRaw> {
       },
       customers: row?.customers ?? 0,
       newLeadItems: [
-        ...requests.map((r) => ({ title: r.email, detail: r.detail, href: r.href, tone: "warn" as const })),
-        ...subscribers.map((s) => ({ title: s.email, detail: s.detail, href: s.href, tone: "muted" as const }))
+        ...(row?.requests ?? []).map((r) => ({ title: r.email, detail: r.detail, href: "/admin/product-access", tone: "warn" as const })),
+        ...(row?.subscribers ?? []).map((s) => ({ title: s.email, detail: s.detail, href: "/admin/subscribers", tone: "muted" as const }))
       ],
-      draftItems: drafts.map((p) => ({
+      draftItems: (row?.drafts ?? []).map((p) => ({
         title: p.title,
         detail: `更新于 ${new Date(p.updated_at).toISOString().slice(0, 10)} · ${p.topic_tag ?? "未分类"}`,
         href: `/admin/posts/${p.id}`,
         tone: "muted" as const
       })),
-      draftCount: drafts.length
+      draftCount: row?.drafts?.length ?? 0
     };
   });
 }
@@ -214,7 +226,10 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
   };
 }
 
-export async function getTodaySnapshot(): Promise<TodaySnapshot> {
+/** 后台读取预算：比公开页宽松，但必须有上限 */
+const ADMIN_READ_TIMEOUT_MS = 20_000;
+
+async function buildTodaySnapshot(): Promise<TodaySnapshot> {
   const [raw, orders] = await Promise.all([loadRaw(), getOrderRows()]);
 
   const stuckOrders = orders.filter((o) => o.flags.includes("pending_stale") || o.flags.includes("pending_expired"));
@@ -310,6 +325,22 @@ export async function getTodaySnapshot(): Promise<TodaySnapshot> {
   ];
 
   return { metrics, queues, generatedAt: new Date().toISOString() };
+}
+
+const cachedTodaySnapshot = unstable_cache(buildTodaySnapshot, ["admin-today-v1"], {
+  tags: ["admin-today"],
+  revalidate: 60
+});
+
+export async function getTodaySnapshot(): Promise<TodaySnapshot> {
+  try {
+    // 本地/测试走直算（数据会被测试改写，不能缓存）
+    if (!hasDatabaseUrl()) return await buildTodaySnapshot();
+    return await cachedTodaySnapshot();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`今日快照读取失败（${message}）`);
+  }
 }
 
 export { getOrderRows };

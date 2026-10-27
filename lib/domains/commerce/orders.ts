@@ -4,7 +4,17 @@ import type {
   ProductLicenseKey,
   ProductPayment
 } from "@/lib/types";
-import { readDb, getReadSql, readWithRetry, withTimeout, ADMIN_DB_TIMEOUT_MS } from "@/lib/platform";
+import { unstable_cache } from "next/cache";
+import {
+  readDb,
+  getReadSql,
+  readWithRetry,
+  withTimeout,
+  mapProductPaymentRow,
+  mapProductEntitlementRow,
+  mapProductLicenseKeyRow,
+  mapProductLicenseActivationRow
+} from "@/lib/platform";
 import { hasDatabaseUrl } from "@/lib/env";
 
 /**
@@ -83,18 +93,35 @@ async function loadCore(): Promise<CoreCollections> {
   }
 
   const sql = getReadSql();
-  return readWithRetry("Admin order view read", async () => {
-    const [payments, entitlements, keys, activations] = await Promise.all([
-      withTimeout(sql<ProductPayment[]>`select * from product_payments order by created_at desc`, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<ProductEntitlement[]>`select * from product_entitlements`, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<ProductLicenseKey[]>`select * from product_license_keys`, ADMIN_DB_TIMEOUT_MS),
-      withTimeout(sql<ProductLicenseActivation[]>`select * from product_license_activations`, ADMIN_DB_TIMEOUT_MS)
-    ]);
-    return { payments, entitlements, keys, activations };
-  });
+  // 单次往返：四张表用 json_agg 一起取回。后台页面对延迟敏感，且这些表都很小。
+  const rows = await readWithRetry("Admin order view read", () =>
+    withTimeout(sql<Array<{
+      payments: Array<Record<string, unknown>>;
+      entitlements: Array<Record<string, unknown>>;
+      keys: Array<Record<string, unknown>>;
+      activations: Array<Record<string, unknown>>;
+    }>>`
+      select
+        coalesce((select json_agg(p order by p.created_at desc) from product_payments p), '[]'::json) as payments,
+        coalesce((select json_agg(e) from product_entitlements e), '[]'::json) as entitlements,
+        coalesce((select json_agg(k) from product_license_keys k), '[]'::json) as keys,
+        coalesce((select json_agg(a) from product_license_activations a), '[]'::json) as activations
+    `, ADMIN_READ_TIMEOUT_MS)
+  );
+
+  const row = rows[0];
+  return {
+    payments: (row?.payments ?? []).map((item) => mapProductPaymentRow(item as never)),
+    entitlements: (row?.entitlements ?? []).map((item) => mapProductEntitlementRow(item as never)),
+    keys: (row?.keys ?? []).map((item) => mapProductLicenseKeyRow(item as never)),
+    activations: (row?.activations ?? []).map((item) => mapProductLicenseActivationRow(item as never))
+  };
 }
 
-export async function getOrderRows(): Promise<OrderRow[]> {
+/** 后台读取预算：比公开页宽松，但必须有上限 */
+const ADMIN_READ_TIMEOUT_MS = 20_000;
+
+async function loadOrderRows(): Promise<OrderRow[]> {
   const db = await loadCore();
   const entitlementsByPayment = new Map<string, ProductEntitlement>();
   for (const entitlement of db.entitlements) {
@@ -150,6 +177,22 @@ export async function getOrderRows(): Promise<OrderRow[]> {
     }
     return b.payment.created_at.localeCompare(a.payment.created_at);
   });
+}
+
+const cachedOrderRows = unstable_cache(loadOrderRows, ["admin-order-rows-v1"], {
+  tags: ["admin-orders"],
+  revalidate: 60
+});
+
+export async function getOrderRows(): Promise<OrderRow[]> {
+  try {
+    // 本地/测试走直读（数据会被测试改写，不能缓存）
+    if (!hasDatabaseUrl()) return await loadOrderRows();
+    return await cachedOrderRows();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`订单视图读取失败（${message}）`);
+  }
 }
 
 export async function getOrderRow(paymentId: string): Promise<OrderRow | null> {
