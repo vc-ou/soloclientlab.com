@@ -1,3 +1,5 @@
+import "../admin-ui.css";
+
 import { requireAdmin } from "@/lib/domains/identity";
 
 export const dynamic = "force-dynamic";
