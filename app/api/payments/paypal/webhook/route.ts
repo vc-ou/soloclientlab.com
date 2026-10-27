@@ -1,7 +1,7 @@
 import "server-only";
 
 import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
-import { amountStringToCents, verifyPayPalWebhookSignature } from "@/lib/paypal";
+import { amountStringToCents, getPayPalCapturedOrderDetails, getPayPalOrder, verifyPayPalWebhookSignature } from "@/lib/paypal";
 
 export const runtime = "nodejs";
 
@@ -12,6 +12,10 @@ type PayPalWebhookEvent = {
   resource?: {
     id?: string;
     status?: string;
+    payer?: {
+      email_address?: string;
+      payer_id?: string;
+    };
     amount?: {
       currency_code?: string;
       value?: string;
@@ -40,8 +44,25 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
     console.warn(`PayPal webhook ${event.id ?? "unknown"} could not find pending payment for order ${orderId}; waiting for the return route.`);
     return;
   }
-  if (!pendingPayment.email) {
-    console.warn(`PayPal webhook ${event.id ?? "unknown"} found pending payment without payer email for order ${orderId}; waiting for the return route.`);
+  // pending 记录建单时还没有 payer email（要等用户 approve）。以前这里直接 return，
+  // 导致"用户付完关页面 → 回跳丢失 + webhook 跳过 = 收了钱不发货"。
+  // 现在改为向 PayPal 反查订单拿 payer email，仍然拿不到才降级。
+  let payerEmail = pendingPayment.email ?? resource?.payer?.email_address;
+  let recoveredFromOrder = false;
+
+  if (!payerEmail) {
+    try {
+      const order = await getPayPalOrder(orderId);
+      payerEmail = getPayPalCapturedOrderDetails(order).payerEmail;
+      recoveredFromOrder = Boolean(payerEmail);
+    } catch (error) {
+      console.error(`PayPal webhook ${event.id ?? "unknown"} could not fetch order ${orderId} to recover payer email:`, error);
+    }
+  }
+
+  if (!payerEmail) {
+    // 仍拿不到：记录待人工处理，避免"悄悄不发货"
+    console.error(`PayPal webhook ${event.id ?? "unknown"} captured order ${orderId} but no payer email is available; needs manual fulfilment.`);
     return;
   }
 
@@ -52,7 +73,7 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
       provider: "paypal",
       product_slug: pendingPayment.product_slug,
       access_type: pendingPayment.metadata?.access_type === "paid_pilot" ? "paid_pilot" : "lifetime_access",
-      email: pendingPayment.email,
+      email: payerEmail,
       access_request_id: pendingPayment.access_request_id,
       provider_checkout_session_id: orderId,
       provider_payment_intent_id: resource?.id,
@@ -66,7 +87,8 @@ async function fulfillCaptureCompleted(event: PayPalWebhookEvent) {
         paypal_event_type: event.event_type,
         paypal_order_id: orderId,
         paypal_capture_id: resource?.id,
-        paypal_capture_status: resource?.status
+        paypal_capture_status: resource?.status,
+        paypal_payer_email_recovered_from_order: recoveredFromOrder
       }
     }),
     8000

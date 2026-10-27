@@ -222,6 +222,17 @@ export async function capturePayPalOrder(orderId: string) {
   });
 }
 
+/**
+ * 按订单号读取订单详情。
+ *
+ * 为什么需要它：webhook 到达时 pending 记录可能还没有 payer email（邮箱要等用户
+ * approve 之后才知道）。此时向 PayPal 反查订单即可拿到 payer，从而在用户没有回跳
+ * 的情况下也能完成履约——这是"付了钱却拿不到授权码"的主要修复点。
+ */
+export async function getPayPalOrder(orderId: string) {
+  return paypalRequest<PayPalCapturedOrder>(`/v2/checkout/orders/${encodeURIComponent(orderId)}`);
+}
+
 export function getPayPalCapturedOrderDetails(order: PayPalCapturedOrder) {
   const purchaseUnit = order.purchase_units?.[0];
   const capture = purchaseUnit?.payments?.captures?.[0];

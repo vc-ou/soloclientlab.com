@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPostBySlug } from "@/lib/domains/content";
 import { trackPostEvent } from "@/lib/domains/analytics";
+import { checkRateLimit, isSameOriginRequest } from "@/app/api/_lib/request-guard";
 
 type RequestBody = {
   postId?: string;
@@ -12,6 +13,13 @@ type RequestBody = {
 };
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ success: false, message: "Forbidden." }, { status: 403 });
+  }
+  if (!checkRateLimit(request, 120)) {
+    return NextResponse.json({ success: false, message: "Too many requests." }, { status: 429 });
+  }
+
   let body: RequestBody;
 
   try {

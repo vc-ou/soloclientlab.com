@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isInternalAnalyticsRequest } from "@/lib/analytics-filters";
 import { trackPostEvent, trackTrialEvent } from "@/lib/domains/analytics";
 import type { ProductSlug, TrialEventType } from "@/lib/types";
+import { checkRateLimit, isSameOriginRequest } from "@/app/api/_lib/request-guard";
 
 type RequestBody = {
   toolSlug?: "tools/leadradar" | "products/leadradar" | "products/needradar-workflow-lab";
@@ -38,6 +39,13 @@ const v2EventTypes = [
 ] as const;
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ success: false, message: "Forbidden." }, { status: 403 });
+  }
+  if (!checkRateLimit(request, 120)) {
+    return NextResponse.json({ success: false, message: "Too many requests." }, { status: 429 });
+  }
+
   let body: RequestBody;
 
   try {

@@ -19,8 +19,22 @@ export function isLicensedProduct(value: unknown): value is ProductSlug {
 
 const base32Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
+let warnedAboutFallbackSecret = false;
+
 function getLicenseSigningSecret() {
-  const secret = getOptionalEnv("LICENSE_SIGNING_SECRET") ?? getOptionalEnv("PAYPAL_CLIENT_SECRET");
+  const dedicated = getOptionalEnv("LICENSE_SIGNING_SECRET");
+  const secret = dedicated ?? getOptionalEnv("PAYPAL_CLIENT_SECRET");
+
+  // 回退到 PayPal 密钥是危险的：轮换 PayPal 密钥会让所有已发出的授权码失效。
+  // 现在只要用到回退就报警，并且不再静默。
+  if (!dedicated && secret && !warnedAboutFallbackSecret) {
+    warnedAboutFallbackSecret = true;
+    console.warn(
+      "[licensing] LICENSE_SIGNING_SECRET 未配置，正在回退使用 PAYPAL_CLIENT_SECRET。" +
+        "轮换 PayPal 密钥会导致所有已发放的授权码失效，请尽快配置独立的 LICENSE_SIGNING_SECRET。"
+    );
+  }
+
   if (secret) return secret;
   if (process.env.NODE_ENV !== "production") return "development-license-signing-secret";
   throw new Error("Missing required environment variable: LICENSE_SIGNING_SECRET");

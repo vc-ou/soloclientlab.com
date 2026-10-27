@@ -1,0 +1,44 @@
+name: DB backup
+
+# 每日数据库备份（依赖仓库 Secrets：
+#   DIRECT_URL —— Supabase 直连地址（不要用连接池地址，pg_dump 走 pooler 会失败）
+# 备份以 Actions artifact 形式保留 90 天；私有仓的 artifact 仅仓库成员可见。
+on:
+  schedule:
+    - cron: "17 3 * * *" # 每天 03:17 UTC
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Dump
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          if [ -z "$DIRECT_URL" ]; then
+            echo "::error::缺少仓库 Secret DIRECT_URL（Supabase 直连地址）"
+            exit 1
+          fi
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          pg_dump "$DIRECT_URL" --no-owner --no-privileges -Fc -f "backup-$STAMP.dump"
+          ls -lh backup-*.dump
+
+      - name: Verify dump is readable
+        run: |
+          FILE=$(ls backup-*.dump | head -1)
+          pg_restore --list "$FILE" > /dev/null
+          echo "OK: $FILE"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup-*.dump
+          retention-days: 90
+          if-no-files-found: error
