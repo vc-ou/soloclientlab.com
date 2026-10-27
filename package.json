@@ -13,7 +13,13 @@
     "postdeploy:indexnow": "node scripts/submit-indexnow.mjs --changed",
     "db:init": "node --env-file=.env.local scripts/init-db.mjs",
     "db:import": "node --env-file=.env.local scripts/import-json-to-db.mjs",
-    "storage:init": "node --env-file=.env.local scripts/init-storage.mjs"
+    "storage:init": "node --env-file=.env.local scripts/init-storage.mjs",
+    "lint": "eslint app components lib",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "check:boundaries:report": "node scripts/check-boundaries.mjs --report",
+    "verify": "npm run typecheck && npm run lint && npm run check:boundaries && npm run test && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
@@ -35,6 +41,9 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.8.0"
+    "@typescript-eslint/parser": "^8.72.1",
+    "eslint": "^9.39.5",
+    "typescript": "^5.8.0",
+    "vitest": "^5.0.5"
   }
 }

@@ -1,0 +1,50 @@
+name: CI
+
+# 四件套：类型 → 边界 lint → 体积/路由预算 → 构建。
+# 这四步与本地 `npm run verify` 完全一致，避免"本地过了 CI 挂了"。
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # CI 不连生产库：留空即走本地 seed 兜底（lib/db.ts 的行为），构建不需要真实数据。
+      DATABASE_URL: ""
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Boundary lint（R1–R3）
+        run: npm run lint
+
+      - name: Size & route budgets（R4–R5）
+        run: npm run check:boundaries
+
+      - name: Contract tests（L4）
+        run: npm run test
+
+      - name: Build
+        run: npm run build
