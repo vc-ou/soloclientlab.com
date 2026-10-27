@@ -21,6 +21,23 @@ Next.js 16 (App Router) · React 19 · TypeScript · Postgres (direct SQL) · Su
 > 这些文档含收入与漏斗现状、运营自评、已知债——只对内。
 > 若要版本化，放到独立的**私有**仓库，不要放回这里。
 
+## Two repositories: public code, private notes
+
+This repository is **public** (Vercel's Hobby plan can only auto-deploy public repos). Anything that is not safe to publish lives in a separate **private** repo, `soloclientlab-internal`.
+
+| Public (this repo) | Private (`soloclientlab-internal`) |
+|---|---|
+| Deployable code: `app/`, `lib/`, `components/`, `scripts/`, `tests/` | Architecture, boundary contract, admin IA, RUNBOOK, ADRs |
+| `README.md`, `.env.example`, CI config | Revenue/funnel data, ops notes, content strategy drafts |
+
+Guardrails:
+
+- `npm run check:public` scans tracked paths and contents for sensitive material.
+- `pre-commit` and `pre-push` hooks run the same check, so a leak is stopped before it leaves the machine.
+- CI runs it too, so a bypassed hook still fails the build.
+
+If a file must not be public, move it to the private repo instead of adding it here.
+
 ## Quick start
 
 ```bash

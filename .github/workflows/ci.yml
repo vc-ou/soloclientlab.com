@@ -43,6 +43,9 @@ jobs:
       - name: Size & route budgets（R4–R5）
         run: npm run check:boundaries
 
+      - name: Public repo gate（敏感路径/密钥）
+        run: npm run check:public
+
       - name: Contract tests（L4）
         run: npm run test
 
