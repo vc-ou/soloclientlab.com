@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminShell, FormActions } from "@/components/admin";
 import { ProductEditorFields } from "@/components/product-editor-fields";
 import { upsertProduct } from "@/lib/actions";
-import { getAdminProducts, getProductById } from "@/lib/db";
+import { getAdminProducts, getProductById } from "@/lib/domains/catalog";
 
 type ProductEditorProps = {
   params: Promise<{ id: string }>;
@@ -41,9 +41,13 @@ export default async function ProductEditorPage({ params, searchParams }: Produc
               <span className="admin-pill">{product.payment_enabled ? "已启用收款" : "未启用收款"}</span>
             </div>
             <div className="resource-preview-links">
-              <Link href={`/products/${product.slug}`} target="_blank" rel="noreferrer" className="button secondary">
-                打开公开页
-              </Link>
+              {product.status === "published" ? (
+                <Link href={`/products/${product.slug}`} target="_blank" rel="noreferrer" className="button secondary">
+                  打开公开页
+                </Link>
+              ) : (
+                <span className="admin-pill">未发布：公开页返回 404</span>
+              )}
               {product.landing_page_url ? (
                 <Link href={product.landing_page_url} target="_blank" rel="noreferrer" className="button ghost">
                   打开落地页

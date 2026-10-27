@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TrackPostAnalytics } from "@/components/post-analytics";
 import { TrackedMarkdown } from "@/components/tracked-markdown";
 import { formatDate, labelForTopic } from "@/lib/format";
+import { resolvePostCta } from "@/lib/post-cta";
 import type { Post } from "@/lib/types";
 
 export function PostDetail({
@@ -14,6 +15,7 @@ export function PostDetail({
   trackAnalytics?: boolean;
 }) {
   const topicLabel = labelForTopic(post.topic_tag);
+  const cta = resolvePostCta(post);
 
   return (
     <section className="container">
@@ -32,9 +34,22 @@ export function PostDetail({
             <TrackedMarkdown content={post.content ?? ""} postId={post.id} postSlug={post.slug} />
           </div>
 
+          {cta ? (
+            <aside className="post-cta-card">
+              <div>
+                <p className="eyebrow">Next step</p>
+                <h2>{cta.title}</h2>
+                <p>{cta.description}</p>
+              </div>
+              <Link className="button primary" href={cta.href} prefetch={false}>
+                {cta.label} <span aria-hidden="true">→</span>
+              </Link>
+            </aside>
+          ) : null}
+
           {post.faq && post.faq.length ? (
             <section className="faq-block" style={{ marginTop: 32 }}>
-              <h2>常见问题</h2>
+              <h2>Frequently asked questions</h2>
               <div className="faq-list">
                 {post.faq.map((item, index) => (
                   <div className="faq-item" key={index} style={{ marginBottom: 16 }}>

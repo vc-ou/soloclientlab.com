@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AdminShell, SimpleTable } from "@/components/admin";
 import { formatAdminLabel } from "@/lib/admin-labels";
 import { topicLabels } from "@/lib/content";
-import { getResourcePerformance } from "@/lib/db";
+import { getResourcePerformance } from "@/lib/domains/content";
 
 function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
@@ -14,7 +14,7 @@ export default async function AdminResourcesPage() {
   return (
     <AdminShell title="辅助页面">
       <div className="admin-topbar">
-        <p>配置辅助页面的元信息、交付设置和更新路径跟踪。</p>
+        <p>公开辅助页面已下线（统一 301 到 /research）。此表保留历史交付配置与订阅归因数据。</p>
         <Link href="/admin/resources/new" className="button primary">
           新建页面配置
         </Link>

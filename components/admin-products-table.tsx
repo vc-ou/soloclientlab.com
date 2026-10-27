@@ -82,9 +82,16 @@ export function AdminProductsTable({ initialProducts }: { initialProducts: Produ
         formatAdminLabel(product.delivery_mode),
         formatUsd(product.price_cents, product.currency),
         formatEnabled(product.payment_enabled),
-        <Link key={`${product.id}-view`} href={`/products/${product.slug}`} target="_blank" rel="noreferrer">
-          打开
-        </Link>,
+        // 只有已发布商品才有公开页；草稿/归档会 404，这里直接标注而不是给死链。
+        product.status === "published" ? (
+          <Link key={`${product.id}-view`} href={`/products/${product.slug}`} target="_blank" rel="noreferrer">
+            打开
+          </Link>
+        ) : (
+          <span key={`${product.id}-view`} style={{ color: "var(--muted)" }}>
+            未发布
+          </span>
+        ),
         <Link key={`${product.id}-edit`} href={`/admin/products/${product.id}`}>
           编辑
         </Link>,

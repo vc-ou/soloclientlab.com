@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/domains/identity";
 
 export const dynamic = "force-dynamic";
 

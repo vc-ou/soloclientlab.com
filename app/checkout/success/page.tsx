@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExtensionInstallLink } from "@/components/extension-install-link";
-import { ensureProductLicenseKey, getPaidProductLicenseAccessByCheckoutSessionId } from "@/lib/db";
+import { ensureProductLicenseKey, getPaidProductLicenseAccessByCheckoutSessionId } from "@/lib/domains/commerce";
 import {
   getLeadRadarExtensionSupportCopy,
   getNeedRadarExtensionSupportCopy,
@@ -9,7 +9,7 @@ import {
   hasNeedRadarEdgeAddonsListing
 } from "@/lib/extension-links";
 import { buildLicenseKey, getLicenseKeySuffix, hashLicenseSecret } from "@/lib/licenses";
-import { getProductBySlug } from "@/lib/db";
+import { getProductBySlug } from "@/lib/domains/catalog";
 import type { ProductSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -23,27 +23,38 @@ function parseProductSlug(value?: string): ProductSlug {
 export default async function CheckoutSuccessPage({
   searchParams
 }: {
-  searchParams: Promise<{ order_id?: string; product?: string }>;
+  searchParams: Promise<{
+    order_id?: string;
+    session_id?: string;
+    provider?: string;
+    product?: string;
+  }>;
 }) {
   const params = await searchParams;
   const productSlug = parseProductSlug(params.product);
   const product = await getProductBySlug(productSlug);
   const isNeedRadar = product?.slug === "needradar-workflow-lab";
   const hasEdgeListing = isNeedRadar ? hasNeedRadarEdgeAddonsListing() : product?.slug === "leadradar" ? hasLeadRadarEdgeAddonsListing() : false;
-  const productName = product?.name ?? "商品";
+  const productName = product?.name ?? "the product";
   const productPath = product ? `/products/${product.slug}` : "/products";
   const extensionSupportCopy = isNeedRadar
     ? getNeedRadarExtensionSupportCopy()
     : product?.slug === "leadradar"
       ? getLeadRadarExtensionSupportCopy()
       : "Payment has been confirmed. Return to the product page for the current install or access instructions.";
-  const orderId = typeof params.order_id === "string" ? params.order_id : undefined;
+  // PayPal 回跳带 order_id，Stripe success_url 带 session_id；两者都能命中
+  // product_payments.provider_checkout_session_id，这里统一取其中一个。
+  const checkoutSessionId =
+    (typeof params.order_id === "string" && params.order_id) ||
+    (typeof params.session_id === "string" && params.session_id) ||
+    undefined;
+  const providerLabel = params.provider === "stripe" ? "card" : "PayPal";
   let hasPaidAccess = false;
   let licenseKey: string | undefined;
 
-  if (orderId) {
+  if (checkoutSessionId) {
     try {
-      const access = await getPaidProductLicenseAccessByCheckoutSessionId(orderId, productSlug);
+      const access = await getPaidProductLicenseAccessByCheckoutSessionId(checkoutSessionId, productSlug);
       hasPaidAccess = Boolean(access);
       if (access) {
         licenseKey = buildLicenseKey(productSlug, access.payment.id, access.entitlement.id);
@@ -57,7 +68,7 @@ export default async function CheckoutSuccessPage({
         });
       }
     } catch (error) {
-      console.error(`Failed to verify paid access for checkout success order ${orderId}:`, error);
+      console.error(`Failed to verify paid access for checkout session ${checkoutSessionId}:`, error);
     }
   }
 
@@ -65,10 +76,14 @@ export default async function CheckoutSuccessPage({
     <section className="container page-section">
       <div className="section-panel narrow-panel">
         <p className="eyebrow">Payment received</p>
-        <h1>{hasPaidAccess ? "Your PayPal payment is confirmed" : "Your PayPal payment is being confirmed"}</h1>
+        <h1>
+          {hasPaidAccess
+            ? `Your ${providerLabel} payment is confirmed`
+            : `Your ${providerLabel} payment is being confirmed`}
+        </h1>
         <p>
           {hasPaidAccess
-            ? "PayPal has confirmed the payment. You can install now, and setup follow-up can continue from the billing email."
+            ? `${providerLabel} has confirmed the payment. You can install now, and setup follow-up can continue from the billing email.`
             : "We could not verify a completed payment for this page yet. Return to the product page to restart checkout if needed."}
         </p>
         <p>

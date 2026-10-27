@@ -13,7 +13,8 @@ const initialState: ActionState = {
   message: ""
 };
 
-const SUBMISSION_TIMEOUT_MESSAGE = "提交暂时没有完成，请通过邮箱联系。邮箱地址：soloclientlab.com@gmail.com";
+const SUBMISSION_TIMEOUT_MESSAGE =
+  "The submission did not finish. Please try again, or email soloclientlab.com@gmail.com.";
 const SUBMISSION_TIMEOUT_MS = 6000;
 
 function FeedbackModal({

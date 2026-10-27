@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublicPosts } from "@/lib/db";
+import { getPublicPosts } from "@/lib/domains/content";
+import { labelForTopic } from "@/lib/format";
 
 const leadRadarProductHref = "/products/leadradar";
 const homeTitle = "CNC Lead Generation Tools for Manufacturing Teams | SoloClientLab";
@@ -83,34 +84,21 @@ function ProductWindow({ compact = false }: { compact?: boolean }) {
 
 export default async function HomePage() {
   const posts = await getPublicPosts();
-  const guideCards = [
-    {
-      meta: "Client acquisition · 3 min",
-      title: "How to get your first clients when you don't have a network",
-      summary: "Start with visible problems, small proof, and low-pressure conversations.",
-      href: posts[0] ? `/research/${posts[0].slug}` : "/research"
-    },
-    {
-      meta: "SEO · 6 min",
-      title: "Solo practitioner SEO without content volume",
-      summary: "Build a small search-driven acquisition system around judgment and proof.",
-      href: posts[1] ? `/research/${posts[1].slug}` : "/research"
-    },
-    {
-      meta: "Client acquisition · 4 min",
-      title: "How to get SEO clients without cold calling",
-      summary: "Use real context to make the first conversation easier.",
-      href: posts[2] ? `/research/${posts[2].slug}` : "/research"
-    }
-  ];
+  // 卡片标题/摘要直接取最新文章，避免首页写死文案与正文标题不一致。
+  const guideCards = posts.slice(0, 3).map((post) => ({
+    meta: `${labelForTopic(post.topic_tag)} · ${post.read_time ?? "6 min read"}`,
+    title: post.title,
+    summary: post.summary ?? "",
+    href: `/research/${post.slug}`
+  }));
 
   return (
     <div className="home-reference" id="top">
       <section className="scl-hero container">
         <div className="scl-hero-copy">
-          <div className="scl-mono">SoloClientLab · Practical work tools</div>
-          <h1>Small tools for getting solo work done.</h1>
-          <p>Practical software that helps independent professionals find opportunities, organize client work, and spend less time on repetitive tasks.</p>
+          <div className="scl-mono">SoloClientLab · CNC &amp; manufacturing lead generation</div>
+          <h1>Lead generation tools for CNC and manufacturing teams.</h1>
+          <p>LeadRadar finds buying and sourcing signals in public conversations, so you can review real demand instead of guessing. One focused workflow, no bloated setup.</p>
           <div className="scl-actions">
             <Link className="button primary" href="/products" prefetch={false}>Explore tools <span aria-hidden="true">→</span></Link>
             <Link className="button secondary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action</Link>
@@ -195,16 +183,18 @@ export default async function HomePage() {
           <div><div className="scl-mono">Guides</div><h2>Practical guides for independent work.</h2></div>
           <Link className="button secondary" href="/research" prefetch={false}>Browse practical guides <span aria-hidden="true">→</span></Link>
         </div>
-        <div className="scl-guide-grid">
-          {guideCards.map((guide) => (
-            <Link className="scl-guide" href={guide.href} key={guide.title} prefetch={false}>
-              <div className="scl-mono">{guide.meta}</div>
-              <h3>{guide.title}</h3>
-              <p>{guide.summary}</p>
-              <div className="scl-guide-meta">PRACTICAL GUIDE →</div>
-            </Link>
-          ))}
-        </div>
+        {guideCards.length ? (
+          <div className="scl-guide-grid">
+            {guideCards.map((guide) => (
+              <Link className="scl-guide" href={guide.href} key={guide.href} prefetch={false}>
+                <div className="scl-mono">{guide.meta}</div>
+                <h3>{guide.title}</h3>
+                <p>{guide.summary}</p>
+                <div className="scl-guide-meta">PRACTICAL GUIDE →</div>
+              </Link>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="scl-closing container">

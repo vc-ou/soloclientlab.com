@@ -1,8 +1,12 @@
 import { AdminShell, FormActions } from "@/components/admin";
 import { upsertResource } from "@/lib/actions";
 import Link from "next/link";
-import { getResourceById, getResourcePerformance } from "@/lib/db";
-import { getResourceDeliveryLabel, getResourceDeliveryPath, getResourceLandingPath } from "@/lib/resource-delivery";
+import { getResourceById, getResourcePerformance } from "@/lib/domains/content";
+import {
+  getResourceLandingPath,
+  resourcesFrontendNotice,
+  resourcesFrontendRetired
+} from "@/lib/resource-delivery";
 
 type ResourceEditorProps = {
   params: Promise<{ id: string }>;
@@ -14,13 +18,15 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
   const performance = resource
     ? (await getResourcePerformance()).find((item) => item.id === resource.id)
     : null;
-  const landingPath = resource ? getResourceLandingPath(resource) : null;
-  const deliveryPath = resource ? getResourceDeliveryPath(resource) : null;
+  const landingPath = getResourceLandingPath(resource ?? undefined);
 
   return (
     <AdminShell title={resource ? "编辑辅助页面" : "新建辅助页面"}>
       <form action={upsertResource} className="admin-form">
         <input type="hidden" name="id" value={resource?.id ?? ""} />
+        {resourcesFrontendRetired ? (
+          <p className="admin-action-feedback">{resourcesFrontendNotice}</p>
+        ) : null}
         <div className="admin-fields-2">
           <label className="field">
             <span>标题</span>
@@ -70,7 +76,7 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
           <label className="field">
             <span>落地页 Slug</span>
             <input name="landing_page_slug" defaultValue={resource?.landing_page_slug ?? ""} />
-            <small className="field-help">用于公开辅助页面和站内路由。</small>
+            <small className="field-help">历史字段：公开辅助页面已下线，不再生成 /resources/* 路由。</small>
           </label>
           <label className="field">
             <span>交付方式</span>
@@ -79,32 +85,27 @@ export default async function ResourceEditorPage({ params }: ResourceEditorProps
               <option value="file">文件</option>
               <option value="external">外部链接</option>
             </select>
-            <small className="field-help">页面使用站内页面流程，文件提供下载路径，外部链接打开托管地址。</small>
+            <small className="field-help">历史字段：公开交付流程已下线，仅作记录。</small>
           </label>
           <label className="field">
             <span>交付 URL / 文件路径</span>
             <input name="delivery_url" defaultValue={resource?.delivery_url ?? ""} />
-            <small className="field-help">页面填写站内路径，文件填写公开文件路径，外部链接填写完整网址。</small>
+            <small className="field-help">历史字段：仅作记录，不会生成可访问链接。</small>
           </label>
         </div>
         {resource ? (
           <section className="admin-card resource-preview-card">
             <div className="resource-preview-header">
               <div>
-                <h2>辅助页面预览</h2>
-                <p>快速检查辅助订阅或交付流程。</p>
+                <h2>历史配置</h2>
+                <p>公开辅助页面已下线，这里只保留历史交付配置与订阅归因数据。</p>
               </div>
               <span className="admin-pill">{performance?.subscriberCount ?? 0} 位联系人</span>
             </div>
             <div className="resource-preview-links">
               {landingPath ? (
                 <Link href={landingPath} target="_blank" rel="noreferrer" className="button secondary">
-                  打开落地页
-                </Link>
-              ) : null}
-              {deliveryPath ? (
-                <Link href={deliveryPath} target="_blank" rel="noreferrer" className="button ghost">
-                  {getResourceDeliveryLabel(resource)}
+                  打开替代页面（/research）
                 </Link>
               ) : null}
             </div>

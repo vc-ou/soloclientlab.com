@@ -330,7 +330,7 @@ export function MarkdownEditor({
           <input
             value={manualArticlePath}
             onChange={(event) => setManualArticlePath(event.target.value)}
-            placeholder="/research/slug 或 /demand-radar"
+            placeholder="/research/slug 或 /products/slug"
           />
         </label>
         <label>

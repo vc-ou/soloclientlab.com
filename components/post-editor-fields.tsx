@@ -100,6 +100,26 @@ export function PostEditorFields({
         <span>SEO 描述</span>
         <textarea name="seo_description" rows={3} defaultValue={post?.seo_description ?? ""} />
       </label>
+      <div className="admin-fields-2">
+        <label className="field">
+          <span>文末 CTA 类型</span>
+          <select name="cta_type" defaultValue={post?.cta_type ?? ""}>
+            <option value="">不显示 CTA</option>
+            <option value="waitlist">产品访问（waitlist）</option>
+            <option value="lead_magnet">资料 / 指南（lead_magnet）</option>
+            <option value="product">商品页（product）</option>
+            <option value="newsletter">邮件订阅（newsletter）</option>
+          </select>
+          <small className="field-help">渲染在正文之后、FAQ 之前。</small>
+        </label>
+        <label className="field">
+          <span>文末 CTA 链接</span>
+          <input name="cta_target" defaultValue={post?.cta_target ?? ""} placeholder="/products/leadradar" />
+          <small className="field-help">
+            只接受站内路径（以 / 开头）。/resources/* 已下线，会自动回落到 /research。
+          </small>
+        </label>
+      </div>
       <label className="field">
         <span>FAQ（JSON 数组，用于 Google 富摘要）</span>
         <textarea
