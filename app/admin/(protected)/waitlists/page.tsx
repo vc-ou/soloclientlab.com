@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
 import { waitlistInterestOptions, waitlistProjects } from "@/lib/content";
-import { getFilteredWaitlists, getWaitlistFilterOptions } from "@/lib/db";
+import { getFilteredWaitlists, getWaitlistFilterOptions } from "@/lib/domains/leads";
 
 type AdminWaitlistsPageProps = {
   searchParams: Promise<{

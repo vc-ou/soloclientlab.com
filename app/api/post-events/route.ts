@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getPostBySlug, trackPostEvent } from "@/lib/db";
+import { getPostBySlug } from "@/lib/domains/content";
+import { trackPostEvent } from "@/lib/domains/analytics";
 
 type RequestBody = {
   postId?: string;

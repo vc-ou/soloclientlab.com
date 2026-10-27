@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
-import { getPostBySlug } from "@/lib/db";
+import { getPostBySlug } from "@/lib/domains/content";
 import { labelForTopic } from "@/lib/format";
 
 export const alt = "SoloClientLab research article preview";

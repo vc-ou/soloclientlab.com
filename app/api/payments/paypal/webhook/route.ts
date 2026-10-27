@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/db";
+import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
 import { amountStringToCents, verifyPayPalWebhookSignature } from "@/lib/paypal";
 
 export const runtime = "nodejs";

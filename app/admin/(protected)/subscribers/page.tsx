@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AdminShell, FilterForm } from "@/components/admin";
 import { AdminSubscriberTable } from "@/components/admin-subscriber-table";
 import { personaOptions, topicOptions } from "@/lib/content";
-import { getFilteredSubscribers, getSubscriberLeadMagnetOptions } from "@/lib/db";
+import { getFilteredSubscribers, getSubscriberLeadMagnetOptions } from "@/lib/domains/leads";
 
 type AdminSubscribersPageProps = {
   searchParams: Promise<{

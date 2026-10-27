@@ -1,5 +1,5 @@
 import { AdminShell, MetricCard } from "@/components/admin";
-import { getDashboardMetrics } from "@/lib/db";
+import { getDashboardMetrics } from "@/lib/domains/analytics";
 
 export default async function AdminOverviewPage() {
   const metrics = await getDashboardMetrics();

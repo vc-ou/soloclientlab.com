@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
 import { personaOptions, topicOptions } from "@/lib/content";
 import { formatAdminLabel } from "@/lib/admin-labels";
-import { getDemandFilterOptions, getFilteredDemands } from "@/lib/db";
+import { getDemandFilterOptions, getFilteredDemands } from "@/lib/domains/leads";
 
 type AdminDemandsPageProps = {
   searchParams: Promise<{

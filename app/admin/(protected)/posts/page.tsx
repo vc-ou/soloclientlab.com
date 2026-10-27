@@ -1,7 +1,7 @@
 import { AdminShell } from "@/components/admin";
 import { AdminLinkButton } from "@/components/admin-link-button";
 import { AdminPostsTable } from "@/components/admin-posts-table";
-import { getAdminPosts } from "@/lib/db";
+import { getAdminPosts } from "@/lib/domains/content";
 
 export default async function AdminPostsPage() {
   const posts = await getAdminPosts();

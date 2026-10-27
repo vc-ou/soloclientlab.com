@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
 import { formatAdminLabel } from "@/lib/admin-labels";
-import { getPostPerformance } from "@/lib/db";
+import { getPostPerformance } from "@/lib/domains/analytics";
 import { formatDate } from "@/lib/format";
 
 export default async function AdminPostAnalyticsPage() {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, SimpleTable } from "@/components/admin";
 import { formatAdminLabel } from "@/lib/admin-labels";
-import { getLeadRadarConfigs } from "@/lib/db";
+import { getLeadRadarConfigs } from "@/lib/domains/leads";
 
 export default async function AdminLeadRadarConfigsPage() {
   const configs = await getLeadRadarConfigs();

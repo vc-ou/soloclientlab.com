@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, PostCard, SectionHeading } from "@/components/site";
 import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
-import { getPublicPosts } from "@/lib/db";
+import { getPublicPosts } from "@/lib/domains/content";
 
 export const metadata: Metadata = {
   title: "About SoloClientLab",

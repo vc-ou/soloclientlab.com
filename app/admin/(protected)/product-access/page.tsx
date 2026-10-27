@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, SimpleTable } from "@/components/admin";
 import { formatAdminLabel, formatProductLabel } from "@/lib/admin-labels";
-import { getProductAccessRequests } from "@/lib/db";
+import { getProductAccessRequests } from "@/lib/domains/leads";
 
 export default async function AdminProductAccessPage() {
   const requests = await getProductAccessRequests();

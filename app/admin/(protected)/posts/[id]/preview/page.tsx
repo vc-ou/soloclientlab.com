@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/post-detail";
-import { getAnyPostById, getRelatedPosts } from "@/lib/db";
+import { getAnyPostById, getRelatedPosts } from "@/lib/domains/content";
 
 type PostPreviewPageProps = {
   params: Promise<{ id: string }>;

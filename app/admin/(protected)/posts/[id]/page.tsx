@@ -1,7 +1,7 @@
 import { AdminShell, FormActions } from "@/components/admin";
 import { PostEditorFields } from "@/components/post-editor-fields";
 import { upsertPost } from "@/lib/actions";
-import { getAdminPosts, getAnyPostById } from "@/lib/db";
+import { getAdminPosts, getAnyPostById } from "@/lib/domains/content";
 
 type PostEditorProps = {
   params: Promise<{ id: string }>;

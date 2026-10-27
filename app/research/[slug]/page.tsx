@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostDetail } from "@/components/post-detail";
-import { getPostBySlug, getPublicPosts, getRelatedPosts } from "@/lib/db";
+import { getPostBySlug, getPublicPosts, getRelatedPosts } from "@/lib/domains/content";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 

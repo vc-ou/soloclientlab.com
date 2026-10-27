@@ -1,6 +1,7 @@
 import { AdminShell, SimpleTable } from "@/components/admin";
 import { formatAdminLabel, formatProductLabel } from "@/lib/admin-labels";
-import { getProductTrials, getTrialEvents } from "@/lib/db";
+import { getProductTrials } from "@/lib/domains/leads";
+import { getTrialEvents } from "@/lib/domains/analytics";
 
 export default async function AdminTrialsPage() {
   const [trials, events] = await Promise.all([

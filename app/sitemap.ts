@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getPublicPosts, getPublicProducts } from "@/lib/db";
+import { getPublicPosts } from "@/lib/domains/content";
+import { getPublicProducts } from "@/lib/domains/catalog";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.soloclientlab.com";
 const staticLastModified = {

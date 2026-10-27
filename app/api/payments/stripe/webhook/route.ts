@@ -1,7 +1,7 @@
 import "server-only";
 
 import Stripe from "stripe";
-import { fulfillPaidProductPayment, withDatabaseTimeout } from "@/lib/db";
+import { fulfillPaidProductPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import type { ProductAccessType, ProductSlug } from "@/lib/types";
 

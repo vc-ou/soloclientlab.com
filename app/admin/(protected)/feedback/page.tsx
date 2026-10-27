@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
 import { formatProductLabel } from "@/lib/admin-labels";
-import { getFeedbackSourcePageOptions, getFilteredFeedback } from "@/lib/db";
+import { getFeedbackSourcePageOptions, getFilteredFeedback } from "@/lib/domains/leads";
 
 type AdminFeedbackPageProps = {
   searchParams: Promise<{

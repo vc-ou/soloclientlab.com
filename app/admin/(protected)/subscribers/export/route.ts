@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { getFilteredSubscribers } from "@/lib/db";
+import { getFilteredSubscribers } from "@/lib/domains/leads";
 
 function escapeCsv(value: string) {
   if (value.includes(",") || value.includes("\"") || value.includes("\n")) {

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { verifyProductLicenseToken } from "@/lib/db";
+import { verifyProductLicenseToken } from "@/lib/domains/commerce";
 import { buildDeviceIdHash, buildLicenseTokenHash } from "@/lib/licenses";
 import type { ProductSlug } from "@/lib/types";
 

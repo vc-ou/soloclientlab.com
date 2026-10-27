@@ -1,6 +1,6 @@
 import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
 import { formatAdminLabel, formatProductLabel } from "@/lib/admin-labels";
-import { getProductPayments } from "@/lib/db";
+import { getProductPayments } from "@/lib/domains/commerce";
 import type { ProductPayment } from "@/lib/types";
 
 function formatMoney(amount?: number, currency = "USD") {

@@ -3,7 +3,7 @@ import { AdminShell, MetricCard } from "@/components/admin";
 import { AdminProductsTable } from "@/components/admin-products-table";
 import { SyncCodeProductsButton } from "@/components/sync-code-products-button";
 import { syncCodeProducts } from "@/lib/actions";
-import { getAdminProducts } from "@/lib/db";
+import { getAdminProducts } from "@/lib/domains/catalog";
 import type { Product } from "@/lib/types";
 
 type AdminProductsPageProps = {

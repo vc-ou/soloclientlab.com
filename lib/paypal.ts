@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getOptionalEnv, getRequiredEnv } from "@/lib/env";
-import { getProductBySlug } from "@/lib/db";
+import { getProductBySlug } from "@/lib/domains/catalog";
 import type { ProductSlug } from "@/lib/types";
 
 type PayPalLink = {

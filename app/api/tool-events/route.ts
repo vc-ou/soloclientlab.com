@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isInternalAnalyticsRequest } from "@/lib/analytics-filters";
-import { trackPostEvent, trackTrialEvent } from "@/lib/db";
+import { trackPostEvent, trackTrialEvent } from "@/lib/domains/analytics";
 import type { ProductSlug, TrialEventType } from "@/lib/types";
 
 type RequestBody = {

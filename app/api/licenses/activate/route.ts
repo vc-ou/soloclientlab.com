@@ -1,6 +1,6 @@
 import "server-only";
 
-import { activateProductLicense } from "@/lib/db";
+import { activateProductLicense } from "@/lib/domains/commerce";
 import {
   buildDeviceIdHash,
   buildLicenseTokenHash,

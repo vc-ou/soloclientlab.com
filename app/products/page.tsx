@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProductsCatalog } from "@/components/products-catalog";
-import { getPublicProducts } from "@/lib/db";
+import { getPublicProducts } from "@/lib/domains/catalog";
 
 export const metadata: Metadata = {
   title: {

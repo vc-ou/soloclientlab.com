@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, PostCard } from "@/components/site";
 import { labelForTopic } from "@/lib/format";
-import { getPublicPosts } from "@/lib/db";
+import { getPublicPosts } from "@/lib/domains/content";
 import { topicOptions } from "@/lib/content";
 
 type ResearchPageProps = {

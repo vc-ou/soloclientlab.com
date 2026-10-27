@@ -1,7 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, withDatabaseTimeout } from "@/lib/db";
+import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, withDatabaseTimeout } from "@/lib/domains/commerce";
 import { capturePayPalOrder, getPayPalCapturedOrderDetails } from "@/lib/paypal";
 
 export const runtime = "nodejs";

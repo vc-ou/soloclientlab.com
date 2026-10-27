@@ -1,7 +1,7 @@
 import { AdminShell, FormActions } from "@/components/admin";
 import { upsertDemand } from "@/lib/actions";
 import { personaOptions, topicOptions } from "@/lib/content";
-import { getDemandById } from "@/lib/db";
+import { getDemandById } from "@/lib/domains/leads";
 
 type DemandEditorProps = {
   params: Promise<{ id: string }>;
