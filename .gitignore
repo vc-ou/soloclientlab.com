@@ -11,3 +11,17 @@ tmp/
 *.tsbuildinfo
 english-draft-why-manually-scanning-comments-is-a-bad-way-to-find-demand-signals.md
 .gstack/
+
+soloclientlab-gsc-api-*.json
+
+# --- 公开仓库隔离（origin 为 github.com/vc-ou/soloclientlab.com，public）---
+# 本仓库只放可部署代码。以下为内部资料，一律不随仓库发布：
+# docs/      架构/边界/后台 IA/ADR：含收入与漏斗现状、已知债、运营自评
+# .workbuddy/ 工作记录
+# SEO-*.md   内容策略稿
+docs/
+.workbuddy/
+SEO-*.md
+
+# 本地工具（gh 二进制等），不入库
+.tools/
