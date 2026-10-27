@@ -19,25 +19,22 @@ export function isLicensedProduct(value: unknown): value is ProductSlug {
 
 const base32Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-let warnedAboutFallbackSecret = false;
-
 function getLicenseSigningSecret() {
   const dedicated = getOptionalEnv("LICENSE_SIGNING_SECRET");
-  const secret = dedicated ?? getOptionalEnv("PAYPAL_CLIENT_SECRET");
+  if (dedicated) return dedicated;
 
-  // 回退到 PayPal 密钥是危险的：轮换 PayPal 密钥会让所有已发出的授权码失效。
-  // 现在只要用到回退就报警，并且不再静默。
-  if (!dedicated && secret && !warnedAboutFallbackSecret) {
-    warnedAboutFallbackSecret = true;
-    console.warn(
-      "[licensing] LICENSE_SIGNING_SECRET 未配置，正在回退使用 PAYPAL_CLIENT_SECRET。" +
-        "轮换 PayPal 密钥会导致所有已发放的授权码失效，请尽快配置独立的 LICENSE_SIGNING_SECRET。"
+  // 生产环境必须使用独立的密钥，**不再回退**到 PAYPAL_CLIENT_SECRET。
+  // 回退的后果是：轮换 PayPal 密钥会静默地把签名密钥换掉，导致所有已发出的授权码失效，
+  // 而且没有任何报错——这比启动失败危险得多。宁可让请求失败。
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Missing required environment variable: LICENSE_SIGNING_SECRET。" +
+        "生产环境不会回退到 PAYPAL_CLIENT_SECRET（轮换 PayPal 密钥会让已发授权码全部失效）。" +
+        "请在 Vercel 的 Production 与 Preview 环境都配置该变量。"
     );
   }
 
-  if (secret) return secret;
-  if (process.env.NODE_ENV !== "production") return "development-license-signing-secret";
-  throw new Error("Missing required environment variable: LICENSE_SIGNING_SECRET");
+  return "development-license-signing-secret";
 }
 
 function toBase32(bytes: Buffer) {
