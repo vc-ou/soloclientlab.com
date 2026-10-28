@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "./styles/site-01.css";
+import "./styles/site-02.css";
+import "./styles/site-03.css";
+import "./styles/site-04.css";
+import "./styles/site-05.css";
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/600.css";
 import "@fontsource/source-sans-3/700.css";

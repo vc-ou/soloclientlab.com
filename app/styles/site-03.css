@@ -1,0 +1,1103 @@
+/* 站点样式 第 3/5 段（按顺序导入，级联顺序与原 globals.css 一致） */
+.leadradar-feed-preview {
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(105, 82, 202, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(120, 82, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 241, 255, 0.88));
+}
+
+.leadradar-feed-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(105, 82, 202, 0.08);
+}
+
+.leadradar-feed-topbar p {
+  margin: 0 0 0 4px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.leadradar-feed-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(105, 82, 202, 0.22);
+}
+
+.leadradar-feed-list {
+  display: grid;
+  gap: 10px;
+  max-height: 340px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.leadradar-feed-list-live {
+  scroll-behavior: smooth;
+}
+
+.leadradar-feed-comment {
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(105, 82, 202, 0.08);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.leadradar-feed-comment.is-visible {
+  border-color: rgba(91, 47, 224, 0.22);
+  box-shadow: 0 10px 24px rgba(91, 47, 224, 0.08);
+  transform: translateY(-1px);
+}
+
+.leadradar-feed-comment.is-captured {
+  border-color: rgba(17, 152, 103, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 252, 247, 0.92));
+}
+
+.leadradar-feed-comment-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.leadradar-feed-comment strong {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.leadradar-feed-comment p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.leadradar-feed-captured-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(17, 152, 103, 0.12);
+  color: #0b7a52;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.leadradar-capture-hint {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(105, 82, 202, 0.1);
+  background: rgba(255, 255, 255, 0.84);
+  margin: 10px 0;
+}
+
+.leadradar-capture-hint strong {
+  font-size: 0.96rem;
+  color: var(--text);
+}
+
+.leadradar-capture-hint p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.leadradar-flow-shell {
+  margin-top: -8px;
+}
+
+.leadradar-flow-status {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+  margin: 10px 0;
+}
+
+.leadradar-flow-status::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(17, 152, 103, 0.18), rgba(105, 82, 202, 0.14));
+  z-index: 0;
+}
+
+.leadradar-flow-step {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.leadradar-flow-node {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(105, 82, 202, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--primary);
+  font-size: 0.96rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(59, 42, 125, 0.05);
+}
+
+.leadradar-flow-step p {
+  margin: 0;
+  max-width: 16ch;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.leadradar-flow-step.is-active .leadradar-flow-node {
+  background: linear-gradient(135deg, rgba(91, 47, 224, 0.14), rgba(122, 87, 255, 0.2));
+  border-color: rgba(91, 47, 224, 0.22);
+  color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.leadradar-flow-step.is-active p {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.leadradar-flow-step.is-done .leadradar-flow-node {
+  background: rgba(17, 152, 103, 0.12);
+  border-color: rgba(17, 152, 103, 0.18);
+  color: #0b7a52;
+}
+
+.leadradar-flow-step.is-done p {
+  color: var(--text);
+}
+
+.leadradar-flow-step:disabled {
+  cursor: not-allowed;
+}
+
+.leadradar-flow-step:disabled .leadradar-flow-node,
+.leadradar-flow-step:disabled p {
+  opacity: 0.45;
+}
+
+.leadradar-sidebar-panel {
+  gap: 18px;
+}
+
+.leadradar-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 10px 0;
+}
+
+.leadradar-summary-grid .card {
+  padding: 8px 0;
+}
+
+.leadradar-summary-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.leadradar-sidebar-stream {
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(105, 82, 202, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(120, 82, 255, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 241, 255, 0.88));
+}
+
+.leadradar-sidebar-stream-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(105, 82, 202, 0.08);
+}
+
+.leadradar-sidebar-stream-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.leadradar-sidebar-stream-head span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.leadradar-sidebar-list {
+  display: grid;
+  gap: 12px;
+  max-height: 760px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.leadradar-sidebar-card {
+  padding: 18px 18px 16px;
+}
+
+.leadradar-review-shell,
+.leadradar-review-toolbar,
+.leadradar-review-grid,
+.leadradar-review-card,
+.leadradar-review-card-top,
+.leadradar-review-details,
+.leadradar-review-footer,
+.leadradar-chip-group {
+  display: grid;
+  gap: 14px;
+}
+
+.leadradar-review-toolbar {
+  margin-top: 4px;
+}
+
+.leadradar-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leadradar-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(105, 82, 202, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.leadradar-filter-pill.is-active {
+  background: rgba(91, 47, 224, 0.12);
+  color: var(--primary-dark);
+  border-color: rgba(91, 47, 224, 0.18);
+}
+
+.leadradar-review-grid {
+  margin-top: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.leadradar-review-card {
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(105, 82, 202, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-soft);
+}
+
+.leadradar-review-card-top,
+.leadradar-review-footer,
+.leadradar-review-details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.leadradar-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leadradar-priority-chip,
+.leadradar-plain-chip,
+.leadradar-score-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.leadradar-priority-chip {
+  font-weight: 700;
+}
+
+.leadradar-plain-chip {
+  background: rgba(91, 47, 224, 0.08);
+  color: var(--primary-dark);
+}
+
+.leadradar-score-chip {
+  background: rgba(245, 158, 11, 0.12);
+  color: #9a5a07;
+  font-weight: 700;
+}
+
+.leadradar-priority-chip.tone-strong {
+  background: rgba(17, 152, 103, 0.12);
+  color: #0b7a52;
+}
+
+.leadradar-priority-chip.tone-medium {
+  background: rgba(59, 130, 246, 0.12);
+  color: #375d93;
+}
+
+.leadradar-priority-chip.tone-neutral {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+}
+
+.leadradar-review-comment {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.leadradar-review-details {
+  padding-top: 16px;
+  border-top: 1px solid rgba(24, 32, 24, 0.08);
+}
+
+.leadradar-review-details > div {
+  flex: 1;
+  min-width: 220px;
+}
+
+.leadradar-detail-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.leadradar-review-details strong {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.55;
+  font-size: 0.94rem;
+}
+
+.leadradar-review-footer {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(24, 32, 24, 0.12);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.leadradar-step-actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+.leadradar-summary-grid .card h3 {
+  font-size: 1rem;
+  margin: 0;
+  letter-spacing: -0.05em;
+}
+
+.leadradar-result-list.is-locked,
+.leadradar-locked-state {
+  border-radius: 24px;
+  border: 1px dashed rgba(105, 82, 202, 0.18);
+  background:
+    linear-gradient(180deg, rgba(249, 246, 255, 0.96), rgba(255, 255, 255, 0.92));
+}
+
+.leadradar-result-list.is-locked {
+  padding: 12px;
+}
+
+.leadradar-locked-state {
+  display: grid;
+  gap: 8px;
+  padding: 20px 22px;
+  margin-top: 10px;
+}
+
+.leadradar-locked-state strong {
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.leadradar-locked-state p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.leadradar-result-card {
+  padding: 22px 24px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.leadradar-result-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.leadradar-comment-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.leadradar-reason {
+  margin: 0;
+  color: var(--muted);
+}
+
+.leadradar-tag-row {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: start;
+  gap: 10px;
+}
+
+.leadradar-tag,
+.leadradar-intent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.leadradar-tag {
+  background: rgba(241, 235, 255, 0.92);
+  color: var(--primary);
+}
+
+.leadradar-intent-high {
+  background: rgba(17, 152, 103, 0.12);
+  color: #0b7a52;
+}
+
+.leadradar-intent-medium {
+  background: rgba(217, 119, 6, 0.14);
+  color: #9a5a07;
+}
+
+.leadradar-intent-low {
+  background: rgba(100, 116, 139, 0.14);
+  color: #475569;
+}
+
+.leadradar-feedback-grid {
+  align-items: start;
+}
+
+.leadradar-feedback-actions {
+  grid-template-columns: repeat(2, minmax(0, max-content));
+}
+
+.leadradar-faq {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 4px;
+}
+
+.leadradar-faq > h2,
+.leadradar-faq > h3 {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.leadradar-faq details {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(105, 82, 202, 0.12);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.leadradar-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text);
+}
+
+.leadradar-faq summary::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-right: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+  transform: rotate(45deg);
+  transition: transform 180ms ease;
+  margin-right: 4px;
+}
+
+.leadradar-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.leadradar-faq summary strong {
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.leadradar-faq details[open] summary {
+  margin-bottom: 10px;
+}
+
+.leadradar-faq details[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+.leadradar-faq p,
+.leadradar-faq ul {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.leadradar-faq ul {
+  padding-left: 20px;
+}
+
+@media (max-width: 980px) {
+  .leadradar-hero,
+  .leadradar-workbench,
+  .leadradar-feedback-grid,
+  .leadradar-seo-grid,
+  .leadradar-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .leadradar-review-grid,
+  .leadradar-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .leadradar-flow-status {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leadradar-flow-status::before {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .leadradar-demo-shell {
+    gap: 22px;
+  }
+
+  .leadradar-hero-copy,
+  .leadradar-hero-panel,
+  .leadradar-summary-panel,
+  .leadradar-result-card {
+    padding: 24px;
+  }
+
+  .leadradar-feedback-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .leadradar-hero-copy h1 {
+    max-width: 100%;
+  }
+
+  .leadradar-hero-points {
+    gap: 8px;
+  }
+
+  .leadradar-flow-status {
+    grid-template-columns: 1fr;
+  }
+
+  .leadradar-flow-step {
+    justify-items: start;
+    text-align: left;
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .leadradar-flow-step p {
+    max-width: none;
+    margin-top: 8px;
+  }
+}
+
+.site-footer {
+  margin-top: 80px;
+  border-top: 1px solid rgba(92, 47, 224, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.footer-shell {
+  padding: 48px 0 40px;
+  display: grid;
+  gap: 28px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  align-items: stretch;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(92, 47, 224, 0.08);
+}
+
+.footer-brand-block {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.footer-brand-link {
+  display: inline-flex;
+  align-items: baseline;
+  width: fit-content;
+  font-size: 1.3rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+
+.footer-brand-accent {
+  color: var(--primary);
+}
+
+.footer-copy {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.footer-nav-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-content: start;
+}
+
+.footer-heading {
+  margin: 0 0 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.footer-links {
+  display: grid;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.footer-links a {
+  color: var(--muted);
+  transition: color 140ms ease;
+}
+
+.footer-links a:hover {
+  color: var(--text);
+}
+
+.footer-principle {
+  height: 100%;
+  padding: 18px;
+  border-radius: 20px;
+  background: #f7f7fa;
+  border: 1px solid rgba(24, 28, 54, 0.04);
+}
+
+.footer-principle h4 {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.footer-principle p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #98a0b3;
+}
+
+.legal-page {
+  display: grid;
+  gap: 18px;
+}
+
+.legal-page h1 {
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  line-height: 1.04;
+}
+
+.legal-page p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.admin-sidebar {
+  padding: 28px 20px;
+  border-right: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-sidebar nav {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.admin-sidebar nav a,
+.admin-nav-link {
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.admin-sidebar nav a:hover,
+.admin-nav-link:hover {
+  background: var(--primary-soft);
+  border-color: rgba(24, 28, 54, 0.08);
+  transform: translateX(2px);
+}
+
+.admin-nav-link.is-active {
+  background: var(--primary-soft);
+  border-color: rgba(24, 28, 54, 0.14);
+  color: var(--ink);
+}
+
+.admin-nav-link.is-pending {
+  opacity: 0.72;
+}
+
+.admin-nav-link:focus-visible {
+  outline: 2px solid rgba(24, 28, 54, 0.2);
+  outline-offset: 2px;
+}
+
+.admin-nav-status {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.admin-main {
+  padding: 28px;
+}
+
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-toolbar-copy {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.segmented-control {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.segmented-control a {
+  padding: 8px 12px;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+
+.segmented-control a.is-active {
+  color: var(--ink);
+  background: var(--primary-soft);
+  border-color: rgba(24, 28, 54, 0.1);
+}
+
+.admin-route-loading-card {
+  margin-top: 0;
+}
+
+.admin-grid.metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-card p,
+.activity-item p,
+.admin-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.metric-hint,
+.insight-label {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.metric-hint {
+  display: block;
+  margin-top: 10px;
+}
+
+.admin-grid.insights {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-opt-out-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+
+.analytics-opt-out-card h2 {
+  text-align: left;
+}
+
+.analytics-opt-out-card > div:first-child p:last-child {
+  max-width: 720px;
+  margin-bottom: 0;
+}
+
+.analytics-opt-out-feedback {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.insight-card strong {
+  display: block;
+  margin: 8px 0 10px;
+  font-size: 2rem;
+  letter-spacing: -0.04em;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activity-item + .activity-item {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.data-table th {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-table-actions form {
+  margin: 0;
+}
+
+.admin-inline-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-action-feedback {
+  margin: 8px 0 0;
+  color: #b42318;
+  font-size: 0.86rem;
+}
+
+.admin-action-feedback.success {
+  color: #027a48;
+}
+
+.danger-button {
+  border-color: rgba(180, 35, 24, 0.18);
+  color: #b42318;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+.admin-modal-card {
+  width: min(640px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-modal-header h2 {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+  word-break: break-word;
+}
+
+.admin-modal-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-modal-form textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.admin-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-form,
+.auth-card {
+  width: min(820px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 26px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
