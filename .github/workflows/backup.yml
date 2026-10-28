@@ -1,40 +1,59 @@
 name: DB backup
 
-# 每日数据库备份（依赖仓库 Secrets：
-#   DIRECT_URL —— Supabase 直连地址（不要用连接池地址，pg_dump 走 pooler 会失败）
-# 备份以 Actions artifact 形式保留 90 天；私有仓的 artifact 仅仓库成员可见。
+# 每日数据库备份。
+#
+# 不依赖 Supabase 面板登录：直接用连接池的 **session 模式**（把 :6543 换成 :5432）
+# 就能跑 pg_dump。需要仓库 Secrets 之一：
+#   DATABASE_URL          —— 与 Vercel 相同的连接串（脚本自动把 6543 换成 5432）
+#   SUPABASE_SESSION_URL  —— 也可以直接给 session 模式连接串（优先级更高）
+#
+# 服务器是 PostgreSQL 17，runner 自带的是 16，所以这里装 17 的客户端。
 on:
   schedule:
-    - cron: "17 3 * * *" # 每天 03:17 UTC
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 jobs:
   dump:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     steps:
-      - name: Install PostgreSQL client
+      - name: Install PostgreSQL 17 client
         run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
 
       - name: Dump
         env:
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          SUPABASE_SESSION_URL: ${{ secrets.SUPABASE_SESSION_URL }}
+          DATABASE_URL_SECRET: ${{ secrets.DATABASE_URL }}
         run: |
-          if [ -z "$DIRECT_URL" ]; then
-            echo "::error::缺少仓库 Secret DIRECT_URL（Supabase 直连地址）"
-            exit 1
+          set -euo pipefail
+          URL="${SUPABASE_SESSION_URL:-}"
+          if [ -z "$URL" ]; then
+            if [ -z "${DATABASE_URL_SECRET:-}" ]; then
+              echo "::error::缺少 Secret：请配置 DATABASE_URL（或 SUPABASE_SESSION_URL）"
+              exit 1
+            fi
+            URL="${DATABASE_URL_SECRET/:6543/:5432}"
           fi
           STAMP=$(date -u +%Y%m%d-%H%M%S)
-          pg_dump "$DIRECT_URL" --no-owner --no-privileges -Fc -f "backup-$STAMP.dump"
+          pg_dump "$URL" --no-owner --no-privileges -Fc -f "backup-$STAMP.dump"
           ls -lh backup-*.dump
 
       - name: Verify dump is readable
         run: |
+          set -euo pipefail
           FILE=$(ls backup-*.dump | head -1)
           pg_restore --list "$FILE" > /dev/null
-          echo "OK: $FILE"
+          echo "OK: $FILE ($(du -h "$FILE" | cut -f1))"
 
       - uses: actions/upload-artifact@v4
         with:

@@ -9,3 +9,4 @@ export { withDatabaseTimeout } from "@/lib/platform";
 
 export * from "./reads";
 export * from "./orders";
+export * from "./lookup";

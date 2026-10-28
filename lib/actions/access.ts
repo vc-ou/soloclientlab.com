@@ -1,5 +1,7 @@
 "use server";
 
+import { enforceRateLimit } from "@/lib/platform/rate-limit";
+
 /**
  * 产品访问申请与 LeadRadar 配置问卷
  * 从 lib/actions.ts 拆分（S5）。编排层：可以依赖多个域，但不得写 SQL。
@@ -19,6 +21,12 @@ export async function requestProductAccess(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+
+  const limited = await enforceRateLimit({ key: "product-access", limit: 3, windowMs: 60 * 60 * 1000 });
+  if (!limited.ok) {
+    return { success: false, message: `提交过于频繁，请 ${Math.ceil(limited.retryAfterSeconds / 60)} 分钟后再试。` };
+  }
+
   const parsed = productAccessSchema.safeParse({
     product_slug: getText(formData, "product_slug"),
     access_type: getText(formData, "access_type"),
@@ -99,6 +107,12 @@ export async function submitLeadRadarConfig(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+
+  const limited = await enforceRateLimit({ key: "radar-config", limit: 3, windowMs: 60 * 60 * 1000 });
+  if (!limited.ok) {
+    return { success: false, message: `提交过于频繁，请 ${Math.ceil(limited.retryAfterSeconds / 60)} 分钟后再试。` };
+  }
+
   const parsed = leadRadarConfigSchema.safeParse({
     email: getText(formData, "email").toLowerCase(),
     company_name: getText(formData, "company_name") || undefined,

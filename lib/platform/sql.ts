@@ -7,7 +7,7 @@
 
 export const ADMIN_DB_TIMEOUT_MS = 10000;
 
-export async function withTimeout<T>(promise: Promise<T>, ms = 4000) {
+export async function withTimeout<T>(promise: Promise<T>, ms = 8000) {
   return await Promise.race([
     promise,
     new Promise<T>((_, reject) => {

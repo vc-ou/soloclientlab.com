@@ -1,5 +1,7 @@
 "use server";
 
+import { enforceRateLimit } from "@/lib/platform/rate-limit";
+
 /**
  * 公开表单：订阅 / 等待名单 / LeadRadar 反馈
  * 从 lib/actions.ts 拆分（S5）。编排层：可以依赖多个域，但不得写 SQL。
@@ -18,6 +20,12 @@ export async function subscribeUser(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+
+  const limited = await enforceRateLimit({ key: "subscribe", limit: 6, windowMs: 10 * 60 * 1000 });
+  if (!limited.ok) {
+    return { success: false, message: `提交过于频繁，请 ${Math.ceil(limited.retryAfterSeconds / 60)} 分钟后再试。` };
+  }
+
   const parsed = subscribeSchema.safeParse({
     email: getText(formData, "email").toLowerCase(),
     source_page: getText(formData, "source_page") || undefined,
@@ -78,6 +86,12 @@ export async function joinWaitlist(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+
+  const limited = await enforceRateLimit({ key: "waitlist", limit: 6, windowMs: 10 * 60 * 1000 });
+  if (!limited.ok) {
+    return { success: false, message: `提交过于频繁，请 ${Math.ceil(limited.retryAfterSeconds / 60)} 分钟后再试。` };
+  }
+
   const parsed = waitlistSchema.safeParse({
     project_name: getText(formData, "project_name"),
     page_slug: getText(formData, "page_slug"),
@@ -120,6 +134,12 @@ export async function submitLeadRadarFeedback(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+
+  const limited = await enforceRateLimit({ key: "feedback", limit: 3, windowMs: 60 * 60 * 1000 });
+  if (!limited.ok) {
+    return { success: false, message: `提交过于频繁，请 ${Math.ceil(limited.retryAfterSeconds / 60)} 分钟后再试。` };
+  }
+
   const parsed = leadRadarFeedbackSchema.safeParse({
     tool_slug: getText(formData, "tool_slug"),
     source_page: getText(formData, "source_page"),

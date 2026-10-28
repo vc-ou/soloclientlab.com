@@ -16,3 +16,4 @@ export { readDb, getSnapshot } from "./snapshot";
 export { resetCacheUnsafe } from "./cache";
 export { addDaysIso } from "./time";
 export { rethrowInProduction } from "./errors";
+export { enforceRateLimit } from "./rate-limit";
