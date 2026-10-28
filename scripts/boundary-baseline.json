@@ -1,27 +1,5 @@
 {
-  "generated_at": "2026-10-27T10:10:10.632Z",
+  "generated_at": "2026-10-28T03:21:00.071Z",
   "reason": "棘轮基线：只减不增。修好一条就从这里删一条。",
-  "known": [
-    {
-      "id": "css:app/globals.css",
-      "kind": "css",
-      "detail": "app/globals.css",
-      "value": 5589,
-      "budget": 1500
-    },
-    {
-      "id": "file:components/forms.tsx",
-      "kind": "file",
-      "detail": "components/forms.tsx",
-      "value": 478,
-      "budget": 400
-    },
-    {
-      "id": "file:components/leadradar-demo.tsx",
-      "kind": "file",
-      "detail": "components/leadradar-demo.tsx",
-      "value": 788,
-      "budget": 400
-    }
-  ]
+  "known": []
 }
