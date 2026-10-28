@@ -30,7 +30,7 @@ export async function addPendingProductPayment(
   const nowIso = new Date().toISOString();
   const paymentId = randomUUID();
   const email = input.email?.toLowerCase();
-  const provider = input.provider ?? "stripe";
+  const provider = input.provider ?? "paypal";
   const metadataJson = JSON.parse(JSON.stringify(input.metadata ?? {}));
 
   if (hasDatabaseUrl()) {
@@ -127,8 +127,8 @@ export async function fulfillPaidProductPayment(input: {
   const nowIso = new Date().toISOString();
   const email = input.email.toLowerCase();
   const paidAt = input.paid_at ?? nowIso;
-  const provider = input.provider ?? "stripe";
-  const providerLabel = provider === "paypal" ? "PayPal" : "Stripe";
+  const provider = input.provider ?? "paypal";
+  const providerLabel = "PayPal";
   const entitlementAccessType = input.access_type ?? "paid_pilot";
   const isLifetimeAccess = entitlementAccessType === "lifetime_access";
   const isMonthlySubscription = entitlementAccessType === "monthly_subscription" && Boolean(input.provider_subscription_id);

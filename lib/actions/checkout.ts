@@ -1,10 +1,11 @@
 "use server";
 
 /**
- * 结账：Stripe 订阅 / PayPal 一次性 / paid pilot
+ * 结账：PayPal 一次性购买 / paid pilot
+ * 说明：Stripe 订阅路径与 SDK 已于 2026-10-28 整体移除（从未接入任何页面）。
  * 从 lib/actions.ts 拆分（S5）。编排层：可以依赖多个域，但不得写 SQL。
  */
-import { getText, monthlySubscriptionCheckoutSchema, paidPilotCheckoutSchema } from "./shared";
+import { getText, productCheckoutSchema, paidPilotCheckoutSchema } from "./shared";
 
 import { getProductBySlug } from "@/lib/domains/catalog";
 import { addProductAccessRequest, saveSubscriber } from "@/lib/domains/leads";
@@ -12,9 +13,7 @@ import { addPendingProductPayment } from "@/lib/domains/commerce";
 import { trackTrialEvent } from "@/lib/domains/analytics";
 import { createPayPalPaidPilotOrder } from "@/lib/paypal";
 import { createPayPalProductOrder } from "@/lib/paypal";
-import { getProductMonthlySubscriptionPriceId } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/env";
-import { getStripe } from "@/lib/stripe";
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -23,73 +22,9 @@ import type {
   ProductSlug
 } from "@/lib/types";
 
-export async function startMonthlySubscriptionCheckout(formData: FormData) {
-  const requestedProductSlug: ProductSlug =
-    getText(formData, "product_slug") === "needradar-workflow-lab" ? "needradar-workflow-lab" : "leadradar";
-  const parsed = monthlySubscriptionCheckoutSchema.safeParse({
-    product_slug: requestedProductSlug,
-    source_page: getText(formData, "source_page") || undefined
-  });
-
-  if (!parsed.success) {
-    redirect(`/checkout/cancel?reason=invalid_subscription_request&product=${encodeURIComponent(requestedProductSlug)}`);
-  }
-
-  const productSlug = parsed.data.product_slug as ProductSlug;
-  const siteUrl = getSiteUrl();
-  const metadata = {
-    product_slug: productSlug,
-    access_type: "monthly_subscription",
-    source_page: parsed.data.source_page ?? ""
-  };
-
-  let checkoutUrl: string | null = null;
-
-  try {
-    const session = await getStripe().checkout.sessions.create({
-      mode: "subscription",
-      line_items: [
-        {
-          price: getProductMonthlySubscriptionPriceId(productSlug),
-          quantity: 1
-        }
-      ],
-      success_url: `${siteUrl}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}&product=${encodeURIComponent(productSlug)}`,
-      cancel_url: `${siteUrl}/checkout/cancel?product=${encodeURIComponent(productSlug)}`,
-      allow_promotion_codes: true,
-      metadata,
-      subscription_data: {
-        metadata
-      }
-    });
-
-    checkoutUrl = session.url;
-
-    await trackTrialEvent({
-      product_slug: productSlug,
-      event_type: "monthly_subscription_checkout_started",
-      source_page: parsed.data.source_page,
-      metadata: {
-        stripe_checkout_session_id: session.id,
-        access_type: "monthly_subscription"
-      }
-    });
-  } catch (error) {
-    console.error("Failed to create monthly subscription checkout:", error);
-    redirect(`/checkout/cancel?reason=subscription_checkout_failed&product=${encodeURIComponent(productSlug)}`);
-  }
-
-  if (!checkoutUrl) {
-    redirect(`/checkout/cancel?reason=missing_checkout_url&product=${encodeURIComponent(productSlug)}`);
-  }
-
-  redirect(checkoutUrl);
-}
-
-
 export async function startPayPalCheckout(formData: FormData) {
   const requestedProductSlug = getText(formData, "product_slug").trim() as ProductSlug;
-  const parsed = monthlySubscriptionCheckoutSchema.safeParse({
+  const parsed = productCheckoutSchema.safeParse({
     product_slug: requestedProductSlug,
     source_page: getText(formData, "source_page") || undefined
   });

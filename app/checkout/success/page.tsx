@@ -42,13 +42,9 @@ export default async function CheckoutSuccessPage({
     : product?.slug === "leadradar"
       ? getLeadRadarExtensionSupportCopy()
       : "Payment has been confirmed. Return to the product page for the current install or access instructions.";
-  // PayPal 回跳带 order_id，Stripe success_url 带 session_id；两者都能命中
-  // product_payments.provider_checkout_session_id，这里统一取其中一个。
-  const checkoutSessionId =
-    (typeof params.order_id === "string" && params.order_id) ||
-    (typeof params.session_id === "string" && params.session_id) ||
-    undefined;
-  const providerLabel = params.provider === "stripe" ? "card" : "PayPal";
+  // PayPal 回跳带 order_id，命中 product_payments.provider_checkout_session_id。
+  const checkoutSessionId = typeof params.order_id === "string" && params.order_id ? params.order_id : undefined;
+  const providerLabel = "PayPal";
   let hasPaidAccess = false;
   let licenseKey: string | undefined;
 

@@ -47,7 +47,6 @@ const adminLabels: Record<string, string> = {
   reviewing: "审核中",
   revoked: "已撤销",
   strong: "强",
-  stripe: "Stripe",
   template: "模板",
   prompt_pack: "提示词包",
   service: "服务",

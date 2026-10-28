@@ -52,7 +52,7 @@ export const productAccessSchema = z.object({
 });
 
 
-export const monthlySubscriptionCheckoutSchema = z.object({
+export const productCheckoutSchema = z.object({
   product_slug: z.string().trim().min(1).max(120),
   source_page: z.string().trim().max(300).optional()
 });

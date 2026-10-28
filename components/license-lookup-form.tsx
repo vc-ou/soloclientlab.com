@@ -19,7 +19,7 @@ export function LicenseLookupForm() {
           <span>订单号，或授权码后 8 位</span>
           <input name="identifier" required minLength={6} placeholder="例如 5O190127TN364715T 或 VR87-6YTU" />
           <small className="field-help">
-            订单号在付款完成页、PayPal 收据或 Stripe 收据里；授权码后 8 位可以在你保存的截图中看到。
+            订单号在付款完成页或 PayPal 收据里；授权码后 8 位可以在你保存的截图中看到。
           </small>
         </label>
         <button type="submit" className="button primary" disabled={pending}>

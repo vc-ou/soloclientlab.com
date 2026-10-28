@@ -10,7 +10,7 @@ const ADMIN_READ_TIMEOUT_MS = 20_000;
  * 客户自助找回授权码。
  *
  * 需要「邮箱 + 一个只有买家才知道的标识」双条件，避免凭邮箱就能拿到别人的码：
- *   - 订单号（PayPal order id / Stripe checkout session id / payment intent id）
+ *   - 订单号（PayPal order id / capture id）
  *   - 或授权码后 8 位（客户可能只截图到一部分）
  *
  * 返回状态刻意模糊：找不到时一律 not_found，不区分"邮箱不存在"与"订单号不对"。
