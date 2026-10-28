@@ -50,7 +50,7 @@ export function SiteFooter() {
           </div>
           <div>
             <h3 className="footer-heading">Company</h3>
-            <div className="footer-links"><Link href="/about" prefetch={false}>About</Link><a href="mailto:soloclientlab.com@gmail.com">Contact</a></div>
+            <div className="footer-links"><Link href="/about" prefetch={false}>About</Link><Link href="/license" prefetch={false}>License lookup</Link><a href="mailto:soloclientlab.com@gmail.com">Contact</a></div>
           </div>
           <div>
             <h3 className="footer-heading">Legal</h3>
