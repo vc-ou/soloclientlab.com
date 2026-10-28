@@ -6,3 +6,4 @@ export * from "./emit";
 export * from "./service";
 export * from "./aggregates";
 export * from "./today";
+export * from "./errors";

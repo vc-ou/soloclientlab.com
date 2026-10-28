@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AdminShell, SimpleTable } from "@/components/admin";
+import { AdminShell, Pager, SimpleTable } from "@/components/admin";
 import { getOrderFlagLabel, getOrderRows } from "@/lib/domains/commerce";
 
 function money(cents?: number, currency = "USD") {
@@ -12,7 +12,11 @@ function flagTone(flag: string) {
   return "is-muted";
 }
 
-export default async function AdminOrdersPage() {
+const PAGE_SIZE = 50;
+
+export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   let orders: Awaited<ReturnType<typeof getOrderRows>> = [];
   let loadError: string | null = null;
 
@@ -23,6 +27,8 @@ export default async function AdminOrdersPage() {
   }
 
   const needsAttention = orders.filter((order) => order.flags.length > 0).length;
+  const total = orders.length;
+  const pageOrders = orders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const pendingTotal = orders
     .filter((order) => order.payment.status === "pending")
     .reduce((sum, order) => sum + (order.payment.amount_total ?? 0), 0);
@@ -54,7 +60,7 @@ export default async function AdminOrdersPage() {
 
       <SimpleTable
         headers={["下单时间", "商品", "渠道", "状态", "金额", "邮箱", "停留", "权益", "授权码", "激活", "标记", "操作"]}
-        rows={orders.map((order) => [
+        rows={pageOrders.map((order) => [
           new Date(order.payment.created_at).toISOString().slice(0, 16).replace("T", " "),
           order.payment.product_slug,
           order.payment.provider,
@@ -82,7 +88,8 @@ export default async function AdminOrdersPage() {
         ])}
       />
 
-      {orders.length === 0 ? <p className="queue-empty">还没有任何订单记录。</p> : null}
+      {total === 0 ? <p className="queue-empty">还没有任何订单记录。</p> : null}
+      <Pager basePath="/admin/orders" page={page} pageSize={PAGE_SIZE} total={total} />
     </AdminShell>
   );
 }

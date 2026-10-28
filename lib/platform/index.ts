@@ -1,3 +1,4 @@
+export { hasDatabaseUrl } from "@/lib/env";
 /**
  * 平台出口 —— 连接池之外的共享基础设施：存储、SQL 保护、建表、读、快照
  *

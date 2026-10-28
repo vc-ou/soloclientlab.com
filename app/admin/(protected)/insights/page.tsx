@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { AdminShell, MetricCard, SimpleTable } from "@/components/admin";
-import { getDashboardMetrics, getPostPerformance, getProductAdminMetrics } from "@/lib/domains/analytics";
+import { getDashboardMetrics, getPostPerformance, getProductAdminMetrics, getRecentErrors } from "@/lib/domains/analytics";
 
 const gscUrl = "https://search.google.com/search-console";
 const bingUrl = "https://www.bing.com/webmasters";
 const umamiUrl = process.env.UMAMI_DASHBOARD_URL ?? "https://cloud.umami.is";
 
 export default async function AdminInsightsPage() {
-  const [metrics, posts, product] = await Promise.all([
+  const [metrics, posts, product, recentErrors] = await Promise.all([
     getDashboardMetrics(),
     getPostPerformance(),
-    getProductAdminMetrics()
+    getProductAdminMetrics(),
+    getRecentErrors(20)
   ]);
 
   return (
@@ -57,6 +58,22 @@ export default async function AdminInsightsPage() {
             ["有效权益", String(product.activeEntitlements)]
           ]}
         />
+      </section>
+
+      <section className="activity-card" style={{ marginTop: 24 }}>
+        <h2>最近错误（{recentErrors.length}）</h2>
+        {recentErrors.length ? (
+          <SimpleTable
+            headers={["时间", "范围", "错误"]}
+            rows={recentErrors.map((entry) => [
+              new Date(entry.created_at).toISOString().slice(0, 16).replace("T", " "),
+              entry.scope,
+              entry.message.slice(0, 160)
+            ])}
+          />
+        ) : (
+          <p className="queue-empty">没有记录到服务端错误。</p>
+        )}
       </section>
 
       <section className="activity-card" style={{ marginTop: 24 }}>

@@ -108,7 +108,7 @@ describe("analytics · 今日快照", () => {
 
   it("四条队列齐备，且把待付款与异常订单收进去", async () => {
     const snapshot = await analytics.getTodaySnapshot();
-    expect(snapshot.queues.map((q) => q.key)).toEqual(["stuck_payments", "new_leads", "drafts", "anomalies"]);
+    expect(snapshot.queues.map((q) => q.key)).toEqual(["stuck_payments", "new_leads", "drafts", "recent_errors", "anomalies"]);
 
     const stuck = snapshot.queues.find((q) => q.key === "stuck_payments")!;
     expect(stuck.count).toBeGreaterThanOrEqual(1);

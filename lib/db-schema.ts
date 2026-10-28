@@ -290,6 +290,14 @@ create table if not exists trial_events (
   created_at timestamptz not null
 );
 
+create table if not exists error_logs (
+  id text primary key,
+  scope text not null,
+  message text not null,
+  detail jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists idx_demands_status on demands (status);
 create index if not exists idx_demands_topic_tag on demands (topic_tag);
 create index if not exists idx_demands_source_platform on demands (source_platform);
@@ -342,4 +350,5 @@ create index if not exists idx_leadradar_configs_email on leadradar_configs (ema
 create index if not exists idx_trial_events_product_slug on trial_events (product_slug);
 create index if not exists idx_trial_events_event_type on trial_events (event_type);
 create index if not exists idx_trial_events_created_at on trial_events (created_at desc);
+create index if not exists idx_error_logs_created_at on error_logs (created_at desc);
 `;

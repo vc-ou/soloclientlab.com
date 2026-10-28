@@ -1,6 +1,8 @@
 import "server-only";
 
-import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
+import { logError } from "@/lib/domains/analytics";
+import { fulfillPaidProductPayment, getProductPaymentByProviderCheckoutSessionId, revokeProductAccessForPayment, withDatabaseTimeout
+} from "@/lib/domains/commerce";
 import { amountStringToCents, getPayPalCapturedOrderDetails, getPayPalOrder, verifyPayPalWebhookSignature } from "@/lib/paypal";
 
 export const runtime = "nodejs";
@@ -145,7 +147,7 @@ export async function POST(request: Request) {
       await revokeCapturePayment(event);
     }
   } catch (error) {
-    console.error(`PayPal webhook fulfillment failed for ${event.id ?? "unknown"}:`, error);
+    await logError({ scope: "paypal-webhook", error, detail: { event_id: event.id, event_type: event.event_type } });
     return Response.json({ error: "Webhook fulfillment failed." }, { status: 500 });
   }
 

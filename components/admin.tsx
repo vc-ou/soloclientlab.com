@@ -172,3 +172,46 @@ export function FilterForm({
     </form>
   );
 }
+
+export function Pager({
+  basePath,
+  page,
+  pageSize,
+  total,
+  params = {}
+}: {
+  basePath: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  params?: Record<string, string | undefined>;
+}) {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const buildHref = (target: number) => {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value) search.set(key, value);
+    }
+    if (target > 1) search.set("page", String(target));
+    const query = search.toString();
+    return query ? `${basePath}?${query}` : basePath;
+  };
+
+  if (pageCount <= 1) {
+    return (
+      <p className="metric-hint" style={{ marginTop: 12 }}>
+        共 {total} 条，全部显示在本页。
+      </p>
+    );
+  }
+
+  return (
+    <div className="order-links" style={{ marginTop: 14, alignItems: "center" }}>
+      <span className="metric-hint">
+        第 {page} / {pageCount} 页 · 共 {total} 条（每页 {pageSize}）
+      </span>
+      {page > 1 ? <Link href={buildHref(page - 1)} className="button ghost">上一页</Link> : null}
+      {page < pageCount ? <Link href={buildHref(page + 1)} className="button ghost">下一页</Link> : null}
+    </div>
+  );
+}

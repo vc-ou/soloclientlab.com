@@ -1,9 +1,11 @@
 import "server-only";
 
 import Stripe from "stripe";
-import { fulfillPaidProductPayment, revokeProductAccessForPayment, withDatabaseTimeout } from "@/lib/domains/commerce";
+import { fulfillPaidProductPayment, revokeProductAccessForPayment, withDatabaseTimeout
+} from "@/lib/domains/commerce";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { isLicensedProduct } from "@/lib/licenses";
+import { logError } from "@/lib/domains/analytics";
 import type { ProductAccessType, ProductSlug } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -121,7 +123,7 @@ export async function POST(request: Request) {
       await revokeFromChargeRefund(event.data.object as Stripe.Charge, event);
     }
   } catch (error) {
-    console.error(`Stripe webhook fulfillment failed for ${event.id}:`, error);
+    await logError({ scope: "stripe-webhook", error, detail: { event_id: event.id, event_type: event.type } });
     return Response.json({ error: "Webhook fulfillment failed." }, { status: 500 });
   }
 

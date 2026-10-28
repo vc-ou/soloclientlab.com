@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { AdminShell, FilterForm, SimpleTable } from "@/components/admin";
+import { AdminShell, FilterForm, Pager, SimpleTable } from "@/components/admin";
 import { filterPeople, getPeopleRows } from "@/lib/domains/leads";
 import { getOrderRows } from "@/lib/domains/commerce";
 
 type PeoplePageProps = {
-  searchParams: Promise<{ q?: string; actionable?: string; source_type?: string }>;
+  searchParams: Promise<{ q?: string; actionable?: string; source_type?: string; page?: string }>;
 };
 
 export default async function AdminPeoplePage({ searchParams }: PeoplePageProps) {
   const params = await searchParams;
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   let people: Awaited<ReturnType<typeof getPeopleRows>> = [];
   let paidByEmail = new Map<string, string>();
   let loadError: string | null = null;
@@ -26,6 +28,8 @@ export default async function AdminPeoplePage({ searchParams }: PeoplePageProps)
   }
 
   const actionableCount = people.filter((person) => person.suggestedTone !== "muted").length;
+  const total = people.length;
+  const pagePeople = people.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <AdminShell title="客户">
@@ -78,7 +82,7 @@ export default async function AdminPeoplePage({ searchParams }: PeoplePageProps)
 
       <SimpleTable
         headers={["邮箱", "建议动作", "来源", "标签", "申请/试用/问卷", "已付款", "最近活动", "首次出现", ""]}
-        rows={people.map((person) => [
+        rows={pagePeople.map((person) => [
           person.email,
           <span className={`flag ${person.suggestedTone === "warn" ? "is-warn" : "is-muted"}`} key={`${person.email}-action`}>
             {person.suggestedAction}
@@ -95,7 +99,14 @@ export default async function AdminPeoplePage({ searchParams }: PeoplePageProps)
         ])}
       />
 
-      {people.length === 0 && !loadError ? <p className="queue-empty">没有匹配的客户。</p> : null}
+      {total === 0 && !loadError ? <p className="queue-empty">没有匹配的客户。</p> : null}
+      <Pager
+        basePath="/admin/people"
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+        params={{ q: params.q, actionable: params.actionable, source_type: params.source_type }}
+      />
     </AdminShell>
   );
 }

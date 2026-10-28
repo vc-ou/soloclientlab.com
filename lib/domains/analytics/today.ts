@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { getReadSql, readDb, readWithRetry, withTimeout } from "@/lib/platform";
 import { hasDatabaseUrl } from "@/lib/env";
 import { getOrderRows } from "@/lib/domains/commerce";
+import { countErrorsSince, getRecentErrors } from "./errors";
 
 /**
  * 今日快照：把"今天该做什么"算出来，而不是只给一堆绝对值。
@@ -230,7 +231,12 @@ async function loadRawFromLocal(now: number): Promise<TodayRaw> {
 const ADMIN_READ_TIMEOUT_MS = 20_000;
 
 async function buildTodaySnapshot(): Promise<TodaySnapshot> {
-  const [raw, orders] = await Promise.all([loadRaw(), getOrderRows()]);
+  const [raw, orders, recentErrors, errors24h] = await Promise.all([
+    loadRaw(),
+    getOrderRows(),
+    getRecentErrors(5),
+    countErrorsSince(new Date(Date.now() - 24 * 3600_000).toISOString())
+  ]);
 
   const stuckOrders = orders.filter((o) => o.flags.includes("pending_stale") || o.flags.includes("pending_expired"));
   const anomalyOrders = orders.filter((o) =>
@@ -312,6 +318,20 @@ async function buildTodaySnapshot(): Promise<TodaySnapshot> {
       items: raw.draftItems,
       emptyHint: "没有草稿。下一篇文章可以从「选题池」里挑一条需求。",
       href: "/admin/posts"
+    },
+    {
+      key: "recent_errors",
+      title: "最近错误",
+      question: "有没有静默失败（webhook、支付履约、后台读取）？",
+      count: errors24h,
+      items: recentErrors.map((entry) => ({
+        title: entry.scope,
+        detail: `${entry.message.slice(0, 120)} · ${new Date(entry.created_at).toISOString().slice(0, 16).replace("T", " ")}`,
+        href: "/admin/insights",
+        tone: "danger" as const
+      })),
+      emptyHint: "过去 24 小时没有服务端错误。这是最该保持为空的一条队列。",
+      href: "/admin/insights"
     },
     {
       key: "anomalies",
