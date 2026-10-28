@@ -4,9 +4,9 @@ import { getPublicPosts } from "@/lib/domains/content";
 import { labelForTopic } from "@/lib/format";
 
 const leadRadarProductHref = "/products/leadradar";
-const homeTitle = "CNC Lead Generation Tools for Manufacturing Teams | SoloClientLab";
+const homeTitle = "Client Acquisition Tools & Guides for Solo Consultants | SoloClientLab";
 const homeDescription =
-  "SoloClientLab builds LeadRadar, a practical tool for CNC and manufacturing teams to find buyer intent, sourcing questions, and lead signals in public conversations.";
+  "SoloClientLab builds small, focused tools and practical guides that help solo consultants and independent professionals find real client opportunities, review them, and follow up — without a marketing department.";
 
 export const metadata: Metadata = {
   title: {
@@ -84,8 +84,11 @@ function ProductWindow({ compact = false }: { compact?: boolean }) {
 
 export default async function HomePage() {
   const posts = await getPublicPosts();
-  // 卡片标题/摘要直接取最新文章，避免首页写死文案与正文标题不一致。
-  const guideCards = posts.slice(0, 3).map((post) => ({
+  // 卡片按主线优先：先取 solo consultant 主题的文章，不足三张再用最新补足。
+  // 目的：hero 讲"给独立顾问"，卡片区不能紧接着全是 CNC / 制造业内容（定位矛盾）。
+  const mainlinePosts = posts.filter((post) => post.topic_tag === "solo_worker_client_acquisition");
+  const otherPosts = posts.filter((post) => post.topic_tag !== "solo_worker_client_acquisition");
+  const guideCards = [...mainlinePosts, ...otherPosts].slice(0, 3).map((post) => ({
     meta: `${labelForTopic(post.topic_tag)} · ${post.read_time ?? "6 min read"}`,
     title: post.title,
     summary: post.summary ?? "",
@@ -96,9 +99,9 @@ export default async function HomePage() {
     <div className="home-reference" id="top">
       <section className="scl-hero container">
         <div className="scl-hero-copy">
-          <div className="scl-mono">SoloClientLab · CNC &amp; manufacturing lead generation</div>
-          <h1>Lead generation tools for CNC and manufacturing teams.</h1>
-          <p>LeadRadar finds buying and sourcing signals in public conversations, so you can review real demand instead of guessing. One focused workflow, no bloated setup.</p>
+          <div className="scl-mono">SoloClientLab · Client acquisition for solo professionals</div>
+          <h1>Client acquisition for people who work alone.</h1>
+          <p>Small, focused tools and guides that help you find real client opportunities and follow up with confidence. LeadRadar, our first tool, surfaces buying signals hiding in public conversations.</p>
           <div className="scl-actions">
             <Link className="button primary" href="/products" prefetch={false}>Explore tools <span aria-hidden="true">→</span></Link>
             <Link className="button secondary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action</Link>
