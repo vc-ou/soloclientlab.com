@@ -53,7 +53,7 @@ export async function upsertProduct(formData: FormData) {
     console.error("Failed to save product:", error);
     const fallbackMessage = "商品保存失败，请检查必填项后重试。";
     const message = error instanceof Error && error.message ? error.message : fallbackMessage;
-    redirect(`/admin/products/${productId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
+    redirect(`/admin/catalog/${productId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
   }
 
   revalidatePath("/products");
@@ -61,11 +61,11 @@ export async function upsertProduct(formData: FormData) {
     revalidatePath(`/products/${previousProduct.slug}`);
   }
   revalidatePath(`/products/${productSlug}`);
-  revalidatePath("/admin/products");
+  revalidatePath("/admin/catalog");
   if (productId) {
     revalidatePath(`/admin/products/${productId}`);
   }
-  redirect("/admin/products");
+  redirect("/admin/catalog");
 }
 
 
@@ -78,12 +78,12 @@ export async function syncCodeProducts() {
   } catch (error) {
     console.error("Failed to sync code products:", error);
     const message = error instanceof Error && error.message ? error.message : "代码商品同步失败，请稍后重试。";
-    redirect(`/admin/products?sync=error&message=${encodeURIComponent(message)}`);
+    redirect(`/admin/settings?sync=error&message=${encodeURIComponent(message)}`);
   }
 
   revalidatePath("/products");
-  revalidatePath("/admin/products");
-  redirect(`/admin/products?sync=success&inserted=${result.inserted}&updated=${result.updated}&total=${result.total}`);
+  revalidatePath("/admin/catalog");
+  redirect(`/admin/settings?sync=success&inserted=${result.inserted}&updated=${result.updated}&total=${result.total}`);
 }
 
 
@@ -113,7 +113,7 @@ export async function removeProduct(
   revalidatePath("/products");
   revalidatePath(`/products/${product.slug}`);
   revalidatePath("/admin");
-  revalidatePath("/admin/products");
+  revalidatePath("/admin/catalog");
   revalidatePath(`/admin/products/${id}`);
   return { success: true, message: "商品已删除。" };
 }

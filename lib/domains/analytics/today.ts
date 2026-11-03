@@ -317,7 +317,7 @@ async function buildTodaySnapshot(): Promise<TodaySnapshot> {
       count: raw.draftCount,
       items: raw.draftItems,
       emptyHint: "没有草稿。下一篇文章可以从「选题池」里挑一条需求。",
-      href: "/admin/posts"
+      href: "/admin/content?tab=posts"
     },
     {
       key: "recent_errors",

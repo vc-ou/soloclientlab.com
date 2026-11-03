@@ -86,10 +86,10 @@ export async function requestProductAccess(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/products");
-  revalidatePath("/admin/product-access");
-  revalidatePath("/admin/trials");
-  revalidatePath("/admin/subscribers");
+  revalidatePath("/admin/catalog");
+  revalidatePath("/admin/people");
+  revalidatePath("/admin/people");
+  revalidatePath("/admin/people");
 
   return {
     success: true,
@@ -177,8 +177,8 @@ export async function submitLeadRadarConfig(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/products");
-  revalidatePath("/admin/leadradar-configs");
+  revalidatePath("/admin/catalog");
+  revalidatePath("/admin/people");
 
   return {
     success: true,

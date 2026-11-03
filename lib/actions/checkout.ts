@@ -202,8 +202,8 @@ export async function createPaidPilotCheckout(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/products");
-  revalidatePath("/admin/product-access");
+  revalidatePath("/admin/catalog");
+  revalidatePath("/admin/people");
 
   return {
     success: true,

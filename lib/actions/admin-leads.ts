@@ -31,7 +31,7 @@ export async function updateSubscriberNoteAction(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/subscribers");
+  revalidatePath("/admin/people");
   return { success: true, message: "Note saved." };
 }
 
@@ -54,7 +54,7 @@ export async function removeSubscriberAction(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/subscribers");
+  revalidatePath("/admin/people");
   return { success: true, message: "Subscriber deleted." };
 }
 

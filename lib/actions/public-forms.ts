@@ -72,7 +72,7 @@ export async function subscribeUser(
   revalidatePath("/");
   revalidatePath("/research");
   revalidatePath("/admin");
-  revalidatePath("/admin/subscribers");
+  revalidatePath("/admin/people");
 
   return {
     success: true,
@@ -123,8 +123,8 @@ export async function joinWaitlist(
 
   revalidatePath(`/waitlist/${parsed.data.page_slug}`);
   revalidatePath("/admin");
-  revalidatePath("/admin/waitlists");
-  revalidatePath("/admin/subscribers");
+  revalidatePath("/admin/people");
+  revalidatePath("/admin/people");
 
   return { success: true, message: "Your product access request has been received.", eventName: "waitlist_signup" };
 }
@@ -175,7 +175,7 @@ export async function submitLeadRadarFeedback(
   }
 
   revalidatePath("/admin");
-  revalidatePath("/admin/feedback");
+  revalidatePath("/admin/people");
   await trackTrialEvent({
     product_slug: "leadradar",
     event_type: "calibration_feedback_submitted",

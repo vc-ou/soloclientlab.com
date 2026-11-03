@@ -28,7 +28,7 @@ export async function upsertPost(formData: FormData) {
   const content = getText(formData, "content");
 
   if (hasUnclosedMarkdownCodeFence(content)) {
-    redirect(`/admin/posts/${postId ?? "new"}?error=${encodeFormErrorMessage("文章内容包含未闭合的 Markdown 代码块。请在 Markdown 模式补上或删除 ``` / ~~~ 后再保存。")}`);
+    redirect(`/admin/content/post/${postId ?? "new"}?error=${encodeFormErrorMessage("文章内容包含未闭合的 Markdown 代码块。请在 Markdown 模式补上或删除 ``` / ~~~ 后再保存。")}`);
   }
 
   const faqRaw = getText(formData, "faq");
@@ -68,15 +68,15 @@ export async function upsertPost(formData: FormData) {
     console.error("Failed to save post:", error);
     const fallbackMessage = "Post save failed. Please try again.";
     const message = error instanceof Error && error.message ? error.message : fallbackMessage;
-    redirect(`/admin/posts/${postId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
+    redirect(`/admin/content/post/${postId ?? "new"}?error=${encodeFormErrorMessage(message)}`);
   }
 
   revalidatePath("/");
   revalidatePath("/research");
   revalidatePath(`/research/${getText(formData, "slug")}`);
   revalidatePath("/admin");
-  revalidatePath("/admin/posts");
-  redirect("/admin/posts");
+  revalidatePath("/admin/content");
+  redirect("/admin/content?tab=posts");
 }
 
 
@@ -99,7 +99,7 @@ export async function removePost(
   revalidatePath("/");
   revalidatePath("/research");
   revalidatePath("/admin");
-  revalidatePath("/admin/posts");
+  revalidatePath("/admin/content");
   return { success: true, message: "Post deleted." };
 }
 
@@ -121,8 +121,8 @@ export async function upsertResource(formData: FormData) {
   await saveResource(resource);
 
   revalidatePath(getResourceLandingPath(resource));
-  revalidatePath("/admin/resources");
-  redirect("/admin/resources");
+  revalidatePath("/admin/content");
+  redirect("/admin/content?tab=resources");
 }
 
 
@@ -157,7 +157,7 @@ export async function upsertDemand(formData: FormData) {
   });
 
   revalidatePath("/admin");
-  revalidatePath("/admin/demands");
-  redirect("/admin/demands");
+  revalidatePath("/admin/content");
+  redirect("/admin/content?tab=demands");
 }
 
