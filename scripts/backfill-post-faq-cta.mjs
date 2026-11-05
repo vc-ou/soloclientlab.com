@@ -319,7 +319,7 @@ function assertEntry(slug, entry) {
     if (item.answer.length < 80 || item.answer.length > 400) problems.push(`faq[${index}].answer 长度异常（${item.answer.length}）`);
     if (!/[.!?]$/.test(item.answer)) problems.push(`faq[${index}].answer 应以句号结尾`);
   });
-  if (!["product", "products", "waitlist", "lead_magnet", "newsletter"].includes(entry.cta_type)) {
+  if (!["product", "products", "waitlist", "lead_magnet", "newsletter", "series"].includes(entry.cta_type)) {
     problems.push(`cta_type 非法：${entry.cta_type}`);
   }
   if (!entry.cta_target.startsWith("/") || entry.cta_target.startsWith("//")) {

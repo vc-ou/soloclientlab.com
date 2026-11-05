@@ -38,6 +38,16 @@ const CTA_COPY: Record<string, CtaCopy> = {
     title: "Want a repeatable way to run this?",
     description: "Small, focused tools for finding demand signals and organising client work. No bloated setup."
   },
+  /**
+   * 系列续读：用于「一篇文章 = 一个案例」的内容形态（如 listing autopsy）。
+   * 这类文章的自然下一步是下一篇同类判断，而不是一个产品页。
+   * cta_target 通常填 /research。
+   */
+  series: {
+    label: "Read the next autopsy",
+    title: "One product at a time, same method",
+    description: "What I judged, where the data ran out, and the calls I got wrong. Published with the numbers behind each one."
+  },
   newsletter: {
     label: "Get new guides by email",
     title: "Get the next guide",

@@ -108,6 +108,7 @@ export function PostEditorFields({
             <option value="waitlist">产品访问（waitlist）</option>
             <option value="lead_magnet">资料 / 指南（lead_magnet）</option>
             <option value="product">商品页（product）</option>
+            <option value="series">系列续读（series）</option>
             <option value="newsletter">邮件订阅（newsletter）</option>
           </select>
           <small className="field-help">渲染在正文之后、FAQ 之前。</small>
