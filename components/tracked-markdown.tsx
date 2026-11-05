@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { TrackedArticleLink } from "@/components/tracked-article-link";
 
 function isInternalHref(href?: string) {
@@ -24,6 +25,7 @@ export function TrackedMarkdown({
 }) {
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
         h1: "h2",
         a: ({ href, children }) => isInternalHref(href) ? (

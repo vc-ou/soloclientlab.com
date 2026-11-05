@@ -729,6 +729,53 @@
   border-radius: 0 18px 18px 0;
 }
 
+/* GFM 表格（remark-gfm）。移动端横向滚动，不挤压正文。 */
+.article-content table {
+  width: 100%;
+  margin: 22px 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.article-content thead {
+  background: var(--surface-muted);
+}
+
+.article-content th,
+.article-content td {
+  padding: 11px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.article-content th {
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.article-content tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.article-content tbody tr:nth-child(even) {
+  background: rgba(240, 238, 231, 0.45);
+}
+
+/* 极窄屏保护：表格本体横向滚动，不破坏布局 */
+@media (max-width: 560px) {
+  .article-content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .sidebar-stack,
 .activity-list {
   display: grid;
