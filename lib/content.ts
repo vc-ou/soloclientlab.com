@@ -2,7 +2,7 @@ import type { TopicTag } from "@/lib/types";
 
 export const siteName = "SoloClientLab.com";
 export const siteDescription =
-  "Focused tools that help consultants, freelancers, creators, and one-person businesses find opportunities, organize client work, and reduce repetitive tasks.";
+  "Listing autopsies from Pinduoduo, the most price-competitive e-commerce channel in China — which single element is actually killing a product's sale, and what to change first.";
 
 export const publicSocialProof = {
   newsletterJoinCopy:

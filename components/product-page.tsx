@@ -79,6 +79,16 @@ function getProductDisplayName(product: Product) {
   return product.name.split(/[（(]/)[0].trim();
 }
 
+/**
+ * 产品 → 对应 waitlist 落地页的映射。
+ * `/waitlist/[slug]` 是 noindex 的承接页（见 app/waitlist/[slug]/page.tsx），
+ * 只从站内入口进来，不参与搜索索引。
+ * 没有对应 waitlist 的产品，此处不渲染降级入口。
+ */
+const WAITLIST_SLUG_BY_PRODUCT: Record<string, string> = {
+  leadradar: "leadradar-for-tiktok"
+};
+
 function ProductWindow({ product }: { product: Product }) {
   const isLeadRadar = product.slug === "leadradar";
   const displayName = getProductDisplayName(product);
@@ -152,6 +162,7 @@ export function ProductPage({ product }: { product: Product }) {
   const benefits = getBenefits(product);
   const landingPageUrl = product.landing_page_url;
   const displayName = getProductDisplayName(product);
+  const waitlistSlug = WAITLIST_SLUG_BY_PRODUCT[product.slug];
 
   return (
     <div className="product-detail-page">
@@ -180,6 +191,15 @@ export function ProductPage({ product }: { product: Product }) {
                 </Link>
               )}
             </div>
+            {waitlistSlug ? (
+              <p style={{ marginTop: 14, marginBottom: 0, fontSize: "0.95rem", opacity: 0.85 }}>
+                Not ready to buy?{" "}
+                <Link href={`/waitlist/${waitlistSlug}`} prefetch={false}>
+                  Get early access and setup notes
+                </Link>{" "}
+                <span aria-hidden="true">→</span>
+              </p>
+            ) : null}
           </div>
           <ProductWindow product={product} />
         </div>

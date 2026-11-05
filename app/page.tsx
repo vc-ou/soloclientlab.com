@@ -4,9 +4,9 @@ import { getPublicPosts } from "@/lib/domains/content";
 import { labelForTopic } from "@/lib/format";
 
 const leadRadarProductHref = "/products/leadradar";
-const homeTitle = "Client Acquisition Tools & Guides for Solo Consultants | SoloClientLab";
+const homeTitle = "Why a Product Doesn't Sell — Listing Autopsies | SoloClientLab";
 const homeDescription =
-  "SoloClientLab builds small, focused tools and practical guides that help solo consultants and independent professionals find real client opportunities, review them, and follow up — without a marketing department.";
+  "Real product autopsies from Pinduoduo, the most price-competitive e-commerce channel in China: which single element is actually killing the sale, and what to change first — with the numbers behind every call.";
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "SoloClientLab LeadRadar preview for CNC and manufacturing lead generation"
+        alt: "SoloClientLab listing autopsy preview"
       }
     ]
   },
@@ -84,11 +84,9 @@ function ProductWindow({ compact = false }: { compact?: boolean }) {
 
 export default async function HomePage() {
   const posts = await getPublicPosts();
-  // 卡片按主线优先：先取 solo consultant 主题的文章，不足三张再用最新补足。
-  // 目的：hero 讲"给独立顾问"，卡片区不能紧接着全是 CNC / 制造业内容（定位矛盾）。
-  const mainlinePosts = posts.filter((post) => post.topic_tag === "solo_worker_client_acquisition");
-  const otherPosts = posts.filter((post) => post.topic_tag !== "solo_worker_client_acquisition");
-  const guideCards = [...mainlinePosts, ...otherPosts].slice(0, 3).map((post) => ({
+  // 专注点改为「商品拆解」（listing autopsy）后，首页卡片不再需要按旧主题优先排序，
+  // 直接取最新即可：读者关心的是最近判了什么，不是题材归属。
+  const guideCards = posts.slice(0, 3).map((post) => ({
     meta: `${labelForTopic(post.topic_tag)} · ${post.read_time ?? "6 min read"}`,
     title: post.title,
     summary: post.summary ?? "",
@@ -99,22 +97,22 @@ export default async function HomePage() {
     <div className="home-reference" id="top">
       <section className="scl-hero container">
         <div className="scl-hero-copy">
-          <div className="scl-mono">SoloClientLab · Client acquisition for solo professionals</div>
-          <h1>Client acquisition for people who work alone.</h1>
-          <p>Small, focused tools and guides that help you find real client opportunities and follow up with confidence. LeadRadar, our first tool, surfaces buying signals hiding in public conversations.</p>
+          <div className="scl-mono">SoloClientLab · Listing autopsies for independent sellers</div>
+          <h1>Why a product doesn&apos;t sell — and what to change first.</h1>
+          <p>I take real products from Pinduoduo, the most price-competitive e-commerce channel in China, price them against a 20-item benchmark, and write down the one element that is actually killing the sale — including where my own judgment could be wrong.</p>
           <div className="scl-actions">
-            <Link className="button primary" href="/products" prefetch={false}>Explore tools <span aria-hidden="true">→</span></Link>
-            <Link className="button secondary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action</Link>
+            <Link className="button primary" href="/research" prefetch={false}>Read the latest autopsies <span aria-hidden="true">→</span></Link>
+            <Link className="button secondary" href="/products" prefetch={false}>See the tools</Link>
           </div>
-          <div className="scl-microcopy">Focused workflows. Clear next steps. No bloated setup.</div>
+          <div className="scl-microcopy">Real products. Real numbers. Including the calls I got wrong.</div>
         </div>
         <ProductWindow />
       </section>
 
       <div className="scl-trust container">
-        <div><b>01</b> Independent and focused</div>
-        <div><b>02</b> One useful workflow at a time</div>
-        <div><b>03</b> Try the workflow before committing</div>
+        <div><b>01</b> One product at a time</div>
+        <div><b>02</b> Numbers before opinions</div>
+        <div><b>03</b> Wrong calls stay published</div>
       </div>
 
       <section className="scl-section container" id="leadradar">
@@ -124,7 +122,7 @@ export default async function HomePage() {
         </div>
         <div className="scl-featured">
           <div>
-            <div className="scl-mono">LeadRadar · CNC / manufacturing</div>
+            <div className="scl-mono">LeadRadar · A tool built earlier, still available</div>
             <h3>Find useful demand signals before they disappear.</h3>
             <p>Turn scattered public conversations into a reviewable list of opportunities, so you can decide what deserves a follow-up.</p>
             <Link className="button primary" href={leadRadarProductHref} prefetch={false}>See LeadRadar in action <span aria-hidden="true">→</span></Link>
@@ -158,7 +156,7 @@ export default async function HomePage() {
           <p>Every product should earn its place by making one part of independent work noticeably easier.</p>
         </div>
         <div className="scl-tool-shelf">
-          <Link className="scl-guide scl-tool-card" href={leadRadarProductHref} prefetch={false}><div className="scl-mono">Beta · Access requests open</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">CNC · MANUFACTURING · → VIEW TOOL</div></Link>
+          <Link className="scl-guide scl-tool-card" href={leadRadarProductHref} prefetch={false}><div className="scl-mono">Beta · Access requests open</div><h3>LeadRadar</h3><p>Review public buying and sourcing signals before they get buried.</p><div className="scl-guide-meta">EARLIER TOOL · → VIEW TOOL</div></Link>
           <div className="scl-tool-note"><div className="scl-mono">What we&apos;re working on</div><h3>More focused tools, only when they earn their place.</h3><p>New products will appear here when they solve a real, repeated bottleneck. No pretend launch dates.</p></div>
         </div>
       </section>
@@ -183,8 +181,8 @@ export default async function HomePage() {
 
       <section className="scl-section container" id="guides">
         <div className="scl-section-heading scl-guides-heading">
-          <div><div className="scl-mono">Guides</div><h2>Practical guides for independent work.</h2></div>
-          <Link className="button secondary" href="/research" prefetch={false}>Browse practical guides <span aria-hidden="true">→</span></Link>
+          <div><div className="scl-mono">Autopsies &amp; notes</div><h2>What I got right, and what I got wrong.</h2></div>
+          <Link className="button secondary" href="/research" prefetch={false}>Browse all writing <span aria-hidden="true">→</span></Link>
         </div>
         {guideCards.length ? (
           <div className="scl-guide-grid">

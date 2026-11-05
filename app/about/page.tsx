@@ -7,7 +7,7 @@ import { getPublicPosts } from "@/lib/domains/content";
 export const metadata: Metadata = {
   title: "About SoloClientLab",
   description:
-    "Learn how SoloClientLab researches client acquisition problems, tests small workflow tools, and builds practical software for consultants, freelancers, creators, and one-person businesses.",
+    "An independent experiment in e-commerce judgment: real product autopsies from Pinduoduo, published with the numbers behind each call — including the ones that turned out wrong.",
   alternates: {
     canonical: "/about"
   }
@@ -23,16 +23,38 @@ export default async function AboutPage() {
         align="center"
         className="public-route-hero"
         eyebrow="About SoloClientLab.com"
-        title="Focused tools for the repetitive parts of solo work"
-        description={"SoloClientLab.com is an independent tool brand for consultants, freelancers, creators, and one-person businesses.\nContact: soloclientlab.com@gmail.com"}
+        title="Why a product doesn't sell — and what to change first"
+        description={"An independent experiment in e-commerce judgment. I take real products from Pinduoduo, price them against a 20-item benchmark, and publish the one element that is actually killing the sale.\nContact: soloclientlab.com@gmail.com"}
       />
+
+      <section className="container">
+        <div className="section-panel route-section">
+          <SectionHeading title="Now — updated 5 November 2026" />
+          <div className="card">
+            <p>
+              <strong>Current experiment: a listing autopsy series.</strong> I take real products from Pinduoduo — the
+              most price-competitive e-commerce channel in China — price them against a 20-item benchmark set, and write
+              down which single element is actually killing the sale, plus where my own judgment could be wrong.
+            </p>
+            <p>
+              <strong>Where it stands:</strong> 20 products sampled in one category, 3 full autopsies completed, 0
+              verified sell-through results. Nothing in this series is a proven playbook yet, and it is labelled
+              accordingly.
+            </p>
+            <p style={{ marginBottom: 0 }}>
+              <strong>Why it belongs here:</strong> it is the same question this site has always asked — what makes a
+              stranger willing to pay — asked from the seller&apos;s side instead of the consultant&apos;s side.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="container">
         <div className="grid-3 about-principles-grid">
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>What SoloClientLab is</h2>
-            <p>SoloClientLab.com is an independent brand making small tools for the work that gets repeated, forgotten, or scattered across too many places.</p>
-            <p>We keep the products focused, explain what they can and cannot do, and make it easy to try the workflow before committing. Contact: soloclientlab.com@gmail.com.</p>
+            <p>SoloClientLab.com is an independent experiment: one person writing down how he judges whether a product can sell, before and after the sales numbers come in.</p>
+            <p>Everything published here is labelled for what it is — a judgment, a sample, or a verified result. Contact: soloclientlab.com@gmail.com.</p>
           </div>
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>Problems we focus on</h2>

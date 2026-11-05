@@ -17,31 +17,61 @@ const staticLastModified = {
 
 export const revalidate = 300;
 
+/** 只取日期部分，避免 "2026-11-05" 与 "2026-11-05T10:00:00Z" 混排时比较失真。 */
+function toDateOnly(value?: string | null) {
+  return value ? value.slice(0, 10) : null;
+}
+
+/** 取一组日期里最新的一个，全部为空时回落到 fallback。 */
+function latestDateOnly(values: Array<string | null | undefined>, fallback: string) {
+  const dates = values.map(toDateOnly).filter((value): value is string => Boolean(value));
+
+  return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : fallback;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [posts, products] = await Promise.all([getPublicPosts(), getPublicProducts()]);
+
+  // lastmod 必须反映真实最后修改时间：写死的日期会让 Google 逐渐不信任整份 sitemap。
+  const researchLastModified = latestDateOnly(
+    posts.map((post) => post.updated_at ?? post.published_at),
+    staticLastModified.research
+  );
+  const productsLastModified = latestDateOnly(
+    products.map((product) => product.updated_at ?? product.published_at),
+    staticLastModified.products
+  );
+  const siteLastModified = latestDateOnly(
+    [researchLastModified, productsLastModified],
+    staticLastModified.home
+  );
+  const leadRadarLastModified = latestDateOnly(
+    products.filter((product) => product.slug === "leadradar").map((product) => product.updated_at ?? product.published_at),
+    productsLastModified
+  );
 
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: siteUrl,
-      lastModified: staticLastModified.home,
+      lastModified: siteLastModified,
       changeFrequency: "weekly",
       priority: 1
     },
     {
       url: `${siteUrl}/research`,
-      lastModified: staticLastModified.research,
+      lastModified: researchLastModified,
       changeFrequency: "weekly",
       priority: 0.9
     },
     {
       url: `${siteUrl}/products`,
-      lastModified: staticLastModified.products,
+      lastModified: productsLastModified,
       changeFrequency: "weekly",
       priority: 0.95
     },
     {
       url: `${siteUrl}/tools/leadradar`,
-      lastModified: staticLastModified.leadRadar,
+      lastModified: leadRadarLastModified,
       changeFrequency: "weekly",
       priority: 0.95
     },
