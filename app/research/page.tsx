@@ -10,9 +10,9 @@ type ResearchPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Practical Guides for Independent Work",
+  title: "Scene Fix Case Files",
   description:
-    "Practical guides for independent consultants, freelancers, and solo service businesses on finding client opportunities, validating demand, organizing workflows, and choosing useful automation.",
+    "Public case files of scene fixes: where the scene is stuck, what changed first, and what actually happened. Series 01: Listing Autopsy.",
   alternates: {
     canonical: "/research"
   }
@@ -29,9 +29,9 @@ export default async function ResearchPage({ searchParams }: ResearchPageProps) 
       <PageHero
         align="center"
         className="public-route-hero"
-        eyebrow="Guides"
-        title="Practical guides for independent work"
-        description="Short explanations for finding opportunities, organizing client work, and deciding what to automate next."
+        eyebrow="Case Files"
+        title="Case files, by scene — not by audience."
+        description="Each entry: the stuck step, the one change, where I might be wrong, and the number that would prove it."
       />
 
       <section className="container">

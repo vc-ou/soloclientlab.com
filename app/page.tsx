@@ -4,9 +4,9 @@ import { getPublicPosts } from "@/lib/domains/content";
 import { labelForTopic } from "@/lib/format";
 
 const leadRadarProductHref = "/products/leadradar";
-const homeTitle = "Why a Product Doesn't Sell — Listing Autopsies | SoloClientLab";
+const homeTitle = "Scene Fixes & Listing Autopsies — Where Work Gets Stuck | SoloClientLab";
 const homeDescription =
-  "Real product autopsies from Pinduoduo, the most price-competitive e-commerce channel in China: which single element is actually killing the sale, and what to change first — with the numbers behind every call.";
+  "One real scene at a time — where it's stuck, what to change first, and what actually happened. Series 01: Listing Autopsy, with the numbers behind every call.";
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "SoloClientLab listing autopsy preview"
+        alt: "SoloClientLab scene fix case file preview"
       }
     ]
   },
@@ -97,20 +97,20 @@ export default async function HomePage() {
     <div className="home-reference" id="top">
       <section className="scl-hero container">
         <div className="scl-hero-copy">
-          <div className="scl-mono">SoloClientLab · Listing autopsies for independent sellers</div>
+          <div className="scl-mono">SoloClientLab · Scene fixes · Series 01: Listing Autopsy</div>
           <h1>Why a product doesn&apos;t sell — and what to change first.</h1>
-          <p>I take real products from Pinduoduo, the most price-competitive e-commerce channel in China, price them against a 20-item benchmark, and write down the one element that is actually killing the sale — including where my own judgment could be wrong.</p>
+          <p>I start with one real scene, find the single step where it's stuck, change one thing, and write down what actually happened — including where my judgment was wrong. Series 01 is Listing Autopsy: real products priced against a 20-item benchmark.</p>
           <div className="scl-actions">
-            <Link className="button primary" href="/research" prefetch={false}>Read the latest autopsies <span aria-hidden="true">→</span></Link>
-            <Link className="button secondary" href="/products" prefetch={false}>See the tools</Link>
+            <Link className="button primary" href="/research" prefetch={false}>Browse case files <span aria-hidden="true">→</span></Link>
+            <Link className="button secondary" href="/about" prefetch={false}>See the method <span aria-hidden="true">→</span></Link>
           </div>
-          <div className="scl-microcopy">Real products. Real numbers. Including the calls I got wrong.</div>
+          <div className="scl-microcopy">Real scenes. Real numbers. Including the calls I got wrong.</div>
         </div>
         <ProductWindow />
       </section>
 
       <div className="scl-trust container">
-        <div><b>01</b> One product at a time</div>
+        <div><b>01</b> One scene at a time</div>
         <div><b>02</b> Numbers before opinions</div>
         <div><b>03</b> Wrong calls stay published</div>
       </div>

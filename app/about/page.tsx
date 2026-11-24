@@ -5,9 +5,9 @@ import { aboutMethodSteps, aboutStudyAreas } from "@/lib/content";
 import { getPublicPosts } from "@/lib/domains/content";
 
 export const metadata: Metadata = {
-  title: "About SoloClientLab",
+  title: "About SoloClientLab — Scene Fixes",
   description:
-    "An independent experiment in e-commerce judgment: real product autopsies from Pinduoduo, published with the numbers behind each call — including the ones that turned out wrong.",
+    "A public case file of scene fixes: one real scene, one stuck step, one change, and what actually happened. Series 01: Listing Autopsy.",
   alternates: {
     canonical: "/about"
   }
@@ -23,8 +23,8 @@ export default async function AboutPage() {
         align="center"
         className="public-route-hero"
         eyebrow="About SoloClientLab.com"
-        title="Why a product doesn't sell — and what to change first"
-        description={"An independent experiment in e-commerce judgment. I take real products from Pinduoduo, price them against a 20-item benchmark, and publish the one element that is actually killing the sale.\nContact: soloclientlab.com@gmail.com"}
+        title="One real scene at a time."
+        description={"SoloClientLab started as a lab for solo client workflows — and evolved into a public case file of scene fixes: finding the exact step where real work gets stuck, testing one minimal fix, and publishing the numbers.\nContact: soloclientlab.com@gmail.com"}
       />
 
       <section className="container">
@@ -32,9 +32,9 @@ export default async function AboutPage() {
           <SectionHeading title="Now — updated 5 November 2026" />
           <div className="card">
             <p>
-              <strong>Current experiment: a listing autopsy series.</strong> I take real products from Pinduoduo — the
-              most price-competitive e-commerce channel in China — price them against a 20-item benchmark set, and write
-              down which single element is actually killing the sale, plus where my own judgment could be wrong.
+              <strong>Current method: scene fixes.</strong> I start from a real scene, find the single step where it is
+              stuck, change one thing, and write down what actually happened — including where my judgment could be
+              wrong. Series 01 is Listing Autopsy: real products priced against a 20-item benchmark.
             </p>
             <p>
               <strong>Where it stands:</strong> 20 products sampled in one category, 3 full autopsies completed, 0
@@ -42,8 +42,8 @@ export default async function AboutPage() {
               accordingly.
             </p>
             <p style={{ marginBottom: 0 }}>
-              <strong>Why it belongs here:</strong> it is the same question this site has always asked — what makes a
-              stranger willing to pay — asked from the seller&apos;s side instead of the consultant&apos;s side.
+              <strong>Why it belongs here:</strong> the name started with solo client workflows; the method now looks for
+              the exact step where real work gets stuck — whoever is doing that work.
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default async function AboutPage() {
         <div className="grid-3 about-principles-grid">
           <div className="card">
             <h2 style={{ fontSize: "2rem" }}>What SoloClientLab is</h2>
-            <p>SoloClientLab.com is an independent experiment: one person writing down how he judges whether a product can sell, before and after the sales numbers come in.</p>
+            <p>SoloClientLab.com is a public case file of scene fixes: one real scene, one stuck step, one change, and what actually happened — with the numbers behind every call.</p>
             <p>Everything published here is labelled for what it is — a judgment, a sample, or a verified result. Contact: soloclientlab.com@gmail.com.</p>
           </div>
           <div className="card">

@@ -15,8 +15,8 @@ export function SiteHeader() {
         </Link>
         <HeaderNav />
         <ThemeToggle />
-        <Link href="/products" className="button primary header-explore" prefetch={false}>
-          Explore tools <span aria-hidden="true">→</span>
+        <Link href="/research" className="button primary header-explore" prefetch={false}>
+          Browse case files <span aria-hidden="true">→</span>
         </Link>
       </div>
     </header>
@@ -36,7 +36,7 @@ export function SiteFooter() {
               <span className="footer-brand">SoloClientLab</span>
             </Link>
             <p className="footer-copy">
-              Focused tools that make independent work easier to run.
+              A public case file of scene fixes. Started as a lab for solo client workflows.
             </p>
           </div>
 
@@ -46,7 +46,7 @@ export function SiteFooter() {
           </div>
           <div>
             <h3 className="footer-heading">Learn</h3>
-            <div className="footer-links"><Link href="/research" prefetch={false}>Guides</Link><Link href="/products" prefetch={false}>Products</Link></div>
+            <div className="footer-links"><Link href="/research" prefetch={false}>Case Files</Link><Link href="/products" prefetch={false}>Tools</Link></div>
           </div>
           <div>
             <h3 className="footer-heading">Company</h3>
@@ -60,7 +60,7 @@ export function SiteFooter() {
 
         <div className="footer-meta">
           <div>&copy; {currentYear} SoloClientLab.com. All rights reserved.</div>
-          <div>Focused tools for independent work.</div>
+          <div>A public case file of scene fixes.</div>
         </div>
       </div>
     </footer>

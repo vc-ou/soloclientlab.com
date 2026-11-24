@@ -4,9 +4,9 @@ import { getPublicProducts } from "@/lib/domains/catalog";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Products | SoloClientLab"
+    absolute: "Tools from the case files | SoloClientLab"
   },
-  description: "Tools built for solo clients and builders.",
+  description: "Small tools that came out of scene fixes — built after the judgment, not before.",
   alternates: {
     canonical: "/products"
   }

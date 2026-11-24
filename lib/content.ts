@@ -2,11 +2,11 @@ import type { TopicTag } from "@/lib/types";
 
 export const siteName = "SoloClientLab.com";
 export const siteDescription =
-  "Listing autopsies from Pinduoduo, the most price-competitive e-commerce channel in China — which single element is actually killing a product's sale, and what to change first.";
+  "One real scene at a time — where it's stuck, what to change first, and what actually happened. Series 01: Listing Autopsy, with the numbers behind every call.";
 
 export const publicSocialProof = {
   newsletterJoinCopy:
-    "Research notes for solo experts looking for lower-noise client acquisition workflows. Updated as new field notes and experiments are reviewed.",
+    "Field notes on real scenes: where work gets stuck, what I changed first, and what the numbers actually showed. Published as new case files are verified.",
   demandSignalsLabel: "Research status",
   demandSignalsDisplay: "Early field notes"
 } as const;
